@@ -1,0 +1,10 @@
+# 忽略常見的 PHP/XAMPP 檔案
+/app/logs/
+/vendor/             # 如果您有使用 Composer
+/session_data/       # 專門存放 Session 檔案的資料夾
+*.log
+.DS_Store            # macOS 系統檔案
+
+# 忽略 PHP IDE 和編輯器設定
+.idea/
+.vscode/
