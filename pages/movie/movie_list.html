@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>現正熱映 - Vieshow Ticketing</title>
+    
+    <!-- 引入 Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        /* 自定義樣式 */
+        .movie-poster-card {
+            transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+            cursor: pointer;
+            overflow: hidden;
+            background-color: white;
+        }
+        .movie-poster-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .poster-container {
+            aspect-ratio: 2 / 3; /* 模擬標準電影海報比例 */
+            overflow: hidden;
+        }
+        .poster-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s;
+        }
+        .movie-poster-card:hover img {
+            transform: scale(1.05);
+        }
+    </style>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'vieshow-red': '#e50914',
+                        'vieshow-gold': '#f7a83d',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'Noto Sans TC', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-100 font-sans min-h-screen flex flex-col">
+    
+    <!-- Header 導航 (模擬共用 header) -->
+    <header class="bg-gray-800 text-white shadow-md">
+        <nav class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <a href="../../index.html" class="text-xl font-bold hover:text-vieshow-red transition duration-300">Vieshow 影城</a>
+            <div class="space-x-4">
+                <a href="../auth/login.html" class="hover:text-vieshow-gold transition duration-300">登入</a>
+                <a href="../member/member_home.html" class="hover:text-vieshow-gold transition duration-300">會員中心</a>
+            </div>
+        </nav>
+    </header>
+
+    <div class="container mx-auto px-4 py-8 flex-grow">
+        <h2 class="text-4xl font-extrabold text-gray-800 mb-8 border-b-4 border-vieshow-red pb-3 text-center">
+            🔥 現正熱映中 (Today's Movies)
+        </h2>
+        
+        <!-- 電影列表容器 -->
+        <div id="movieListContainer" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
+            <!-- 電影卡片將由 JS 載入 -->
+        </div>
+
+    </div>
+
+    <!-- Footer 內容 (模擬共用 footer) -->
+    <footer class="bg-gray-800 text-white text-center py-4 mt-8 shadow-inner">
+        <p>&copy; 2025 Vieshow Ticketing System</p>
+    </footer>
+
+    <!-- JavaScript 邏輯：模擬從後端獲取電影列表 -->
+    <script>
+        // 模擬電影列表資料
+        const mockMovieList = [
+            { 
+                id: 'G001', 
+                name: "星際特攻隊：無限戰爭", 
+                releaseDate: "2025/12/01", 
+                rating: 4.2, 
+                posterUrl: "https://placehold.co/400x600/1e293b/ffffff?text=Guardians+of+Galaxy+5" 
+            },
+            { 
+                id: 'D002', 
+                name: "夢想啟動：人工智慧時代", 
+                releaseDate: "2025/11/20", 
+                rating: 3.8, 
+                posterUrl: "https://placehold.co/400x600/f59e0b/000000?text=AI+Dream+Starter" 
+            },
+            { 
+                id: 'H003', 
+                name: "極速狂飆：午夜對決", 
+                releaseDate: "2025/12/15", 
+                rating: 4.5, 
+                posterUrl: "https://placehold.co/400x600/ef4444/ffffff?text=Midnight+Race" 
+            },
+            { 
+                id: 'C004', 
+                name: "貓咪偵探與失蹤的鑽石", 
+                releaseDate: "2025/12/05", 
+                rating: 3.9, 
+                posterUrl: "https://placehold.co/400x600/10b981/ffffff?text=Cat+Detective" 
+            },
+            { 
+                id: 'F005', 
+                name: "失落的古文明", 
+                releaseDate: "2025/11/10", 
+                rating: 4.0, 
+                posterUrl: "https://placehold.co/400x600/3b82f6/ffffff?text=Lost+Civilization" 
+            },
+            { 
+                id: 'J006', 
+                name: "廚神爭霸戰", 
+                releaseDate: "2025/12/24", 
+                rating: 4.7, 
+                posterUrl: "https://placehold.co/400x600/f97316/ffffff?text=Master+Chef+Battle" 
+            },
+        ];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderMovieList(mockMovieList);
+        });
+
+        /**
+         * 渲染電影列表
+         * @param {Array<object>} movies - 電影資料陣列
+         */
+        function renderMovieList(movies) {
+            const container = document.getElementById('movieListContainer');
+            if (!container) return;
+
+            const html = movies.map(movie => `
+                <!-- 連結到 movie_info.html，並傳遞 movie_id 參數 -->
+                <a href="./movie_info.html?movie_id=${movie.id}" 
+                   class="movie-poster-card block rounded-lg shadow-lg hover:shadow-2xl">
+                    
+                    <!-- 海報圖片容器 -->
+                    <div class="poster-container rounded-t-lg">
+                        <img src="${movie.posterUrl}" 
+                             alt="${movie.name} 海報" 
+                             onerror="this.onerror=null; this.src='https://placehold.co/400x600/9ca3af/ffffff?text=No+Poster';"
+                             class="rounded-t-lg">
+                    </div>
+                    
+                    <!-- 電影資訊區塊 -->
+                    <div class="p-3">
+                        <h3 class="text-lg font-bold text-gray-900 truncate mb-1" title="${movie.name}">
+                            ${movie.name}
+                        </h3>
+                        
+                        <!-- 評分與上映日期 -->
+                        <div class="flex justify-between items-center text-sm text-gray-500">
+                            <!-- 評分 -->
+                            <span class="flex items-center font-semibold text-vieshow-gold">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.817 2.045a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.817-2.045a1 1 0 00-1.175 0l-2.817 2.045c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.02 8.729c-.783-.57-.381-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                </svg>
+                                ${movie.rating.toFixed(1)}
+                            </span>
+                            
+                            <!-- 上映日期 -->
+                            <span class="text-xs">
+                                ${movie.releaseDate.substring(5)} 上映
+                            </span>
+                        </div>
+                    </div>
+                </a>
+            `).join('');
+
+            container.innerHTML = html;
+        }
+    </script>
+    
+</body>
+</html>

@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>歷史訂票紀錄 - Vieshow Ticketing</title>
+    
+    <!-- 引入 Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script>
+        // Tailwind 配置，確保顏色和字體與 member_profile.html 一致
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'vieshow-red': '#e50914',
+                        'vieshow-gold': '#f7a83d',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'Noto Sans TC', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-50 font-sans min-h-screen flex flex-col">
+    
+    <!-- Header 導航 (保持一致) -->
+    <header class="bg-gray-800 text-white shadow-md">
+        <nav class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <a href="../../index.html" class="text-xl font-bold hover:text-vieshow-red transition duration-300">Vieshow 影城</a>
+            <div class="space-x-4 flex items-center">
+                <!-- 假設已登入，可導航回會員中心 -->
+                <a href="../member/member_home.html" class="text-sm font-medium hover:text-vieshow-gold transition duration-300">👤 會員中心</a>
+                <button id="signOutButton" class="bg-vieshow-red px-3 py-1 rounded-full text-white text-sm font-semibold hover:bg-red-700 transition duration-300">
+                    登出
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <!-- 主要內容區塊 -->
+    <div class="container mx-auto px-4 py-10 flex-grow max-w-5xl">
+        
+        <div class="bg-white p-6 sm:p-8 rounded-xl shadow-xl border-t-4 border-vieshow-red">
+            <h2 class="text-3xl font-extrabold text-vieshow-red mb-2 flex items-center justify-center">
+                🧾 歷史訂票紀錄
+            </h2>
+            <p class="text-center text-gray-500 mb-8">您在 Vieshow 系統上的所有訂票紀錄。</p>
+
+            <div id="historyTableContainer" class="responsive-table-wrapper">
+                <!-- 訂單表格將由 JavaScript 載入 -->
+                <p class="text-center text-gray-500">載入中...
+                </p>
+            </div>
+            
+        </div>
+    </div>
+
+    <!-- Footer 內容 (與 member_profile.html 樣式一致) -->
+    <footer class="bg-gray-800 text-white text-center py-4 mt-8 shadow-inner">
+        <p>&copy; 2025 Vieshow Ticketing System</p>
+    </footer>
+
+    <!-- JavaScript 邏輯 -->
+    <script>
+        // 模擬歷史訂單資料
+        const historyData = [
+            { id: '20251101A01', movie: '阿凡達 3', date: '2025/11/01 19:30', total: 600, status: '已完成', can_modify: true },
+            { id: '20251015B02', movie: '不可能的任務 8', date: '2025/10/15 14:00', total: 300, status: '已完成', can_modify: false },
+            { id: '20251205C03', movie: '貓與老鼠 2', date: '2025/12/05 10:00', total: 900, status: '已取票', can_modify: true },
+            { id: '20251210D04', movie: '星際大戰：新希望', date: '2025/12/10 22:00', total: 400, status: '已取消', can_modify: false },
+        ];
+
+        /**
+         * 根據狀態設定 Tailwind 樣式類別
+         * @param {string} status - 訂單狀態
+         * @returns {string} Tailwind 樣式類別
+         */
+        function getStatusClass(status) {
+            switch(status) {
+                case '已完成':
+                    return 'text-green-600 font-semibold';
+                case '已取票':
+                    return 'text-blue-600 font-semibold';
+                case '已取消':
+                    return 'text-gray-500 font-medium';
+                default:
+                    return '';
+            }
+        }
+
+        /**
+         * 渲染歷史訂單表格
+         */
+        function renderHistory() {
+            const container = document.getElementById('historyTableContainer');
+
+            if (historyData.length === 0) {
+                container.innerHTML = '<p class="text-center text-gray-500 p-4">您目前沒有任何訂票紀錄。</p>';
+                return;
+            }
+
+            // 使用 w-full table-auto 確保表格在滾動容器內正常顯示
+            let html = `
+                <table class="min-w-full divide-y divide-gray-200 border border-gray-100">
+                    <thead>
+                        <tr class="bg-vieshow-red text-white">
+                            <th scope="col" class="px-3 py-3 text-sm font-semibold uppercase tracking-wider text-center w-[150px]">訂單編號</th>
+                            <th scope="col" class="px-3 py-3 text-sm font-semibold uppercase tracking-wider text-center w-[200px]">電影名稱</th>
+                            <th scope="col" class="px-3 py-3 text-sm font-semibold uppercase tracking-wider text-center w-[180px]">場次日期</th>
+                            <th scope="col" class="px-3 py-3 text-sm font-semibold uppercase tracking-wider text-center w-[100px]">總金額</th>
+                            <th scope="col" class="px-3 py-3 text-sm font-semibold uppercase tracking-wider text-center w-[100px]">狀態</th>
+                            <th scope="col" class="px-3 py-3 text-sm font-semibold uppercase tracking-wider text-center w-[200px]">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200 text-gray-700">
+            `;
+
+            historyData.forEach(order => {
+                const totalFormatted = 'NT$' + order.total.toLocaleString('zh-TW');
+                const statusClass = getStatusClass(order.status);
+                
+                let actions = '<span class="text-gray-400">-</span>';
+                if (order.can_modify) {
+                    actions = `
+                        <button 
+                            class="inline-block px-2 py-1 text-sm flex flex-col space-y-1 items-center font-medium rounded-md shadow-sm transition duration-150 bg-vieshow-red hover:bg-red-700 text-white" 
+                            onclick="handleCancel('${order.id}');"
+                        >
+                            取消(退票)
+                        </button>
+                        <a href="#" class="inline-block px-2 py-1 text-sm flex flex-col space-y-1 items-center font-medium rounded-md shadow-sm transition duration-150 bg-blue-600 hover:bg-blue-700 text-white" onclick="showNotification('模擬進入訂單詳情頁面: ${order.id}')">
+                            修改/詳情
+                        </a>
+                    `;
+                }
+
+                html += `
+                    <tr class="hover:bg-red-50 transition duration-150">
+                        <td class="px-3 py-3 whitespace-nowrap text-center font-mono text-sm">${order.id}</td>
+                        <td class="px-3 py-3 whitespace-nowrap text-center">${order.movie}</td>
+                        <td class="px-3 py-3 whitespace-nowrap text-center">${order.date}</td>
+                        <td class="px-3 py-3 whitespace-nowrap text-center font-bold">${totalFormatted}</td>
+                        <td class="px-3 py-3 whitespace-nowrap text-center ${statusClass}">${order.status}</td>
+                        <td class="px-3 py-3 text-center">${actions}</td>
+                    </tr>
+                `;
+            });
+
+            html += `
+                    </tbody>
+                </table>
+            `;
+            
+            container.innerHTML = html;
+        }
+
+        /**
+         * 顯示模擬通知
+         */
+        function showNotification(message, isError = false) {
+            const notification = document.createElement('div');
+            notification.textContent = message;
+            notification.className = `fixed top-0 left-1/2 -translate-x-1/2 mt-4 px-6 py-3 rounded-lg shadow-xl z-50 transition duration-300 transform ${isError ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'} animate-fade-in-down`;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.classList.replace('animate-fade-in-down', 'animate-fade-out-up');
+                setTimeout(() => notification.remove(), 500); // 讓淡出動畫完成
+            }, 3000);
+        }
+
+        /**
+         * 模擬取消(退票)操作
+         * @param {string} orderId - 訂單編號
+         */
+        window.handleCancel = function(orderId) {
+            console.log(`模擬取消訂單: ${orderId}`);
+            showNotification(`[模擬操作] 嘗試取消訂單: ${orderId}。請前往詳情頁面執行退票。`);
+        }
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            // *** FIX: 在 DOM 載入後立即呼叫 renderHistory 渲染表格 ***
+            renderHistory(); 
+            
+            // 模擬登出事件
+            document.getElementById('signOutButton').addEventListener('click', function(e) {
+                e.preventDefault(); 
+                const header = document.querySelector('header');
+                const messageDiv = document.createElement('div');
+                
+                messageDiv.textContent = '您已成功登出。即將導向首頁...';
+                messageDiv.className = 'fixed top-0 left-0 right-0 bg-green-500 text-white text-center py-2 shadow-lg z-50';
+                document.body.prepend(messageDiv);
+                
+                // 延遲 2 秒後導向首頁
+                setTimeout(() => {
+                    // 移除訊息並模擬頁面跳轉 (此處僅為模擬，因為沒有實際首頁)
+                    messageDiv.remove();
+                    // window.location.href = '../../index.html'; 
+                }, 2000);
+            });
+        
+            // 為了讓通知效果更平滑，新增 CSS 動畫類別
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes fadeInDown {
+                    from { opacity: 0; transform: translate(-50%, -20px); }
+                    to { opacity: 1; transform: translate(-50%, 0); }
+                }
+                @keyframes fadeOutUp {
+                    from { opacity: 1; transform: translate(-50%, 0); }
+                    to { opacity: 0; transform: translate(-50%, -20px); }
+                }
+                .animate-fade-in-down { animation: fadeInDown 0.5s ease-out forwards; }
+                .animate-fade-out-up { animation: fadeOutUp 0.5s ease-in forwards; }
+            `;
+            document.head.appendChild(style);
+        });
+    </script>
+    
+</body>
+</html>

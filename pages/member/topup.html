@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>點數儲值 - Vieshow Ticketing</title>
+    
+    <!-- 引入 Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'vieshow-red': '#e50914',
+                        'vieshow-gold': '#f7a83d',
+                        'vieshow-bg': '#fefefe', 
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'Noto Sans TC', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        /* 方案卡片樣式 */
+        .option-card {
+            transition: all 0.2s;
+            cursor: pointer;
+            border-width: 2px;
+        }
+        .option-card:hover {
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        .option-card.selected {
+            border-color: #e50914; /* Vieshow Red */
+            background-color: #fee2e2; /* Red 100 */
+            box-shadow: 0 6px 15px rgba(229, 9, 20, 0.2);
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans min-h-screen flex flex-col">
+    
+    <!-- Header 導航 (模擬) -->
+    <header class="bg-gray-800 text-white shadow-md">
+        <nav class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <a href="../../index.html" class="text-xl font-bold hover:text-vieshow-red transition duration-300">Vieshow 影城</a>
+            <div class="space-x-4 flex items-center">
+                <a href="member_home.html" class="text-sm font-medium hover:text-vieshow-gold transition duration-300">👤 會員中心</a>
+                <button id="signOutButton" class="bg-vieshow-red px-3 py-1 rounded-full text-white text-sm font-semibold hover:bg-red-700 transition duration-300">
+                    登出
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <div class="container mx-auto px-4 py-10 flex-grow max-w-2xl">
+        
+        <div class="bg-vieshow-bg p-6 sm:p-8 rounded-xl shadow-2xl border-t-4 border-vieshow-red">
+            <h2 class="text-3xl font-extrabold text-gray-800 mb-2 flex items-center justify-center">
+                💰 點數儲值
+            </h2>
+            <p class="text-center text-gray-500 mb-8">選擇您的儲值金額，即可獲得 iShow 點數。</p>
+
+            <!-- 當前餘額區塊 (Current Balance) -->
+            <div class="bg-red-50 p-4 rounded-lg border border-red-200 mb-8 flex justify-between items-center">
+                <p class="text-lg font-medium text-gray-700">您的當前點數餘額:</p>
+                <p class="text-2xl font-extrabold text-vieshow-red" id="currentBalance">250 點</p>
+            </div>
+
+            <!-- 訊息顯示區塊 -->
+            <div id="messageContainer" class="hidden p-3 mb-6 rounded-lg font-medium text-sm text-center" role="alert"></div>
+
+            <form id="topupForm" action="../../Controllers/Member_Controller.php?action=topup_process" method="POST" class="space-y-8">
+                
+                <!-- 1. 選擇儲值方案 -->
+                <div>
+                    <h3 class="text-xl font-semibold text-gray-700 mb-4">選擇儲值方案</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        
+                        <!-- 方案 1: 500 元 -->
+                        <div class="option-card border-gray-200 rounded-xl p-4 text-center bg-white" data-amount="500" data-points="500">
+                            <input type="radio" name="amount" value="500" id="opt500" class="hidden" required>
+                            <label for="opt500" class="block">
+                                <p class="text-3xl font-extrabold text-gray-800 mb-1">NT$ 500</p>
+                                <p class="text-sm text-gray-500">儲值金額</p>
+                                <p class="text-lg font-bold text-vieshow-red mt-2">獲得 500 點</p>
+                                <p class="text-xs text-gray-400 mt-1">無贈送點數</p>
+                            </label>
+                        </div>
+
+                        <!-- 方案 2: 1000 元 (加贈 100 點) -->
+                        <div class="option-card border-gray-200 rounded-xl p-4 text-center bg-white" data-amount="1000" data-points="1100">
+                            <input type="radio" name="amount" value="1000" id="opt1000" class="hidden">
+                            <label for="opt1000" class="block">
+                                <p class="text-3xl font-extrabold text-vieshow-red mb-1">NT$ 1,000</p>
+                                <p class="text-sm text-gray-500">儲值金額</p>
+                                <p class="text-lg font-bold text-vieshow-red mt-2">獲得 1,100 點</p>
+                                <p class="text-xs text-vieshow-gold font-semibold mt-1">加贈 100 點！</p>
+                            </label>
+                        </div>
+                        
+                        <!-- 方案 3: 2000 元 (加贈 300 點) -->
+                        <div class="option-card border-gray-200 rounded-xl p-4 text-center bg-white" data-amount="2000" data-points="2300">
+                            <input type="radio" name="amount" value="2000" id="opt2000" class="hidden">
+                            <label for="opt2000" class="block">
+                                <p class="text-3xl font-extrabold text-gray-800 mb-1">NT$ 2,000</p>
+                                <p class="text-sm text-gray-500">儲值金額</p>
+                                <p class="text-lg font-bold text-vieshow-red mt-2">獲得 2,300 點</p>
+                                <p class="text-xs text-vieshow-gold font-semibold mt-1">加贈 300 點！</p>
+                            </label>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- 2. 選擇付款方式 (使用 Select 下拉選單) -->
+                <div>
+                    <h3 class="text-xl font-semibold text-gray-700 mb-4">選擇付款方式</h3>
+                    <select id="paymentMethod" name="paymentMethod" required
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-vieshow-red focus:border-vieshow-red transition duration-150 text-base bg-white shadow-sm">
+                        <option value="" disabled selected>請選擇付款方式</option>
+                        <option value="credit">信用卡 / 金融卡</option>
+                        <option value="linepay">Line Pay</option>
+                        <option value="atm">ATM 轉帳</option>
+                    </select>
+                </div>
+
+                <!-- 3. 提交按鈕 -->
+                <button type="submit" id="topupButton" class="w-full bg-gray-400 text-white py-3 rounded-lg font-bold text-xl transition duration-200 shadow-lg cursor-not-allowed" disabled>
+                    請先選擇儲值方案
+                </button>
+            </form>
+            
+        </div>
+    </div>
+
+    <!-- JavaScript 邏輯 -->
+    <script>
+        const optionCards = document.querySelectorAll('.option-card');
+        const radioButtons = document.querySelectorAll('input[name="amount"]');
+        const paymentMethodSelect = document.getElementById('paymentMethod');
+        const topupButton = document.getElementById('topupButton');
+        const form = document.getElementById('topupForm');
+        const messageContainer = document.getElementById('messageContainer');
+        const currentBalanceDisplay = document.getElementById('currentBalance');
+        
+        let selectedAmount = 0;
+        let selectedPoints = 0;
+        let currentBalance = 250; // 模擬當前點數
+
+        // 初始化顯示
+        currentBalanceDisplay.textContent = `${currentBalance.toLocaleString()} 點`;
+
+        // --- 訊息處理函數 ---
+        function showFormMessage(text, type) {
+            messageContainer.textContent = text;
+            messageContainer.classList.remove('hidden', 'bg-green-100', 'text-green-800', 'bg-red-100', 'text-red-800');
+            
+            if (type === 'success') {
+                messageContainer.classList.add('bg-green-100', 'text-green-800');
+            } else if (type === 'error') {
+                messageContainer.classList.add('bg-red-100', 'text-red-800');
+            }
+
+            messageContainer.classList.remove('hidden');
+            setTimeout(() => {
+                messageContainer.classList.add('hidden');
+            }, 5000);
+        }
+
+        // --- 更新按鈕狀態及顯示金額 ---
+        function updateTopupState() {
+            const isAmountSelected = selectedAmount > 0;
+            const isPaymentSelected = paymentMethodSelect.value !== '';
+            
+            if (isAmountSelected && isPaymentSelected) {
+                topupButton.disabled = false;
+                topupButton.textContent = `確認儲值 NT$ ${selectedAmount.toLocaleString()} (獲得 ${selectedPoints.toLocaleString()} 點)`;
+                topupButton.classList.remove('bg-gray-400', 'cursor-not-allowed');
+                topupButton.classList.add('bg-vieshow-gold', 'hover:bg-vieshow-red', 'text-gray-900', 'hover:text-white');
+            } else {
+                topupButton.disabled = true;
+                topupButton.classList.remove('bg-vieshow-gold', 'hover:bg-vieshow-red', 'text-gray-900', 'hover:text-white');
+                topupButton.classList.add('bg-gray-400', 'cursor-not-allowed');
+
+                if (!isAmountSelected) {
+                    topupButton.textContent = '請先選擇儲值方案';
+                } else {
+                    topupButton.textContent = '請選擇付款方式';
+                }
+            }
+        }
+
+        // --- 方案卡片/Radio 點擊事件 ---
+        optionCards.forEach(card => {
+            card.addEventListener('click', () => {
+                const amount = parseInt(card.dataset.amount);
+                const points = parseInt(card.dataset.points);
+                
+                // 模擬點擊內部的 radio button
+                const radio = document.getElementById(`opt${amount}`);
+                if (radio) radio.checked = true;
+
+                // 更新選中的狀態
+                optionCards.forEach(c => c.classList.remove('selected'));
+                card.classList.add('selected');
+
+                selectedAmount = amount;
+                selectedPoints = points;
+                updateTopupState();
+            });
+        });
+        
+        // --- 付款方式變更事件 ---
+        paymentMethodSelect.addEventListener('change', updateTopupState);
+
+        // --- 表單提交事件 (模擬付款流程) ---
+        form.addEventListener('submit', function(e) {
+            e.preventDefault(); // 阻止表單實際提交，我們在這裡做前端模擬
+
+            if (topupButton.disabled) {
+                showFormMessage('請完成所有選擇。', 'error');
+                return;
+            }
+            
+            const paymentMethod = paymentMethodSelect.options[paymentMethodSelect.selectedIndex].text;
+
+            // 禁用按鈕並開始模擬流程
+            topupButton.disabled = true;
+            const originalText = topupButton.textContent;
+            topupButton.textContent = `導向 ${paymentMethod} 付款頁面...`;
+            topupButton.classList.add('opacity-75');
+
+            // 模擬導向金流頁面及等待 3 秒
+            setTimeout(() => {
+                // 假設付款成功
+                
+                // 更新餘額顯示
+                currentBalance += selectedPoints;
+                currentBalanceDisplay.textContent = `${currentBalance.toLocaleString()} 點`;
+                
+                showFormMessage(`🥳 儲值成功！已為您儲值 NT$ ${selectedAmount.toLocaleString()} 元，並獲得 ${selectedPoints.toLocaleString()} 點。`, 'success');
+                
+                // 重設表單狀態
+                selectedAmount = 0;
+                selectedPoints = 0;
+                optionCards.forEach(card => card.classList.remove('selected'));
+                paymentMethodSelect.value = '';
+                
+                topupButton.classList.remove('opacity-75');
+                form.reset(); 
+                updateTopupState(); // 重設為初始狀態
+            }, 3000);
+        });
+        
+        // 初始化檢查
+        document.addEventListener('DOMContentLoaded', updateTopupState);
+    </script>
+    
+</body>
+</html>

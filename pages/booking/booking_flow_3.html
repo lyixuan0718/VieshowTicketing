@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>訂票步驟 3: 選擇座位 - Vieshow Ticketing</title> 
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+        .seat {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            color: white;
+            transition: 0.15s;
+        }
+        .available { background-color: #22c55e; } /* 綠色 */
+        .available:hover { background-color: #16a34a; } 
+        .occupied { background-color: #9ca3af; cursor: not-allowed; }
+        .selected { background-color: #dc2626; transform: scale(1.07); }
+    </style>
+
+</head>
+<body class="antialiased">
+
+<!-- Header -->
+<header class="bg-gray-800 text-white shadow-md">
+        <nav class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <a href="../../index.html" class="text-xl font-bold hover:text-vieshow-red transition duration-300">Vieshow 影城</a>
+            <div class="space-x-4">
+                <a href="../auth/login.html" class="hover:text-vieshow-gold transition duration-300">登入</a>
+                <a href="../member/member_home.html" class="hover:text-vieshow-gold transition duration-300">會員中心</a>
+            </div>
+        </nav>
+    </header>
+
+<!-- 主容器 -->
+<div class="w-11/12 md:max-w-2xl mx-auto my-8 p-6 bg-white border border-gray-200 rounded-xl shadow-2xl">
+
+    <h2 class="text-2xl font-extrabold text-gray-900 mb-6 flex items-center">
+        🎫 訂票選位 - 步驟 3/7 (選擇座位)
+    </h2>
+
+    <!-- 電影資訊 -->
+    <div class="bg-gray-50 p-4 rounded-lg mb-6 text-sm md:text-base border border-gray-100">
+        <p>影城：<strong id="cinemaName">載入中...</strong></p>
+        <p>電影：<strong id="movieTitle">載入中...</strong></p>
+        <p>場次：<strong id="showtimeDetails">載入中...</strong></p>
+    </div>
+
+    <!-- 座位選擇標題 -->
+    <h3 class="text-xl font-semibold border-b-2 border-red-600 pb-2 text-red-700">
+        請選擇座位（<span id="requiredTickets">0</span> 張）
+    </h3>
+
+    <!-- 圖例 -->
+    <div class="flex space-x-6 mt-4 mb-4 text-sm text-gray-700">
+        <div class="flex items-center"><div class="w-4 h-4 bg-green-400 mr-2 rounded"></div>可選</div>
+        <div class="flex items-center"><div class="w-4 h-4 bg-gray-400 mr-2 rounded"></div>已售</div>
+        <div class="flex items-center"><div class="w-4 h-4 bg-red-600 mr-2 rounded"></div>已選</div>
+    </div>
+
+    <!-- 座位地圖 -->
+    <div class="bg-gray-100 p-4 rounded-lg border">
+        <div class="bg-gray-800 text-white text-center py-2 mb-4 rounded font-bold">
+            --- 影廳螢幕 ---
+        </div>
+        <div id="seatMap" class="flex flex-col space-y-2"></div>
+    </div>
+
+    <!-- 已選座位 -->
+    <div class="mt-6">
+        <h4 class="font-semibold">已選座位：</h4>
+        <p id="selectedSeatsDisplay" class="text-xl text-red-600 font-bold">無</p>
+    </div>
+
+    <div id="errorMessage" class="font-bold mt-4 text-center text-red-600"></div>
+
+    <!-- 訂單摘要 -->
+    <h3 class="text-xl font-semibold border-b-2 border-red-600 pb-2 mt-8 mb-4 text-red-700">
+        您的訂單摘要
+    </h3>
+
+    <div class="bg-gray-50 p-4 rounded-lg mb-6 text-sm md:text-base border border-gray-100">
+        <p>應選張數：<strong id="totalTicketsRequired" class="text-red-700">0</strong> 張</p>
+        <p>已選座位：<strong id="selectedSeatsSummary" class="text-red-700">無</strong></p>
+
+        <div class="border-t mt-2 pt-2">
+            <p id="ticketsSummary">票種與數量：載入中...</p>
+            <p id="foodSummary">餐點：載入中...</p>
+        </div>
+    </div>
+
+    <!-- 表單 -->
+    <form id="bookingFlow3Form">
+        <input type="hidden" name="selected_seats" id="submitSeats" value="">
+
+        <button type="submit" class="w-full py-3 bg-red-700 text-white rounded-lg font-bold text-lg hover:bg-red-800 transition disabled:bg-gray-400 disabled:cursor-not-allowed" disabled>
+            下一步：訂單確認 (步驟 4)
+        </button>
+    </form>
+
+    <p class="mt-4 text-center">
+        <a href="booking_flow_2.html" class="text-red-600 hover:text-red-800">← 返回上一步</a>
+    </p>
+</div>
+
+<!-- JS：整合後唯一版本 -->
+<script>
+    let currentBooking = {};
+    let totalTickets = 0;
+    let selectedSeats = [];
+
+    const cinemaNameDisplay = document.getElementById("cinemaName");
+    const movieTitleDisplay = document.getElementById("movieTitle");
+    const showtimeDetailDisplay = document.getElementById("showtimeDetails");
+
+    const requiredTicketsSpan = document.getElementById("requiredTickets");
+    const totalTicketsRequiredSpan = document.getElementById("totalTicketsRequired");
+
+    const selectedSeatsDisplay = document.getElementById("selectedSeatsDisplay");
+    const selectedSeatsSummary = document.getElementById("selectedSeatsSummary");
+
+    const ticketsSummary = document.getElementById("ticketsSummary");
+    const foodSummary = document.getElementById("foodSummary");
+
+    const submitSeatsInput = document.getElementById("submitSeats");
+    const nextButton = document.querySelector("button[type='submit']");
+    const errorMessage = document.getElementById("errorMessage");
+
+    // Mock 座位（A=可選 / O=已售）
+    const seatData = [
+        ["A","A","A","O","A","A","A","A","A","A"],
+        ["O","A","A","A","A","A","O","A","A","A"],
+        ["A","A","A","A","A","A","A","O","A","A"],
+        ["A","A","O","A","A","A","A","A","A","A"],
+        ["A","A","A","A","A","A","A","A","A","A"],
+    ];
+    const rows = ["A","B","C","D","E"];
+
+    function loadBookingData() {
+    // 讀 Step1/Step2 的資料
+    const stored = localStorage.getItem("currentBooking");
+    if (stored) {
+        currentBooking = JSON.parse(stored);
+    } else {
+        currentBooking = {
+            tickets: {},
+            combos: {}
+        };
+    }
+    
+    // 使用 Step1 選的電影資訊
+    cinemaNameDisplay.textContent = currentBooking.cinemaName || "載入中...";
+    movieTitleDisplay.textContent = currentBooking.movieTitle || "載入中...";
+    showtimeDetailDisplay.textContent = currentBooking.showtimeDetail || "載入中...";
+
+    // 總票數
+    totalTickets = currentBooking.totalTicketQty || 0;
+    requiredTicketsSpan.textContent = totalTickets;
+    totalTicketsRequiredSpan.textContent = totalTickets;
+
+    // 票種摘要
+    const tickets = currentBooking.tickets || {};
+    const ticketEntries = Object.values(tickets);
+    ticketsSummary.textContent = ticketEntries.length
+        ? "票種與數量：" + ticketEntries.map(t => `${t.name} x ${t.qty}`).join(" + ")
+        : "票種與數量：無";
+
+    // 餐點摘要
+    const combos = currentBooking.combos || {};
+    const comboEntries = Object.values(combos);
+    foodSummary.textContent = comboEntries.length && comboEntries.some(c => c.qty > 0)
+        ? "餐點：" + comboEntries.filter(c => c.qty > 0).map(c => `${c.name} x ${c.qty}`).join(" + ")
+        : "餐點：無";
+
+    renderSeatMap();
+}
+
+
+
+    function renderSeatMap() {
+        const seatMap = document.getElementById("seatMap");
+        seatMap.innerHTML = "";
+
+        seatData.forEach((row, rIndex) => {
+            const rowDiv = document.createElement("div");
+            rowDiv.className = "flex space-x-2 items-center";
+
+            const label = document.createElement("span");
+            label.textContent = rows[rIndex];
+            label.className = "font-bold w-4";
+            rowDiv.appendChild(label);
+
+            row.forEach((seat, cIndex) => {
+                const seatId = `${rows[rIndex]}${cIndex+1}`;
+                const seatDiv = document.createElement("div");
+                seatDiv.textContent = cIndex + 1;
+                seatDiv.classList.add("seat");
+
+                if (seat === "O") {
+                    seatDiv.classList.add("occupied");
+                } else {
+                    seatDiv.classList.add("available");
+                    seatDiv.addEventListener("click", () => toggleSeat(seatId, seatDiv));
+                }
+
+                rowDiv.appendChild(seatDiv);
+            });
+
+            seatMap.appendChild(rowDiv);
+        });
+    }
+
+    function toggleSeat(seatId, element) {
+        if (element.classList.contains("occupied")) return;
+
+        if (element.classList.contains("selected")) {
+            element.classList.remove("selected");
+            element.classList.add("available");
+            selectedSeats = selectedSeats.filter(s => s !== seatId);
+        } else {
+            if (selectedSeats.length === totalTickets) {
+                errorMessage.textContent = `最多只能選 ${totalTickets} 個座位`;
+                return;
+            }
+            element.classList.remove("available");
+            element.classList.add("selected");
+            selectedSeats.push(seatId);
+        }
+
+        errorMessage.textContent = "";
+        updateSelectedDisplay();
+    }
+
+    function updateSelectedDisplay() {
+        if (selectedSeats.length === 0) {
+            selectedSeatsDisplay.textContent = "無";
+            selectedSeatsSummary.textContent = "無";
+        } else {
+            selectedSeatsDisplay.textContent = selectedSeats.join("、");
+            selectedSeatsSummary.textContent = selectedSeats.join("、");
+        }
+
+        submitSeatsInput.value = selectedSeats.join(",");
+
+        nextButton.disabled = selectedSeats.length !== totalTickets;
+    }
+
+    // 提交
+    document.getElementById("bookingFlow3Form").addEventListener("submit", function(e){
+        e.preventDefault();
+
+        if (selectedSeats.length !== totalTickets) {
+            errorMessage.textContent = "請先選滿座位數量";
+            return;
+        }
+
+        currentBooking.selectedSeats = selectedSeats;
+
+        currentBooking.ticket_general = currentBooking.ticket_general || 0;
+        currentBooking.ticket_student = currentBooking.ticket_student || 0;
+
+        currentBooking.food_popcorn = currentBooking.food_popcorn || 0;
+        currentBooking.food_drink = currentBooking.food_drink || 0;
+
+        // 來源資料如果來自 Step1~2，可不改
+        currentBooking.cinemaId = currentBooking.cinemaId || 1;
+        currentBooking.movieId = currentBooking.movieId || 1;
+        currentBooking.showtimeId = currentBooking.showtimeId || 1;
+
+        /** 🔥 最終儲存 */
+        localStorage.setItem("currentBooking", JSON.stringify(currentBooking));
+
+        /** 前往 Step4 */
+        window.location.href = "booking_flow_4.html";
+    });
+
+    window.onload = loadBookingData;
+</script>
+
+    <footer class="bg-gray-800 text-white text-center py-4 mt-8 shadow-inner">
+        <p>&copy; 2025 Vieshow Ticketing System</p>
+    </footer>
+    
+
+</body>
+</html>

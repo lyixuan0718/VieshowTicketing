@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>訂票步驟 1: 選電影/場次/地點 - Vieshow Ticketing</title> 
+    
+    <!-- 引入 Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script>
+        // Tailwind 配置，確保顏色和字體與專案一致
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'vieshow-red': '#e50914',
+                        'vieshow-gold': '#f7a83d',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'Noto Sans TC', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        /* 基礎選擇框樣式 */
+        .select-styled {
+            @apply w-full p-3 bg-white border border-gray-300 rounded-lg shadow-sm
+                   focus:outline-none focus:ring-2 focus:ring-vieshow-gold focus:border-vieshow-gold;
+        }
+        /* 下一步按鈕的 Vieshow 紅色風格 */
+        .next-step-button {
+            @apply w-full bg-vieshow-red hover:bg-red-700 text-white font-bold py-3 px-4 rounded-xl 
+                   transition duration-300 shadow-lg mt-8 text-lg disabled:opacity-50 disabled:cursor-not-allowed;
+        }
+        /* 載入訊息樣式 */
+        .loading-message {
+            @apply text-center text-base text-gray-500 mt-4 italic;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans min-h-screen flex flex-col">
+    
+    <!-- Header 導航 (模擬共用 header) -->
+    <header class="bg-gray-800 text-white shadow-md">
+        <nav class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <!-- 確保首頁連結正確 -->
+            <a href="../../index.html" class="text-xl font-bold hover:text-vieshow-red transition duration-300">Vieshow 影城</a>
+            <div class="space-x-4">
+                <a href="../auth/login.html" class="hover:text-vieshow-gold transition duration-300">登入</a>
+                <a href="../member/member_home.html" class="hover:text-vieshow-gold transition duration-300">會員中心</a>
+            </div>
+        </nav>
+    </header>
+
+    <div class="container mx-auto px-4 py-8 flex-grow max-w-2xl">
+        
+        <!-- 主要訂票卡片 (包含步驟指示與表單，合併為一個框框) -->
+        <div id="bookingCard" class="bg-white p-6 md:p-10 rounded-xl shadow-2xl border-t-4 border-vieshow-red">
+            
+            <!-- 步驟指示器 (您的 (1) 區塊) -->
+            <div class="mb-8 pb-4 border-b border-gray-200">
+                <h1 class="text-3xl font-extrabold text-gray-900 mb-2">🎟️ 訂票流程</h1>
+                <p class="text-xl font-semibold text-vieshow-red">步驟 1/7: 選擇場次</p>
+                <p class="text-sm text-gray-500 mt-1">請依序選擇影城、電影，最後確認場次。</p>
+            </div>
+
+            <!-- 表單區塊 (您的 (2) 區塊) -->
+            <form id="bookingFlow1Form" action="#" method="POST" class="space-y-6">
+                
+                <!-- 1. 選擇影城地點 -->
+                <div>
+                    <label for="cinema_location" class="block text-2xl font-bold text-gray-800 mb-4 border-b pb-2">1. 影城地點:</label>
+                    <select id="cinema_location" name="cinema_location" required class="select-styled">
+                        <option value="" disabled selected>請選擇影城地點</option>
+                        <!-- Options filled by JavaScript -->
+                    </select>
+                </div>
+                
+                <!-- 2. 選擇電影 -->
+                <div>
+                    <label for="movie_select" class="block text-2xl font-bold text-gray-800 mb-4 border-b pb-2">2. 選擇電影:</label>
+                    <select id="movie_select" name="movie_id" required disabled class="select-styled">
+                        <option value="" disabled selected>請先選擇影城地點</option>
+                    </select>
+                </div>
+                
+                <!-- 3. 選擇場次 -->
+                <div>
+                    <label for="showtime_select" class="block text-2xl font-bold text-gray-800 mb-4 border-b pb-2">3. 選擇場次 (日期/時間/影廳):</label>
+                    <select id="showtime_select" name="showtime_id" required disabled class="select-styled">
+                        <option value="" disabled selected>請先選擇電影</option>
+                    </select>
+                </div>
+                
+                <!-- 載入狀態訊息 -->
+                <div id="loadingStatus" class="loading-message">載入中...</div>
+
+                <!-- 下一步按鈕 -->
+                    <div class="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4">
+                        <button type="submit" id="nextStepButton" class="next-step-button flex-1" disabled style="border: 2px solid #333; border-radius: 6px;">
+                            下一步: 選擇票種與餐點 (步驟 2)
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 訂票頁面專屬的 JavaScript 邏輯：動態載入資料並處理表單 -->
+    <script>
+        // 設定未來 FastAPI 後端 API 的基礎 URL (暫時不需要，改用 Mock Data)
+        // const API_BASE_URL = 'https://your-fastapi-backend.com/api/v1'; 
+
+        // 取得 DOM 元素
+        const cinemaSelect = document.getElementById('cinema_location');
+        const movieSelect = document.getElementById('movie_select');
+        const showtimeSelect = document.getElementById('showtime_select');
+        const nextButton = document.querySelector('.next-step-button');
+        const loadingStatus = document.getElementById('loadingStatus');
+        const form = document.getElementById('bookingFlow1Form');
+
+        // 步驟 1: 動態載入影城地點 (使用 Mock Data)
+        async function loadCinemas() {
+            try {
+                loadingStatus.textContent = '正在載入影城地點...';
+                
+                // --- 修正處：使用模擬資料取代 fetch API 呼叫 ---
+                const mockResponse = {
+                    cinemas: [
+                        { id: 'taipei_xinyi', name: '台北信義' },
+                        { id: 'taoyuan_tzyyuan', name: '桃園統領' },
+                        { id: 'taichung_wenxin', name: '台中文心' }
+                    ]
+                };
+                
+                // 模擬網路延遲
+                await new Promise(resolve => setTimeout(resolve, 300));
+                const data = mockResponse; 
+                // --------------------------------------------------
+                
+                // 清空並填充影城下拉式選單
+                cinemaSelect.innerHTML = '<option value="" disabled selected>請選擇影城地點</option>';
+                data.cinemas.forEach(cinema => {
+                    const option = document.createElement('option');
+                    option.value = cinema.id;
+                    option.textContent = cinema.name;
+                    cinemaSelect.appendChild(option);
+                });
+
+                cinemaSelect.disabled = false;
+                loadingStatus.textContent = ''; // 清除載入狀態
+            } catch (error) {
+                console.error('載入影城失敗:', error);
+                loadingStatus.textContent = '載入影城資料失敗，請檢查網路。';
+            }
+        }
+
+        // 步驟 2: 根據選擇的影城，動態載入電影清單 (使用 Mock Data)
+        async function loadMovies(cinemaId) {
+            movieSelect.innerHTML = '<option value="" disabled selected>正在載入電影...</option>';
+            movieSelect.disabled = true;
+            showtimeSelect.innerHTML = '<option value="" disabled selected>請先選擇電影</option>';
+            showtimeSelect.disabled = true;
+            nextButton.disabled = true;
+
+            try {
+                // --- 修正處：使用模擬資料取代 fetch API 呼叫 ---
+                await new Promise(resolve => setTimeout(resolve, 300));
+                
+                let movies = [];
+                if (cinemaId === 'taipei_xinyi') {
+                    movies = [
+                        { id: 1, title: '阿凡達 3: 最終戰役' },
+                        { id: 2, title: '不可能的任務 8' }
+                    ];
+                } else if (cinemaId === 'taoyuan_tzyyuan') {
+                    movies = [
+                        { id: 1, title: '阿凡達 3: 最終戰役' },
+                        { id: 3, title: '駭客任務 5' }
+                    ];
+                } else {
+                    movies = [{ id: 4, title: '神秘電影' }];
+                }
+                
+                const data = { movies: movies };
+                // --------------------------------------------------
+                
+                // 清空並填充電影下拉式選單
+                movieSelect.innerHTML = '<option value="" disabled selected>請選擇電影</option>';
+                data.movies.forEach(movie => {
+                    const option = document.createElement('option');
+                    option.value = movie.id;
+                    option.textContent = movie.title;
+                    movieSelect.appendChild(option);
+                });
+
+                movieSelect.disabled = false;
+            } catch (error) {
+                console.error('載入電影失敗:', error);
+                movieSelect.innerHTML = '<option value="" disabled selected>載入電影清單失敗</option>';
+            }
+        }
+
+        // 步驟 3: 根據選擇的影城和電影，動態載入場次清單 (使用 Mock Data)
+        async function loadShowtimes(cinemaId, movieId) {
+            showtimeSelect.innerHTML = '<option value="" disabled selected>正在載入場次...</option>';
+            showtimeSelect.disabled = true;
+            nextButton.disabled = true;
+
+            try {
+                // --- 修正處：使用模擬資料取代 fetch API 呼叫 ---
+                await new Promise(resolve => setTimeout(resolve, 300));
+                
+                let showtimes = [];
+                if (movieId == 1) { // 阿凡達 3
+                    showtimes = [
+                        { id: 101, date: '2025/12/24(三)', time: '19:30', hall: '巨幕廳' },
+                        { id: 102, date: '2025/12/24(三)', time: '22:00', hall: '標準廳' }
+                    ];
+                } else if (movieId == 2) { // 不可能的任務 8
+                    showtimes = [
+                        { id: 201, date: '2025/12/25(四)', time: '14:00', hall: '標準廳' }
+                    ];
+                } else {
+                    showtimes = [];
+                }
+                
+                const data = { showtimes: showtimes };
+                // --------------------------------------------------
+
+                // 清空並填充場次下拉式選單
+                showtimeSelect.innerHTML = '<option value="" disabled selected>請選擇場次 (日期/時間/影廳)</option>';
+                if (data.showtimes.length === 0) {
+                    showtimeSelect.innerHTML = '<option value="" disabled selected>此時段無場次</option>';
+                } else {
+                    data.showtimes.forEach(showtime => {
+                        const option = document.createElement('option');
+                        option.value = showtime.id;
+                        option.textContent = `${showtime.date} ${showtime.time} - ${showtime.hall}`;
+                        showtimeSelect.appendChild(option);
+                    });
+                }
+                
+                showtimeSelect.disabled = false;
+            } catch (error) {
+                console.error('載入場次失敗:', error);
+                showtimeSelect.innerHTML = '<option value="" disabled selected>載入場次清單失敗</option>';
+            }
+        }
+        
+        // 監聽器：影城選擇改變時
+        cinemaSelect.addEventListener('change', function() {
+            const cinemaId = this.value;
+            if (cinemaId) {
+                loadMovies(cinemaId);
+            }
+        });
+
+        // 監聽器：電影選擇改變時
+        movieSelect.addEventListener('change', function() {
+            const cinemaId = cinemaSelect.value;
+            const movieId = this.value;
+            if (cinemaId && movieId) {
+                loadShowtimes(cinemaId, movieId);
+            }
+        });
+
+        // 監聽器：場次選擇改變時
+        showtimeSelect.addEventListener('change', function() {
+            // 只要選定了場次，就啟用下一步按鈕
+            nextButton.disabled = !this.value;
+        });
+        
+        // 監聽器：表單提交 (下一步)
+        form.addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            // 儲存使用者選擇的資訊，以便在步驟 2/7 中使用
+            const bookingData = {
+                cinemaId: cinemaSelect.value,
+                movieId: movieSelect.value,
+                showtimeId: showtimeSelect.value,
+                // 儲存顯示名稱
+                cinemaName: cinemaSelect.options[cinemaSelect.selectedIndex].textContent,
+                movieTitle: movieSelect.options[movieSelect.selectedIndex].textContent,
+                showtimeDetail: showtimeSelect.options[showtimeSelect.selectedIndex].textContent,
+            };
+            
+            // 由於這是純前端，我們將資料存在 localStorage (實際專案應存在 Session 或 Context)
+            localStorage.setItem('currentBooking', JSON.stringify(bookingData));
+            
+            console.log('已儲存訂票步驟 1 資料:', bookingData);
+            
+            // 跳轉到步驟 2 頁面
+            window.location.href = 'booking_flow_2.html';
+        });
+
+        // 頁面載入時，執行第一次影城資料載入
+        window.onload = loadCinemas;
+    </script>
+
+
+    <!-- Footer 內容 (模擬共用 footer) -->
+    <footer class="bg-gray-800 text-white text-center py-4 mt-8 shadow-inner">
+        <p>&copy; 2025 Vieshow Ticketing System</p>
+    </footer>
+    
+</body>
+</html>

@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>會員註冊 - Vieshow Ticketing</title> 
+    
+    <!-- 引入 Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script>
+        // Tailwind 配置，確保顏色和字體與專案一致
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        // 定義 Vieshow 品牌色
+                        'vieshow-red': '#e50914',
+                        'vieshow-gold': '#f7a83d',
+                    },
+                    fontFamily: {
+                        // 使用 Inter 和 繁體中文 Noto Sans TC
+                        sans: ['Inter', 'Noto Sans TC', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'vieshow': '0 10px 15px -3px rgba(229, 9, 20, 0.1), 0 4px 6px -2px rgba(229, 9, 20, 0.05)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* 新增通知動畫 */
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translate(-50%, -40px); }
+            to { opacity: 1; transform: translate(-50%, 20px); }
+        }
+        @keyframes fadeOutUp {
+            from { opacity: 1; transform: translate(-50%, 20px); }
+            to { opacity: 0; transform: translate(-50%, -40px); }
+        }
+        .animate-fade-in-down { animation: fadeInDown 0.5s ease-out forwards; }
+        .animate-fade-out-up { animation: fadeOutUp 0.5s ease-in forwards; }
+
+        /* 確保 body 最小高度以使用 flex-grow */
+        .min-h-screen {
+            min-height: 100vh;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans min-h-screen flex flex-col">
+    
+    <!-- Header 導航 (模擬共用 header) -->
+    <header class="bg-gray-800 text-white shadow-md">
+        <nav class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <a href="../../index.html" class="text-xl font-bold hover:text-vieshow-red transition duration-300">Vieshow 影城</a>
+        </nav>
+    </header>
+
+    <!-- 自定義通知框 (取代 alert()) -->
+    <div id="notification" class="fixed top-0 left-1/2 -translate-x-1/2 z-50 p-4 rounded-lg shadow-xl text-white opacity-0 pointer-events-none transition-all duration-300" role="alert">
+        <!-- 內容將由 JavaScript 填充 -->
+    </div>
+
+    <main class="container mx-auto px-4 py-8 flex-grow flex items-center justify-center">
+        <!-- 註冊卡片：置中、響應式寬度、美化樣式 -->
+        <div class="w-full max-w-xl bg-white p-6 sm:p-10 rounded-2xl shadow-2xl border-t-8 border-vieshow-red transform hover:scale-[1.01] transition-transform duration-300">
+            
+            <h2 class="text-3xl font-extrabold text-gray-900 mb-8 text-center border-b pb-4 border-vieshow-red/50">
+                會員註冊
+            </h2>
+
+            <!-- 關鍵修正：action 設為 #，由 JavaScript 處理提交 -->
+            <form id="registerForm" action="#" method="POST" class="space-y-6">
+                
+                <!-- 身分證字號 -->
+                <div>
+                    <label for="memberCardID" class="block text-sm font-medium text-gray-700 mb-1">身分證字號:</label>
+                    <input type="text" id="memberCardID" name="memberCardID" required maxlength="10"
+                        class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-vieshow-red focus:border-vieshow-red transition duration-200 shadow-sm"
+                        placeholder="請輸入身分證字號 (10 碼)">
+                    <span class="error text-vieshow-red text-xs mt-1 block" id="idError"></span>
+                </div>
+
+                <!-- 姓名 -->
+                <div>
+                    <label for="memberName" class="block text-sm font-medium text-gray-700 mb-1">姓名:</label>
+                    <input type="text" id="memberName" name="memberName" required
+                        class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-vieshow-red focus:border-vieshow-red transition duration-200 shadow-sm"
+                        placeholder="請輸入真實姓名">
+                </div>
+                
+                <!-- 生日 -->
+                <div>
+                    <label for="memberBirth" class="block text-sm font-medium text-gray-700 mb-1">生日:</label>
+                    <input type="date" id="memberBirth" name="memberBirth" required
+                        class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-vieshow-red focus:border-vieshow-red transition duration-200 shadow-sm">
+                </div>
+                
+                <!-- 行動電話 -->
+                <div>
+                    <label for="memberPhone" class="block text-sm font-medium text-gray-700 mb-1">行動電話:</label>
+                    <input type="tel" id="memberPhone" name="memberPhone" required pattern="09\d{8}"
+                        class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-vieshow-red focus:border-vieshow-red transition duration-200 shadow-sm"
+                        placeholder="例如: 0912345678">
+                </div>
+
+                <!-- 電子郵件 (Email) -->
+                <div>
+                    <label for="memberEmail" class="block text-sm font-medium text-gray-700 mb-1">電子郵件 (Email):</label>
+                    <input type="email" id="memberEmail" name="memberEmail" required
+                        class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-vieshow-red focus:border-vieshow-red transition duration-200 shadow-sm"
+                        placeholder="請輸入電子郵件">
+                    <span class="error text-vieshow-red text-xs mt-1 block" id="emailError"></span>
+                </div>
+
+                <!-- 密碼 -->
+                <div>
+                    <label for="memberPwd" class="block text-sm font-medium text-gray-700 mb-1">密碼 (至少8碼):</label>
+                    <input type="password" id="memberPwd" name="memberPwd" required minlength="8"
+                        class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-vieshow-red focus:border-vieshow-red transition duration-200 shadow-sm"
+                        placeholder="設定您的密碼">
+                    <span class="error text-vieshow-red text-xs mt-1 block" id="pwdError"></span>
+                </div>
+
+                <!-- 確認密碼 -->
+                <div>
+                    <label for="memberPwdConfirm" class="block text-sm font-medium text-gray-700 mb-1">確認密碼:</label>
+                    <input type="password" id="memberPwdConfirm" name="memberPwdConfirm" required
+                        class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-vieshow-red focus:border-vieshow-red transition duration-200 shadow-sm"
+                        placeholder="再次輸入密碼">
+                    <span class="error text-vieshow-red text-xs mt-1 block" id="pwdMatchError"></span>
+                </div>
+                
+                <!-- 註冊按鈕 -->
+                <button type="submit"
+                    class="w-full bg-vieshow-red hover:bg-red-700 text-white font-bold py-3 rounded-xl transition duration-300 shadow-lg hover:shadow-xl hover:shadow-vieshow-red/40 transform hover:-translate-y-0.5 mt-8">
+                    立即註冊 VIESHOW 會員
+                </button>
+
+                <p class="text-center text-sm text-gray-600 mt-4">
+                    已是會員？ 
+                    <a href="login.html" class="text-vieshow-red font-semibold hover:text-vieshow-gold transition duration-300 hover:underline">
+                        立即登入
+                    </a>
+                </p>
+            </form>
+        </div>
+    </main>
+
+    <!-- 註冊頁面專屬的 JavaScript 邏輯 (取代原 PHP action) -->
+    <script>
+        // 設定未來 FastAPI 後端 API 的基礎 URL
+        const API_BASE_URL = 'https://your-fastapi-backend.com/api/v1'; 
+        
+        // --- 自定義通知函數 (取代 alert()) ---
+        let notificationTimeout;
+        function showNotification(message, type = 'error', duration = 3000) {
+            const notification = document.getElementById('notification');
+            
+            // 清除現有的計時器，避免覆蓋
+            clearTimeout(notificationTimeout);
+
+            // 設置樣式
+            notification.className = 'fixed top-0 left-1/2 -translate-x-1/2 z-50 p-4 rounded-lg shadow-xl text-white pointer-events-none';
+            if (type === 'success') {
+                notification.classList.add('bg-green-600');
+            } else if (type === 'warning') {
+                notification.classList.add('bg-vieshow-gold');
+            } else { // default to error
+                notification.classList.add('bg-vieshow-red');
+            }
+
+            notification.innerHTML = `<strong>${type === 'success' ? '✔' : '❌'}</strong> ${message}`;
+            
+            // 觸發進入動畫
+            notification.classList.remove('opacity-0', 'animate-fade-out-up');
+            notification.classList.add('animate-fade-in-down');
+
+            // 設置自動消失
+            notificationTimeout = setTimeout(() => {
+                notification.classList.remove('animate-fade-in-down');
+                notification.classList.add('animate-fade-out-up');
+            }, duration);
+        }
+        // ------------------------------------
+
+
+        // 處理表單提交
+        document.getElementById('registerForm').addEventListener('submit', function(event) {
+            event.preventDefault(); // 阻止表單進行傳統的 HTTP 提交
+
+            // 清除所有錯誤訊息
+            document.querySelectorAll('.error').forEach(el => el.textContent = '');
+            
+            const form = event.target;
+            const data = {
+                idCard: form.memberCardID.value.trim(),
+                name: form.memberName.value.trim(),
+                birthDate: form.memberBirth.value,
+                phone: form.memberPhone.value.trim(),
+                email: form.memberEmail.value.trim(),
+                password: form.memberPwd.value,
+                passwordConfirm: form.memberPwdConfirm.value 
+            };
+            
+            // 前端密碼確認
+            if (data.password !== data.passwordConfirm) {
+                showNotification('密碼與確認密碼不相符！', 'error');
+                document.getElementById('pwdMatchError').textContent = '密碼不相符，請再次確認。';
+                return;
+            }
+            if (data.password.length < 8) {
+                showNotification('密碼長度不足 8 碼。', 'error');
+                document.getElementById('pwdError').textContent = '密碼至少需要 8 碼。';
+                return;
+            }
+
+            console.log('--- 準備呼叫 FastAPI 註冊 API ---', data);
+            
+            // 實際使用 fetch 呼叫 FastAPI 註冊 API
+            fetch(`${API_BASE_URL}/auth/register`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => {
+                // 處理 HTTP 狀態碼
+                if (!response.ok) {
+                    return response.json().then(err => {
+                        // 嘗試從後端獲取具體錯誤訊息
+                        const backendMessage = err.detail || '註冊失敗，請檢查輸入資料。';
+                        throw new Error(backendMessage);
+                    });
+                }
+                return response.json();
+            })
+            .then(result => {
+                console.log('註冊結果:', result);
+                
+                // 假設後端返回 { "success": true, ... }
+                if (result.success || (result.message && result.message.includes('成功'))) {
+                    showNotification('🎉 恭喜您，註冊成功！即將跳轉至登入頁面...', 'success', 4000);
+                    // 延遲跳轉，讓用戶看到成功訊息
+                    setTimeout(() => {
+                        window.location.href = 'login.html'; 
+                    }, 2000);
+                } else {
+                    // 顯示後端返回的錯誤訊息（例如：Email 已被註冊）
+                    showNotification(result.message || '註冊失敗，請檢查輸入資料。', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('註冊發生錯誤:', error.message);
+                showNotification(`註冊發生錯誤: ${error.message}`, 'error');
+            });
+        });
+    </script>
+
+
+    <!-- Footer 內容 (模擬共用 footer) -->
+    <footer class="bg-gray-800 text-white p-4 mt-auto text-center text-sm">
+        <p class="text-gray-400">&copy; 2025 Vieshow Ticketing System. All Rights Reserved.</p>
+    </footer>
+    
+    <!-- 引入共用 JS 檔案 (路徑保留原樣) -->
+    <!-- <script src="../../assets/js/api_client.js"></script> -->
+    <!-- <script src="../../assets/js/auth_validation.js"></script> -->
+    
+</body>
+</html>

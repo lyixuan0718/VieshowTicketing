@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>修改會員資料 - Vieshow Ticketing</title>
+    
+    <!-- 引入 Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'vieshow-red': '#e50914',
+                        'vieshow-gold': '#f7a83d',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'Noto Sans TC', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-50 font-sans min-h-screen flex flex-col">
+    
+    <!-- Header 導航 (保持一致) -->
+    <header class="bg-gray-800 text-white shadow-md">
+        <nav class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <a href="../../index.html" class="text-xl font-bold hover:text-vieshow-red transition duration-300">Vieshow 影城</a>
+            <div class="space-x-4 flex items-center">
+                <!-- 假設已登入，可導航回會員中心 -->
+                <a href="member_home.html" class="text-sm font-medium hover:text-vieshow-gold transition duration-300">👤 會員中心</a>
+                <button id="signOutButton" class="bg-vieshow-red px-3 py-1 rounded-full text-white text-sm font-semibold hover:bg-red-700 transition duration-300">
+                    登出
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <div class="container mx-auto px-4 py-10 flex-grow max-w-lg">
+        
+        <div class="bg-white p-6 sm:p-8 rounded-xl shadow-xl border-t-4 border-vieshow-red">
+            <h2 class="text-3xl font-extrabold text-gray-800 mb-2 flex items-center justify-center">
+                👤 修改會員資料
+            </h2>
+            <p class="text-center text-gray-500 mb-8">在此更新您的個人資訊。</p>
+
+            <!-- 隱藏的訊息顯示區塊 -->
+            <div id="messageContainer" class="hidden p-3 mb-4 rounded-lg font-medium" role="alert"></div>
+
+            <form id="profileForm" action="#" method="POST" class="space-y-6">
+                
+                <!-- 姓名 -->
+                <div>
+                    <label for="memberName" class="block text-sm font-medium text-gray-700 mb-1">姓名:</label>
+                    <input type="text" id="memberName" name="memberName" required 
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-vieshow-red focus:border-vieshow-red transition duration-150"
+                           value="李怡萱">
+                </div>
+                
+                <!-- 電子郵件 (Email) - 禁用 -->
+                <div>
+                    <label for="memberEmail" class="block text-sm font-medium text-gray-700 mb-1">電子郵件 (Email):</label>
+                    <input type="email" id="memberEmail" name="memberEmail" disabled 
+                           class="w-full px-4 py-2 border border-gray-200 bg-gray-100 rounded-lg cursor-not-allowed text-gray-500"
+                           value="yihsuan@vieshow.com">
+                    <p class="mt-1 text-xs text-gray-500">電子郵件作為登入帳號，無法直接修改。</p>
+                </div>
+                
+                <!-- 行動電話 -->
+                <div>
+                    <label for="memberPhone" class="block text-sm font-medium text-gray-700 mb-1">行動電話:</label>
+                    <input type="tel" id="memberPhone" name="memberPhone" required
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-vieshow-red focus:border-vieshow-red transition duration-150"
+                           value="0912345678">
+                </div>
+                
+                <!-- 生日 -->
+                <div>
+                    <label for="memberBirth" class="block text-sm font-medium text-gray-700 mb-1">生日:</label>
+                    <input type="date" id="memberBirth" name="memberBirth" required
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-vieshow-red focus:border-vieshow-red transition duration-150"
+                           value="1995-10-22">
+                </div>
+                
+                <!-- 修改密碼連結 -->
+                <p class="pt-2 text-lg">
+                    <a href="../auth/forget_password.html" class="text-blue-600 hover:text-blue-800 hover:underline font-medium transition duration-200">
+                        [修改密碼]
+                    </a>
+                </p>
+
+                <!-- 儲存按鈕 -->
+                <button type="submit" class="update-button w-full bg-vieshow-red text-white py-3 rounded-lg font-bold text-lg hover:bg-red-700 transition duration-200 shadow-md">
+                    儲存變更
+                </button>
+            </form>
+            <p class="mt-4 text-xs text-gray-500 text-center">
+                提交後，系統將更新您的會員資料。
+            </p>
+        </div>
+    </div>
+
+    <!-- Footer 內容 (保持一致) -->
+    <footer class="bg-gray-800 text-white text-center py-4 mt-8 shadow-inner">
+        <p>&copy; 2025 Vieshow Ticketing System</p>
+    </footer>
+
+    <!-- JavaScript 邏輯：處理表單提交和登出 -->
+    <script>
+        /**
+         * 顯示一個自定義的頂部通知
+         * @param {string} text - 內文
+         * @param {string} type - 訊息類型 ('success', 'error')
+         */
+        function showFormMessage(text, type) {
+            const container = document.getElementById('messageContainer');
+            container.textContent = text;
+            container.classList.remove('hidden', 'bg-green-100', 'text-green-800', 'bg-red-100', 'text-red-800');
+            
+            if (type === 'success') {
+                container.classList.add('bg-green-100', 'text-green-800');
+            } else if (type === 'error') {
+                container.classList.add('bg-red-100', 'text-red-800');
+            }
+
+            // 3秒後隱藏
+            setTimeout(() => {
+                container.classList.add('hidden');
+            }, 3000);
+        }
+
+        document.getElementById('profileForm').addEventListener('submit', function(e) {
+            e.preventDefault(); // 阻止表單實際提交
+            
+            // 模擬 AJAX 提交或後端更新操作
+            const name = document.getElementById('memberName').value;
+            const phone = document.getElementById('memberPhone').value;
+            const birth = document.getElementById('memberBirth').value;
+
+            console.log("模擬提交的會員資料:", { name, phone, birth });
+
+            // 模擬成功回覆
+            showFormMessage('🎉 資料更新成功！', 'success');
+            
+            // 在實際應用中，會在這裡發送 Fetch/Ajax 請求到後端
+            /*
+            fetch('../../Controllers/Member_Controller.php?action=update_profile', {
+                method: 'POST',
+                body: new FormData(this)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showFormMessage('🎉 資料更新成功！', 'success');
+                } else {
+                    showFormMessage('❌ 資料更新失敗，請檢查輸入內容。', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('更新錯誤:', error);
+                showFormMessage('❌ 系統錯誤，請稍後再試。', 'error');
+            });
+            */
+        });
+        
+        // 模擬登出事件 (保持與其他頁面一致)
+        document.getElementById('signOutButton').addEventListener('click', function(e) {
+            e.preventDefault(); 
+            const header = document.querySelector('header');
+            const messageDiv = document.createElement('div');
+            
+            messageDiv.textContent = '您已成功登出。即將導向首頁...';
+            messageDiv.className = 'absolute top-0 left-0 right-0 bg-green-500 text-white text-center py-2 shadow-lg z-50';
+            header.parentNode.insertBefore(messageDiv, header);
+            
+            // 延遲 2 秒後導向首頁
+            setTimeout(() => {
+                window.location.href = '../../index.html'; 
+            }, 2000);
+        });
+    </script>
+    
+</body>
+</html>

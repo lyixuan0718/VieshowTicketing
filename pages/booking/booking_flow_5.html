@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>訂票步驟 5: 選擇付款方式 - Vieshow Ticketing</title> 
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+    </style>
+</head>
+
+<body class="antialiased">
+
+<!-- Header -->
+<header class="bg-gray-800 text-white shadow-md">
+    <nav class="container mx-auto px-4 py-4 flex justify-between items-center">
+        <a href="../../index.html" class="text-xl font-bold hover:text-red-400 transition">Vieshow 影城</a>
+        <div class="space-x-4">
+            <a href="../auth/login.html" class="hover:text-yellow-300 transition">登入</a>
+            <a href="../member/member_home.html" class="hover:text-yellow-300 transition">會員中心</a>
+        </div>
+    </nav>
+</header>
+
+<!-- Main Container -->
+<div class="w-11/12 md:max-w-2xl mx-auto my-8 p-6 bg-white border border-gray-200 rounded-xl shadow-2xl">
+
+    <h2 class="text-2xl font-extrabold text-gray-900 mb-6 flex items-center">
+        💳 訂票流程 - 步驟 5/7 (選擇付款方式)
+    </h2>
+
+    <p class="text-gray-700 mb-4">
+        請選擇您偏好的付款方式並確認應付金額。
+    </p>
+    
+    <form id="paymentForm" class="space-y-6">
+
+        <!-- 付款方式 -->
+        <div>
+            <h3 class="text-lg font-semibold mb-2">付款方式</h3>
+
+            <label class="block mb-2">
+                <input type="radio" name="payment_method" value="credit_card" checked>
+                信用卡 / 金融卡 (VISA、MasterCard、JCB)
+            </label>
+
+            <label class="block mb-2">
+                <input type="radio" name="payment_method" value="line_pay">
+                Line Pay (手機快速付款)
+            </label>
+        </div>
+
+        <!-- 應付總金額 -->
+        <div class="border-t pt-4">
+            <h3 class="text-lg font-semibold text-red-600">
+                本次應付金額：NT$ <span id="displayTotalAmount">0</span>
+            </h3>
+        </div>
+
+        <!-- 注意事項 -->
+        <div>
+            <h3 class="text-lg font-semibold mb-2">注意事項</h3>
+            <textarea readonly class="w-full border p-2 rounded" rows="5">
+退票須在電影開演前 30 分鐘完成，逾時不予受理。
+線上交易全程採用 SSL 加密，確保付款資訊安全。
+本系統目前支援信用卡與 Line Pay。
+            </textarea>
+        </div>
+
+        <!-- 下一步 -->
+        <button type="submit"
+                class="w-full py-3 bg-red-700 text-white rounded-xl font-bold text-lg hover:bg-red-800 transition">
+            下一步：填寫付款資訊 (步驟 6)
+        </button>
+    </form>
+
+    <!-- 返回 -->
+    <p class="mt-4 text-center">
+        <a href="#" id="backLink" class="text-red-600 hover:text-red-800">
+            ← 返回上一步（訂單確認）
+        </a>
+    </p>
+</div>
+
+<!-- JS -->
+<script>
+    // 安全導頁（避免 Blob URL 無法跳轉）
+    function safeNavigate(file) {
+        try { window.location.href = file; }
+        catch (e) {
+            const current = window.location.href;
+            const dir = current.substring(0, current.lastIndexOf('/') + 1);
+            window.location.href = dir + file;
+        }
+    }
+
+    let currentBooking = {};
+
+    function loadBookingData() {
+        const stored = localStorage.getItem("currentBooking");
+
+        if (!stored) {
+            console.warn("⚠ 沒找到 currentBooking，回到步驟 4");
+            safeNavigate("booking_flow_4.html");
+            return;
+        }
+
+        try {
+            currentBooking = JSON.parse(stored);
+        } catch (err) {
+            console.error("JSON 解析錯誤:", err);
+            safeNavigate("booking_flow_4.html");
+            return;
+        }
+
+        // 確保總金額存在
+        if (!currentBooking.totalPrice) {
+            console.error("缺少 totalPrice，回到步驟 4");
+            safeNavigate("booking_flow_4.html");
+            return;
+        }
+
+        // 顯示金額
+        document.getElementById("displayTotalAmount").textContent = currentBooking.totalPrice;
+
+        // 若使用者之前選過付款方式，預選
+        if (currentBooking.payment_method) {
+            const radio = document.querySelector(`input[name="payment_method"][value="${currentBooking.payment_method}"]`);
+            if (radio) radio.checked = true;
+        }
+    }
+
+    // 表單送出（下一步）
+    document.getElementById("paymentForm").addEventListener("submit", function (event) {
+        event.preventDefault();
+
+        const selected = document.querySelector('input[name="payment_method"]:checked');
+        if (!selected) {
+            alert("請選擇付款方式");
+            return;
+        }
+
+        currentBooking.payment_method = selected.value;
+        localStorage.setItem("currentBooking", JSON.stringify(currentBooking));
+
+        safeNavigate("booking_flow_6.html");
+    });
+
+    // 返回
+    document.getElementById("backLink").addEventListener("click", function (event) {
+        event.preventDefault();
+        safeNavigate("booking_flow_4.html");
+    });
+
+    loadBookingData();
+</script>
+
+<footer class="bg-gray-800 text-white text-center py-4 mt-8 shadow-inner">
+    <p>&copy; 2025 Vieshow Ticketing System</p>
+</footer>
+
+</body>
+</html>

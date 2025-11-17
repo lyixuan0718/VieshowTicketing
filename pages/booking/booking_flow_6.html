@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>訂票步驟 6: 填寫付款資訊 - Vieshow Ticketing</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+
+        /* 與 Step5 一致的按鈕 */
+        .next-step-button, .pay-now-button {
+            width: 100%;
+            background-color: #e50914;
+            color: white;
+            padding: 12px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 10px;
+            transition: 0.2s;
+            margin-top: 18px;
+        }
+        .next-step-button:hover, .pay-now-button:hover {
+            background-color: #b00710;
+        }
+
+        .error-message {
+            color: red;
+            font-size: 0.9rem;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .payment-info-section input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #bbb;
+            border-radius: 8px;
+            margin-bottom: 14px;
+        }
+
+        .row-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .row-group div {
+            flex: 1;
+        }
+    </style>
+</head>
+
+<body class="antialiased">
+
+<!-- Header -->
+<header class="bg-gray-800 text-white shadow-md">
+    <nav class="container mx-auto px-4 py-4 flex justify-between items-center">
+        <a href="../../index.html" class="text-xl font-bold hover:text-red-400 transition">Vieshow 影城</a>
+        <div class="space-x-4">
+            <a href="../auth/login.html" class="hover:text-yellow-300 transition">登入</a>
+            <a href="../member/member_home.html" class="hover:text-yellow-300 transition">會員中心</a>
+        </div>
+    </nav>
+</header>
+
+<!-- Container -->
+<div class="w-11/12 md:max-w-2xl mx-auto my-8 p-6 bg-white border border-gray-200 rounded-xl shadow-2xl">
+
+    <h2 class="text-2xl font-extrabold text-gray-900 mb-6 flex items-center">
+        🧾 訂票流程 - 步驟 6/7 (填寫付款資訊)
+    </h2>
+
+    <p class="text-gray-700 mb-4">
+        請輸入您的付款資訊，並最終確認訂單。
+    </p>
+
+    <form id="paymentDetailForm">
+
+        <!-- 付款方式展示 -->
+        <h3 class="font-semibold">付款方式：
+            <span id="displayPaymentMethod" class="text-red-600 font-bold">載入中...</span>
+        </h3>
+
+        <div id="paymentFields" class="payment-info-section mt-3">
+            <!-- JS 動態注入 -->
+        </div>
+
+        <h3 class="mt-4 text-lg font-bold">
+            最終金額：<span class="text-red-600 text-2xl">NT$ <span id="displayTotalAmount">0</span></span>
+        </h3>
+
+        <p id="errorMessage" class="error-message">請填寫必填欄位</p>
+
+        <button type="submit" class="pay-now-button">確認付款並送出訂單</button>
+    </form>
+
+    <p class="mt-4 text-center">
+        <a href="#" id="backLink" class="text-red-600 hover:text-red-800">
+            ← 返回上一步 (選擇付款方式)
+        </a>
+    </p>
+
+</div>
+
+<!-- JS -->
+<script>
+    function safeNavigate(fileName) {
+        try {
+            window.location.href = fileName;
+        } catch (e) {
+            const currentPath = window.location.href;
+            const dirPath = currentPath.substring(0, currentPath.lastIndexOf('/') + 1);
+            window.location.href = dirPath + fileName;
+        }
+    }
+
+    let currentBooking = {};
+
+    // 動態產生信用卡/LinePay 欄位
+    function renderPaymentFields(method) {
+        const fields = document.getElementById("paymentFields");
+        fields.innerHTML = "";
+
+        if (method === "credit_card") {
+            document.getElementById("displayPaymentMethod").textContent = "信用卡/金融卡";
+
+            fields.innerHTML = `
+                <label>持卡人姓名</label>
+                <input type="text" id="card_name" required placeholder="姓名">
+
+                <label>信用卡號</label>
+                <input type="text" id="card_number" required maxlength="16" placeholder="xxxx xxxx xxxx xxxx">
+
+                <div class="row-group">
+                    <div>
+                        <label>有效期限 (MM/YY)</label>
+                        <input type="text" id="expiry_date" required maxlength="5" placeholder="MM/YY">
+                    </div>
+                    <div>
+                        <label>安全碼 CVV</label>
+                        <input type="text" id="cvv" required maxlength="3" placeholder="三碼">
+                    </div>
+                </div>
+            `;
+        }
+
+        if (method === "line_pay") {
+            document.getElementById("displayPaymentMethod").textContent = "Line Pay";
+
+            fields.innerHTML = `
+                <p>您將被導向 Line Pay 進行付款授權</p>
+
+                <label>信箱 (接收付款通知)</label>
+                <input type="email" id="email" required placeholder="example@mail.com">
+            `;
+        }
+    }
+
+    // 讀取資料
+    function loadBookingData() {
+        const stored = localStorage.getItem("currentBooking");
+
+        if (!stored) {
+            console.warn("沒有 currentBooking → 返回 Step5");
+            safeNavigate("booking_flow_5.html");
+            return;
+        }
+
+        try {
+            currentBooking = JSON.parse(stored);
+        } catch (e) {
+            safeNavigate("booking_flow_5.html");
+            return;
+        }
+
+        // ⚠ 修正：不能用 !totalPrice（0 會被誤判）
+        if (currentBooking.totalPrice == null || !currentBooking.payment_method) {
+            console.error("資料不完整 → 返回 Step5");
+            safeNavigate("booking_flow_5.html");
+            return;
+        }
+
+        document.getElementById("displayTotalAmount").textContent = currentBooking.totalPrice;
+
+        // 渲染欄位
+        renderPaymentFields(currentBooking.payment_method);
+    }
+
+    // 提交付款
+    document.getElementById("paymentDetailForm").addEventListener("submit", function (e) {
+        e.preventDefault();
+
+        if (!this.checkValidity()) {
+            document.getElementById("errorMessage").style.display = "block";
+            return;
+        }
+
+        // 模擬付款成功
+        currentBooking.status = "COMPLETED";
+        localStorage.setItem("lastCompletedBooking", JSON.stringify(currentBooking));
+        localStorage.removeItem("currentBooking");
+
+        safeNavigate("booking_result.html?status=success");
+    });
+
+    // 返回上一頁
+    document.getElementById("backLink").addEventListener("click", function (e) {
+        e.preventDefault();
+        safeNavigate("booking_flow_5.html");
+    });
+
+    loadBookingData();
+</script>
+
+<footer class="bg-gray-800 text-white text-center py-4 mt-8 shadow-inner">
+    <p>&copy; 2025 Vieshow Ticketing System</p>
+</footer>
+
+</body>
+</html>
