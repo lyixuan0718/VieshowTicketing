@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>會員中心 - Vieshow Ticketing</title>
     
-    <!-- 引入 Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     
     <style>
@@ -49,21 +48,17 @@
 </head>
 <body class="bg-gray-50 font-sans min-h-screen flex flex-col">
     
-    <!-- Header 導航 (模擬共用 header) -->
     <header class="bg-gray-800 text-white shadow-md">
         <nav class="container mx-auto px-4 py-4 flex justify-between items-center">
             <a href="../../index.html" class="text-xl font-bold hover:text-vieshow-red transition duration-300">Vieshow 影城</a>
-            <div class="space-x-4 flex items-center">
-                <!-- 登入後顯示使用者名稱和登出按鈕 -->
+            <div id="headerNavRight" class="space-x-4 flex items-center">
                 <span class="text-sm font-medium">歡迎，<span id="memberName">王小明</span></span>
-                <!-- 登出按鈕現在在主要動作區塊 -->
-            </div>
+                </div>
         </nav>
     </header>
 
     <div class="container mx-auto px-4 py-10 flex-grow max-w-lg">
         
-        <!-- 會員資訊概覽 (Header 區塊) -->
         <div class="bg-white p-6 rounded-xl shadow-lg mb-8 border-t-4 border-vieshow-gold">
             <h1 class="text-3xl font-extrabold text-gray-800 mb-4 flex items-center">
                 <span class="mr-2">👤</span> 會員中心首頁 
@@ -75,83 +70,106 @@
             </p>
         </div>
 
-        <!-- 快速動作按鈕區塊 (參考 PHP 佈局) -->
         <h2 class="text-2xl font-bold text-gray-700 mb-4 border-l-4 border-vieshow-red pl-3">快速功能導覽</h2>
         
         <div class="member-actions grid grid-cols-2 gap-4">
             
-            <!-- 1. 首頁 -->
             <a href="../../index.html" class="btn-action bg-white text-gray-700 border-gray-300 hover:bg-gray-100">
                 <span class="mr-2">🏠</span> 首頁
             </a>
             
-            <!-- 2. 立即訂票 -->
             <a href="../booking/booking_flow_1.html" class="btn-action bg-vieshow-red text-white hover:bg-red-700">
                 <span class="mr-2">🎫</span> 立即訂票
             </a>
             
-            <!-- 3. 訂票紀錄 -->
             <a href="../booking/booking_history.html" class="btn-action bg-white text-gray-700 border-gray-300 hover:bg-gray-100">
                 <span class="mr-2">🧾</span> 訂票紀錄
             </a>
             
-            <!-- 4. 點數兌換 -->
             <a href="../points/point_exchange.html" class="btn-action bg-white text-gray-700 border-gray-300 hover:bg-gray-100">
                 <span class="mr-2">🪙</span> 點數兌換
             </a>
             
-            <!-- 5. 點數儲值 -->
             <a href="./topup.html" class="btn-action bg-white text-gray-700 border-gray-300 hover:bg-gray-100">
                 <span class="mr-2">💳</span> 點數儲值
             </a>
             
-            <!-- 6. 會員資料修改 -->
             <a href="./member_profile.html" class="btn-action bg-white text-gray-700 border-gray-300 hover:bg-gray-100">
                 <span class="mr-2">⚙️</span> 會員資料修改
             </a>
             
-            <!-- 7. 登出 (佔滿兩欄) -->
-            <a id="signOutButton" href="../../Controllers/Auth_Controller.php?action=logout" class="btn-action bg-btn-danger text-white hover:bg-red-600 col-span-2 mt-4">
+            <button id="signOutButton" class="btn-action bg-btn-danger text-white hover:bg-red-600 col-span-2 mt-4">
                 <span class="mr-2">➡️</span> 登出
-            </a>
+            </button>
             
         </div>
         
     </div>
 
-    <!-- Footer 內容 (模擬共用 footer) -->
     <footer class="bg-gray-800 text-white text-center py-4 mt-8 shadow-inner">
         <p>&copy; 2025 Vieshow Ticketing System</p>
     </footer>
 
-    <!-- JavaScript 邏輯：處理登出 -->
     <script>
-        document.getElementById('signOutButton').addEventListener('click', function(e) {
-            e.preventDefault(); // 阻止默認導航，先執行模擬登出
+        const LOGIN_PAGE_URL = '../auth/login.html';
+        const INDEX_PAGE_URL = '../../index.html';
 
+        /**
+         * 檢查登入狀態：如果沒有 Token 則跳轉到登入頁。
+         */
+        function checkLoginStatus() {
+            const token = localStorage.getItem('auth_token');
+            if (!token) {
+                // 如果沒有 Token，表示未登入，強制跳轉到登入頁
+                window.location.href = LOGIN_PAGE_URL; 
+                // 阻止頁面繼續載入
+                document.body.innerHTML = '<p class="text-center text-xl p-10">您尚未登入，正在導向登入頁面...</p>';
+                return false;
+            }
+            return true;
+        }
+
+        // --- 登出處理 ---
+        document.getElementById('signOutButton').addEventListener('click', function(e) {
+            e.preventDefault(); 
+
+            // 1. 清除登入狀態的關鍵步驟
+            localStorage.removeItem('auth_token'); 
+            
+            // 2. 顯示登出訊息
             const header = document.querySelector('header');
             const messageDiv = document.createElement('div');
             
             messageDiv.textContent = '您已成功登出。即將導向首頁...';
             messageDiv.className = 'absolute top-0 left-0 right-0 bg-green-500 text-white text-center py-2 transition-opacity duration-500 ease-in-out z-50';
             
-            // 替換 Header 導航為未登入狀態
-            const navDiv = document.querySelector('header nav > div:last-child');
-            if (navDiv) {
-                navDiv.innerHTML = `
-                    <a href="../auth/login.html" class="hover:text-vieshow-gold transition duration-300">登入</a>
+            // 3. 替換 Header 導航為未登入狀態 (視覺更新)
+            const headerNavRight = document.getElementById('headerNavRight');
+            if (headerNavRight) {
+                headerNavRight.innerHTML = `
+                    <a href="${LOGIN_PAGE_URL}" class="hover:text-vieshow-gold transition duration-300">登入</a>
                     <a href="../auth/register.html" class="hover:text-vieshow-gold transition duration-300">註冊</a>
                 `;
             }
 
+            // 確保訊息放在 Header 前面
             header.parentNode.insertBefore(messageDiv, header);
 
-            // 延遲 2 秒後導向首頁
+            // 4. 延遲 2 秒後導向首頁
             setTimeout(() => {
-                // 在實際應用中，會導向您後端登出處理後指定的位置
-                window.location.href = '../../index.html'; 
+                window.location.href = INDEX_PAGE_URL; 
             }, 2000);
         });
+
+        // 頁面載入時執行檢查
+        window.onload = function() {
+            if (!checkLoginStatus()) {
+                // 如果檢查失敗（未登入），則不再執行其他初始化
+                return; 
+            }
+            // 模擬載入會員資料
+            console.log("會員中心頁面初始化完成。");
+        };
     </script>
     
 </body>

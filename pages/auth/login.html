@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>會員登入 - Vieshow Ticketing</title> 
     
-    <!-- 引入 Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     
     <script>
@@ -37,11 +36,32 @@
         }
         .animate-fade-in-down { animation: fadeInDown 0.5s ease-out forwards; }
         .animate-fade-out-up { animation: fadeOutUp 0.5s ease-in forwards; }
+
+        /* 驗證碼文字樣式，模擬圖片效果 */
+        .captcha-text {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f3f4f6; /* bg-gray-100 */
+            font-size: 24px;
+            font-weight: bold;
+            letter-spacing: 5px;
+            padding: 5px 10px;
+            border: 1px solid #d1d5db; /* border-gray-300 */
+            border-radius: 0.5rem;
+            cursor: pointer;
+            width: 120px; /* 模擬圖片寬度 */
+            height: 40px; /* 模擬圖片高度 */
+            color: #1f2937; /* text-gray-800 */
+            user-select: none; /* 防止選中文字 */
+            text-decoration: line-through; /* 模擬干擾線 */
+            font-family: monospace;
+            transform: rotate(-1deg); /* 輕微旋轉，更像 CAPTCHA */
+        }
     </style>
 </head>
 <body class="bg-gray-100 font-sans min-h-screen flex flex-col">
     
-    <!-- Header 導航 (模擬共用 header) -->
     <header class="bg-gray-800 text-white shadow-md">
         <nav class="container mx-auto px-4 py-4 flex justify-between items-center">
             <a href="../../index.html" class="text-xl font-bold hover:text-vieshow-red transition duration-300">Vieshow 影城</a>
@@ -49,8 +69,7 @@
     </header>
 
     <div class="container mx-auto px-4 py-8 flex-grow">
-        <!-- 登入卡片：置中並加上樣式 -->
-        <div class="max-w-lg mx-auto bg-white p-8 sm:p-10 rounded-xl shadow-2xl border-t-8 border-vieshow-red">
+        <div id="loginCard" class="max-w-lg mx-auto bg-white p-8 sm:p-10 rounded-xl shadow-2xl border-t-8 border-vieshow-red">
             
             <h2 class="text-3xl font-extrabold text-gray-800 mb-6 text-center">
                 會員登入
@@ -79,16 +98,11 @@
                 <div>
                     <label for="captchaCode" class="block text-sm font-medium text-gray-700 mb-1">驗證碼:</label>
                     <div class="flex items-center space-x-3">
-                        <!-- 驗證碼輸入框 -->
                         <input type="text" id="captchaCode" name="captchaCode" required maxlength="4"
                                class="flex-grow px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-vieshow-red focus:border-vieshow-red transition duration-150 max-w-[150px]">
                         
-                        <!-- 驗證碼圖片 (使用模擬圖片，保持原始 URL) -->
-                        <img src="https://your-fastapi-backend.com/api/v1/auth/captcha" alt="驗證碼" id="captchaImage" 
-                             class="h-10 border border-gray-300 rounded-lg shadow-inner cursor-pointer"
-                             onerror="this.src='https://placehold.co/120x40/DDDDDD/000000?text=CAPTCHA'; this.onerror=null;">
+                        <div id="captchaImage" class="captcha-text" title="點擊刷新驗證碼"></div>
                         
-                        <!-- 重新整理按鈕 -->
                         <button type="button" id="refreshCaptcha" title="重新整理驗證碼"
                                 class="h-10 w-10 bg-vieshow-red text-white text-xl font-bold rounded-full flex items-center justify-center hover:bg-red-700 transition duration-300 shadow-md transform hover:scale-105">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -98,8 +112,7 @@
                     </div>
                 </div>
 
-                <!-- 登入按鈕 -->
-                <button type="submit" class="w-full bg-vieshow-red hover:bg-red-700 text-white font-bold py-3 px-4 rounded-xl transition duration-300 shadow-lg mt-6 transform hover:-translate-y-0.5">
+                <button type="submit" id="loginButton" class="w-full bg-vieshow-red hover:bg-red-700 text-white font-bold py-3 px-4 rounded-xl transition duration-300 shadow-lg mt-6 transform hover:-translate-y-0.5">
                     登入
                 </button>
 
@@ -108,24 +121,46 @@
                 </p>
             </form>
         </div>
+        
+        <div id="loggedInMessage" class="max-w-lg mx-auto bg-green-50 p-10 sm:p-12 rounded-xl shadow-2xl border-t-8 border-green-500 hidden text-center">
+            <svg class="mx-auto h-16 w-16 text-green-600 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <h2 class="text-3xl font-extrabold text-green-700 mb-2">您已登入！</h2>
+            <p class="text-lg text-gray-700 mb-6">您目前已是會員，無法重複登入。</p>
+            <button id="goToMemberCenter" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition duration-300 shadow-md">
+                前往會員中心 &rarr;
+            </button>
+        </div>
     </div>
 
-    <!-- Footer -->
-    <footer class="bg-gray-800 text-white text-center py-4 mt-auto shadow-inner">
-        <p>&copy; 2025 Vieshow Ticketing System</p>
-    </footer>
-
-    <!-- JavaScript 邏輯 -->
     <script>
-        // 設定未來 FastAPI 後端 API 的基礎 URL
         const API_BASE_URL = 'https://your-fastapi-backend.com/api/v1'; 
+        let currentCaptcha = ''; // 用於儲存當前模擬的驗證碼，用於前端比對
 
-        /**
-         * 顯示模擬通知 (取代 alert)
-         */
+        // --- 1. 檢查是否已登入 (新增邏輯) ---
+        function checkLoginStatus() {
+            // 檢查 localStorage 中是否有模擬的登入 token
+            const token = localStorage.getItem('auth_token');
+            const loginCard = document.getElementById('loginCard');
+            const loggedInMessage = document.getElementById('loggedInMessage');
+
+            if (token) {
+                // 如果已登入，隱藏登入表單，顯示已登入訊息
+                loginCard.classList.add('hidden');
+                loggedInMessage.classList.remove('hidden');
+            } else {
+                // 如果未登入，顯示登入表單
+                loginCard.classList.remove('hidden');
+                loggedInMessage.classList.add('hidden');
+            }
+        }
+
+        // --- 2. 顯示模擬通知 (動畫效果) ---
         function showNotification(message, isError = false) {
+            // ... (保持不變)
             const notification = document.createElement('div');
-            notification.textContent = message;
+            notification.innerHTML = message; // 使用 innerHTML 允許簡單的標籤，例如粗體
             const bgColor = isError ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800';
             
             notification.className = `fixed top-0 left-1/2 -translate-x-1/2 mt-4 px-6 py-3 rounded-lg shadow-xl z-50 transition duration-300 transform ${bgColor} animate-fade-in-down`;
@@ -138,62 +173,109 @@
             }, 3000);
         }
 
-        // 處理重新整理驗證碼
-        document.getElementById('refreshCaptcha').addEventListener('click', function() {
-            const captchaImage = document.getElementById('captchaImage');
-            // 透過改變 src 參數 (加上時間戳) 強制瀏覽器呼叫 FastAPI 重新載入新的驗證碼
-            captchaImage.src = `${API_BASE_URL}/auth/captcha?t=` + new Date().getTime();
-            showNotification('驗證碼已刷新', false);
-        });
+        // --- 3. 驗證碼相關邏輯 (修正顯示問題並加入模擬比對) ---
+        function generateCaptcha() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let captcha = '';
+            for (let i = 0; i < 4; i++) {
+                captcha += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return captcha;
+        }
 
-        // 處理表單提交
+        function refreshCaptcha() {
+            currentCaptcha = generateCaptcha();
+            const captchaDiv = document.getElementById('captchaImage');
+            captchaDiv.textContent = currentCaptcha;
+            // 清空驗證碼輸入框
+            document.getElementById('captchaCode').value = '';
+            console.log('當前模擬驗證碼:', currentCaptcha);
+        }
+
+        // --- 處理表單提交 (核心登入邏輯) ---
         document.getElementById('loginForm').addEventListener('submit', function(event) {
-            // 阻止表單進行傳統的 HTTP 提交
             event.preventDefault(); 
             
             const form = event.target;
-            const data = {
-                account: form.loginAccount.value,
-                password: form.loginPwd.value,
-                captcha: form.captchaCode.value
-            };
+            const loginButton = document.getElementById('loginButton');
+            const account = form.loginAccount.value;
+            const password = form.loginPwd.value;
+            const captchaInput = form.captchaCode.value.toUpperCase(); // 驗證碼輸入通常不區分大小寫
 
-            console.log('--- 準備呼叫 FastAPI 登入 API ---', data);
+            // 1. 檢查前端驗證碼是否正確
+            if (captchaInput !== currentCaptcha) {
+                showNotification('❌ **驗證碼錯誤！** 請重新輸入。', true);
+                refreshCaptcha(); // 驗證碼錯誤，強制刷新
+                return;
+            }
+
+            // 禁用按鈕
+            loginButton.disabled = true;
+            loginButton.textContent = '登入中...';
+            loginButton.classList.add('opacity-75', 'cursor-not-allowed');
+
+            showNotification('正在驗證帳號資訊...', false);
             
-            // 實際使用 fetch 呼叫 FastAPI 登入 API
-            fetch(`${API_BASE_URL}/auth/login`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(data)
-            })
-            .then(response => {
-                if (!response.ok) {
-                    // 如果後端回傳 4xx 或 5xx 錯誤
-                    throw new Error('登入失敗，請檢查帳號、密碼或驗證碼');
-                }
-                return response.json();
-            })
-            .then(result => {
-                console.log('登入成功:', result);
-                // 登入成功後的邏輯：例如儲存 Token，然後跳轉到會員中心
-                if (result.success) {
-                    showNotification('登入成功！即將跳轉至會員中心...', false);
+            // 2. 模擬後端 API 請求
+            setTimeout(() => {
+                
+                let errorMessage = '';
+
+                // 模擬成功條件：帳號 test@vieshow.com, 密碼 123456
+                const isSuccessful = (account === 'test@vieshow.com' && password === '123456');
+
+                if (isSuccessful) {
+                    // 模擬登入成功
+                    localStorage.setItem('auth_token', 'mock_vieshow_token_xyz123'); // 儲存模擬 token
+                    showNotification('✅ 登入成功！即將跳轉至會員中心...', false);
+                    
                     setTimeout(() => {
                         window.location.href = '../member/member_home.html';
                     }, 1500);
+
                 } else {
-                    showNotification(result.message || '登入失敗，請重試。', true);
-                    document.getElementById('refreshCaptcha').click(); // 刷新驗證碼
+                    // 模擬登入失敗
+                    if (account === 'test@vieshow.com') {
+                        // 帳號正確，但密碼錯誤
+                        errorMessage = '❌ **登入失敗：** 密碼錯誤，請確認您的密碼是否正確！';
+                    } else {
+                        // 帳號不存在或帳號錯誤
+                        errorMessage = '❌ **登入失敗：** 帳號不存在或密碼錯誤，請確認您的帳號密碼是否正確！';
+                    }
+
+                    showNotification(errorMessage, true);
+                    refreshCaptcha(); // 登入失敗，強制刷新驗證碼
+
+                    // 重新啟用按鈕
+                    loginButton.disabled = false;
+                    loginButton.textContent = '登入';
+                    loginButton.classList.remove('opacity-75', 'cursor-not-allowed');
                 }
-            })
-            .catch(error => {
-                showNotification(`登入發生錯誤: ${error.message}`, true);
-                document.getElementById('refreshCaptcha').click(); // 刷新驗證碼
-            });
+
+            }, 2000); // 模擬 2 秒網路延遲
         });
+
+        // --- 初始化事件綁定 (已修正) ---
+        window.onload = function() {
+            checkLoginStatus(); // 載入時檢查登入狀態
+            refreshCaptcha(); // 初始化驗證碼
+            
+            // 綁定重新整理驗證碼事件到 Div (模擬圖片點擊)
+            document.getElementById('captchaImage').addEventListener('click', refreshCaptcha);
+            
+            // 【修正處】：綁定重新整理驗證碼事件到 Button (圖標按鈕點擊)
+            document.getElementById('refreshCaptcha').addEventListener('click', refreshCaptcha); 
+            
+            // 綁定已登入時的按鈕
+            document.getElementById('goToMemberCenter').addEventListener('click', () => {
+                window.location.href = '../member/member_home.html';
+            });
+        };
     </script>
     
+    <footer class="bg-gray-800 text-white p-4 mt-auto text-center text-sm">
+        <p class="text-gray-400">&copy; 2025 Vieshow Ticketing System.</p>
+    </footer>
+
 </body>
 </html>

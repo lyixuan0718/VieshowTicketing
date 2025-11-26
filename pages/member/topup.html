@@ -172,6 +172,14 @@
             }, 5000);
         }
 
+        // 新增一個模擬生成交易編號的函數
+        function generateTransactionId() {
+            // 簡單地生成一個基於時間戳和隨機數的唯一 ID
+            const timestamp = Date.now().toString(36).toUpperCase();
+            const random = Math.random().toString(36).substring(2, 6).toUpperCase();
+            return `VS${timestamp}${random}`;
+        }
+
         // --- 更新按鈕狀態及顯示金額 ---
         function updateTopupState() {
             const isAmountSelected = selectedAmount > 0;
@@ -219,47 +227,100 @@
         paymentMethodSelect.addEventListener('change', updateTopupState);
 
         // --- 表單提交事件 (模擬付款流程) ---
+        // --- 表單提交事件 (模擬付款流程) ---
         form.addEventListener('submit', function(e) {
-            e.preventDefault(); // 阻止表單實際提交，我們在這裡做前端模擬
-
+            e.preventDefault(); // 阻止表單實際提交
+            
+            // 檢查按鈕是否可用
             if (topupButton.disabled) {
                 showFormMessage('請完成所有選擇。', 'error');
                 return;
             }
             
             const paymentMethod = paymentMethodSelect.options[paymentMethodSelect.selectedIndex].text;
+            const paymentValue = paymentMethodSelect.value;
+            
+            // **新增：生成交易編號**
+            const transactionId = generateTransactionId(); 
 
             // 禁用按鈕並開始模擬流程
             topupButton.disabled = true;
-            const originalText = topupButton.textContent;
             topupButton.textContent = `導向 ${paymentMethod} 付款頁面...`;
             topupButton.classList.add('opacity-75');
 
             // 模擬導向金流頁面及等待 3 秒
             setTimeout(() => {
-                // 假設付款成功
                 
-                // 更新餘額顯示
-                currentBalance += selectedPoints;
-                currentBalanceDisplay.textContent = `${currentBalance.toLocaleString()} 點`;
-                
-                showFormMessage(`🥳 儲值成功！已為您儲值 NT$ ${selectedAmount.toLocaleString()} 元，並獲得 ${selectedPoints.toLocaleString()} 點。`, 'success');
-                
-                // 重設表單狀態
-                selectedAmount = 0;
-                selectedPoints = 0;
-                optionCards.forEach(card => card.classList.remove('selected'));
-                paymentMethodSelect.value = '';
-                
-                topupButton.classList.remove('opacity-75');
-                form.reset(); 
-                updateTopupState(); // 重設為初始狀態
-            }, 3000);
+                // 1. 如果是 ATM 轉帳 (需要等待付款的交易頁面)
+                if (paymentValue === 'atm') {
+                    
+                    // 模擬導向待付款交易頁面
+                    const atmMessage = 
+                        `📌 **待付款交易頁面**\n\n` + 
+                        `**交易編號 (Transaction ID):** ${transactionId}\n` + 
+                        `**儲值金額:** NT$ ${selectedAmount.toLocaleString()}\n` +
+                        `**付款方式:** ATM 轉帳\n` + 
+                        `請於 24 小時內轉帳至指定虛擬帳號（此為模擬資訊）：\n` + 
+                        `銀行代碼: 822 (中國信託)\n` + 
+                        `虛擬帳號: 9987654321098765\n\n` + 
+                        `轉帳完成後，點數將於 30 分鐘內入帳。`;
+                    
+                    // 由於這是前端頁面，我們使用 alert 彈窗來「模擬」跳轉頁面，並顯示交易編號
+                    alert(atmMessage);
+
+                    showFormMessage(`⚠️ 交易編號 **${transactionId}** 已生成，請至您的銀行完成 **ATM 轉帳**。`, 'error');
+
+                    // 重設表單狀態 (但不更新點數餘額，因為尚未付款)
+                    selectedAmount = 0;
+                    selectedPoints = 0;
+                    optionCards.forEach(card => card.classList.remove('selected'));
+                    paymentMethodSelect.value = '';
+                    
+                    topupButton.classList.remove('opacity-75');
+                    form.reset(); 
+                    updateTopupState(); // 重設為初始狀態
+
+                } else {
+                    // 2. 信用卡/Line Pay (模擬即時付款成功)
+                    
+                    // 更新餘額顯示
+                    currentBalance += selectedPoints;
+                    currentBalanceDisplay.textContent = `${currentBalance.toLocaleString()} 點`;
+                    
+                    const successMessage = 
+                        `🥳 **儲值成功！**\n` + 
+                        `已為您儲值 NT$ ${selectedAmount.toLocaleString()} 元，並獲得 ${selectedPoints.toLocaleString()} 點。\n\n` +
+                        `**交易編號 (Transaction ID):** ${transactionId}`;
+                    
+                    showFormMessage(
+                        `🥳 儲值成功！交易編號: **${transactionId}**。已為您儲值 ${selectedPoints.toLocaleString()} 點。`, 
+                        'success'
+                    );
+                    
+                    // 重設表單狀態
+                    selectedAmount = 0;
+                    selectedPoints = 0;
+                    optionCards.forEach(card => card.classList.remove('selected'));
+                    paymentMethodSelect.value = '';
+                    
+                    topupButton.classList.remove('opacity-75');
+                    form.reset(); 
+                    updateTopupState(); // 重設為初始狀態
+                }
+            }, 3000); // 3 秒模擬等待
         });
+
+        // 請確保在文件的 <script> 標籤內加入 generateTransactionId 函數
+        // 以及將 form.addEventListener('submit', ...) 替換為上面修改後的版本。
         
         // 初始化檢查
         document.addEventListener('DOMContentLoaded', updateTopupState);
     </script>
     
+    <!-- Footer 內容 (模擬共用 footer) -->
+    <footer class="bg-gray-800 text-white p-4 mt-auto text-center text-sm">
+        <p class="text-gray-400">&copy; 2025 Vieshow Ticketing System.</p>
+    </footer>
+
 </body>
 </html>
