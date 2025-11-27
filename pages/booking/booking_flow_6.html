@@ -7,109 +7,204 @@
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script>
+        // Tailwind 配置，確保顏色和字體與專案一致
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'vieshow-red': '#e50914',
+                        'vieshow-gold': '#f7a83d',
+                        'vieshow-dark': '#1a1a1a',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'Noto Sans TC', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
 
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6;
+        /* 步驟指示器 */
+        .step-indicator {
+            @apply flex items-center justify-center mb-8;
         }
-
-        /* 與 Step5 一致的按鈕 */
-        .next-step-button, .pay-now-button {
-            width: 100%;
-            background-color: #e50914;
-            color: white;
-            padding: 12px;
-            font-size: 1.1rem;
-            font-weight: bold;
-            border-radius: 10px;
-            transition: 0.2s;
-            margin-top: 18px;
+        .step-circle {
+            @apply w-10 h-10 rounded-full flex items-center justify-center text-white font-bold
+                   transition duration-300;
         }
-        .next-step-button:hover, .pay-now-button:hover {
-            background-color: #b00710;
+        .step-line {
+            @apply h-1 w-16 bg-gray-300 transition duration-300;
         }
-
-        .error-message {
-            color: red;
-            font-size: 0.9rem;
-            margin-top: 10px;
-            display: none;
+        .step-active {
+            @apply bg-vieshow-red;
         }
-
-        .payment-info-section input {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #bbb;
-            border-radius: 8px;
-            margin-bottom: 14px;
+        .step-completed {
+            @apply bg-vieshow-gold;
         }
-
-        .row-group {
-            display: flex;
-            gap: 10px;
+        .step-pending {
+            @apply bg-gray-300;
         }
-
-        .row-group div {
-            flex: 1;
+        /* 下一步按鈕 */
+        .next-step-button {
+            @apply w-full bg-vieshow-red hover:bg-red-700 text-white font-bold py-3 px-4 rounded-xl 
+                   transition duration-300 shadow-lg text-lg disabled:opacity-50 disabled:cursor-not-allowed
+                   transform hover:scale-[1.02] active:scale-[0.98];
+        }
+        /* 表單輸入框 */
+        .form-input {
+            @apply w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 
+                   focus:ring-vieshow-gold focus:border-vieshow-gold transition duration-200;
+        }
+        /* 信用卡圖示 */
+        .card-icon {
+            @apply w-8 h-8 flex items-center justify-center rounded border border-gray-300 bg-white;
+        }
+        /* 安全標章 */
+        .security-badge {
+            @apply flex items-center justify-center space-x-2 p-3 bg-green-50 border border-green-200 rounded-lg;
         }
     </style>
 </head>
 
-<body class="antialiased">
+<body class="antialiased bg-gray-100 font-sans min-h-screen flex flex-col">
 
 <!-- Header -->
-<header class="bg-gray-800 text-white shadow-md">
+<header class="bg-vieshow-dark text-white shadow-md sticky top-0 z-10">
     <nav class="container mx-auto px-4 py-4 flex justify-between items-center">
-        <a href="../../index.html" class="text-xl font-bold hover:text-red-400 transition">Vieshow 影城</a>
+        <a href="../../index.html" class="text-xl font-bold hover:text-vieshow-gold transition duration-300 flex items-center">
+            <span class="mr-2">🎬</span> Vieshow 影城
+        </a>
         <div class="space-x-4">
-            <a href="../auth/login.html" class="hover:text-yellow-300 transition">登入</a>
-            <a href="../member/member_home.html" class="hover:text-yellow-300 transition">會員中心</a>
+            <a href="../auth/login.html" class="hover:text-vieshow-gold transition duration-300">登入</a>
+            <a href="../member/member_home.html" class="hover:text-vieshow-gold transition duration-300">會員中心</a>
         </div>
     </nav>
 </header>
 
 <!-- Container -->
-<div class="w-11/12 md:max-w-2xl mx-auto my-8 p-6 bg-white border border-gray-200 rounded-xl shadow-2xl">
+<div class="container mx-auto px-4 py-8 flex-grow max-w-4xl">
+    
+    <!-- 步驟指示器 -->
+    <div class="step-indicator">
+        <div class="step-circle step-completed">1</div>
+        <div class="step-line step-completed"></div>
+        <div class="step-circle step-completed">2</div>
+        <div class="step-line step-completed"></div>
+        <div class="step-circle step-completed">3</div>
+        <div class="step-line step-completed"></div>
+        <div class="step-circle step-completed">4</div>
+        <div class="step-line step-completed"></div>
+        <div class="step-circle step-active">5</div>
+    </div>
 
-    <h2 class="text-2xl font-extrabold text-gray-900 mb-6 flex items-center">
-        🧾 訂票流程 - 步驟 6/7 (填寫付款資訊)
-    </h2>
-
-    <p class="text-gray-700 mb-4">
-        請輸入您的付款資訊，並最終確認訂單。
-    </p>
-
-    <form id="paymentDetailForm">
-
-        <!-- 付款方式展示 -->
-        <h3 class="font-semibold">付款方式：
-            <span id="displayPaymentMethod" class="text-red-600 font-bold">載入中...</span>
-        </h3>
-
-        <div id="paymentFields" class="payment-info-section mt-3">
-            <!-- JS 動態注入 -->
+    <div class="bg-white p-6 md:p-10 rounded-xl shadow-2xl border-t-4 border-vieshow-red">
+        
+        <!-- 標題區塊 -->
+        <div class="mb-8 pb-4 border-b border-gray-200">
+            <h1 class="text-3xl font-extrabold text-gray-900 mb-2">🎟️ 訂票流程</h1>
+            <p class="text-xl font-semibold text-vieshow-red">步驟 5/5: 填寫付款資訊</p>
+            <p class="text-sm text-gray-500 mt-1">請輸入您的付款資訊，並最終確認訂單。</p>
         </div>
 
-        <h3 class="mt-4 text-lg font-bold">
-            最終金額：<span class="text-red-600 text-2xl">NT$ <span id="displayTotalAmount">0</span></span>
-        </h3>
+        <!-- 訂單摘要 -->
+        <div class="bg-vieshow-gold/10 p-4 rounded-lg mb-6 border-l-4 border-vieshow-gold">
+            <h2 class="font-bold text-lg mb-2 text-gray-800 flex items-center">
+                <svg class="w-5 h-5 mr-2 text-vieshow-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                訂單摘要
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <div><span class="font-semibold">電影：</span><span id="movieTitle">載入中...</span></div>
+                <div><span class="font-semibold">場次：</span><span id="showtimeDetails">載入中...</span></div>
+                <div><span class="font-semibold">座位：</span><span id="selectedSeats">載入中...</span></div>
+                <div><span class="font-semibold">付款方式：</span><span id="paymentMethodDisplay" class="font-bold text-vieshow-red">載入中...</span></div>
+            </div>
+        </div>
 
-        <p id="errorMessage" class="error-message">請填寫必填欄位</p>
+        <form id="paymentDetailForm" class="space-y-6">
+            
+            <!-- 安全提醒 -->
+            <div class="security-badge">
+                <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                </svg>
+                <span class="text-sm text-green-700 font-medium">此交易受 SSL 安全加密保護</span>
+            </div>
 
-        <button type="submit" class="pay-now-button">確認付款並送出訂單</button>
-    </form>
+            <!-- 付款資訊表單 -->
+            <div id="paymentFields" class="space-y-4">
+                <!-- 動態載入付款表單 -->
+            </div>
 
-    <p class="mt-4 text-center">
-        <a href="#" id="backLink" class="text-red-600 hover:text-red-800">
-            ← 返回上一步 (選擇付款方式)
-        </a>
-    </p>
+            <!-- 金額確認 -->
+            <div class="bg-gray-50 p-6 rounded-xl border border-gray-200">
+                <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                    <span class="mr-2">💰</span> 金額確認
+                </h3>
+                
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-600">票券費用：</span>
+                        <span class="font-medium" id="ticketAmount">NT$ 0</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-600">餐點費用：</span>
+                        <span class="font-medium" id="foodAmount">NT$ 0</span>
+                    </div>
+                    <div class="flex justify-between items-center border-t pt-3">
+                        <span class="text-lg font-semibold text-gray-800">最終應付金額：</span>
+                        <span class="text-2xl font-bold text-vieshow-red" id="displayTotalAmount">NT$ 0</span>
+                    </div>
+                </div>
+            </div>
 
+            <!-- 服務條款同意 -->
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <label class="flex items-start space-x-3">
+                    <input type="checkbox" id="agreeTerms" required class="mt-1 rounded focus:ring-vieshow-gold">
+                    <span class="text-sm text-blue-800">
+                        我已閱讀並同意 <a href="#" class="underline hover:text-blue-600">服務條款</a> 及 
+                        <a href="#" class="underline hover:text-blue-600">隱私權政策</a>，並確認以上訂單資訊正確無誤
+                    </span>
+                </label>
+            </div>
+
+            <!-- 錯誤訊息 -->
+            <div id="errorMessage" class="hidden bg-red-50 border border-red-200 rounded-lg p-4">
+                <p class="text-red-700 font-medium flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <span id="errorText">請填寫所有必填欄位</span>
+                </p>
+            </div>
+
+            <!-- 按鈕區 -->
+            <div class="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4">
+                <a href="booking_flow_5.html" class="flex-1 text-center bg-gray-500 hover:bg-gray-700 text-white font-bold py-3 px-4 rounded-xl transition duration-300 shadow-lg text-base transform hover:scale-[1.02] active:scale-[0.98]">
+                    <svg class="w-5 h-5 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                    </svg> 
+                    返回選擇付款方式
+                </a>
+                <button type="submit" class="next-step-button flex-1">
+                    <span id="submitButtonText">確認付款並送出訂單</span>
+                    <span id="loadingSpinner" class="hidden ml-2">⏳</span>
+                </button>
+            </div>
+        </form>
+    </div>
 </div>
 
 <!-- JS -->
 <script>
+    let currentBooking = {};
+
+    // 安全導頁
     function safeNavigate(fileName) {
         try {
             window.location.href = fileName;
@@ -120,49 +215,134 @@
         }
     }
 
-    let currentBooking = {};
-
-    // 動態產生信用卡/LinePay 欄位
+    // 動態產生付款表單
     function renderPaymentFields(method) {
         const fields = document.getElementById("paymentFields");
-        fields.innerHTML = "";
-
+        
         if (method === "credit_card") {
-            document.getElementById("displayPaymentMethod").textContent = "信用卡/金融卡";
-
+            document.getElementById("paymentMethodDisplay").textContent = "信用卡/金融卡";
+            
             fields.innerHTML = `
-                <label>持卡人姓名</label>
-                <input type="text" id="card_name" required placeholder="姓名">
-
-                <label>信用卡號</label>
-                <input type="text" id="card_number" required maxlength="16" placeholder="xxxx xxxx xxxx xxxx">
-
-                <div class="row-group">
-                    <div>
-                        <label>有效期限 (MM/YY)</label>
-                        <input type="text" id="expiry_date" required maxlength="5" placeholder="MM/YY">
+                <div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                        <span class="mr-2">💳</span> 信用卡資訊
+                    </h3>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">持卡人姓名</label>
+                            <input type="text" id="card_name" required placeholder="請輸入與卡片一致的中文姓名" 
+                                   class="form-input" maxlength="30">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">信用卡號碼</label>
+                            <div class="relative">
+                                <input type="text" id="card_number" required placeholder="xxxx xxxx xxxx xxxx" 
+                                       class="form-input pr-12" maxlength="19" inputmode="numeric">
+                                <div class="absolute right-3 top-3 flex space-x-1">
+                                    <div class="card-icon">💳</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">有效期限</label>
+                                <input type="text" id="expiry_date" required placeholder="MM/YY" 
+                                       class="form-input" maxlength="5">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">安全碼 (CVV)</label>
+                                <input type="text" id="cvv" required placeholder="卡片背面3碼" 
+                                       class="form-input" maxlength="3" inputmode="numeric">
+                            </div>
+                        </div>
                     </div>
+                </div>
+            `;
+            
+            // 添加信用卡號碼格式化
+            setupCardNumberFormatting();
+            setupExpiryDateFormatting();
+        }
+
+        if (method === "line_pay") {
+            document.getElementById("paymentMethodDisplay").textContent = "Line Pay";
+            
+            fields.innerHTML = `
+                <div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                        <span class="mr-2">💚</span> Line Pay 付款
+                    </h3>
+                    
+                    <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
+                        <p class="text-sm text-green-700">
+                            點擊確認付款後，您將被導向 Line Pay 進行付款授權
+                        </p>
+                    </div>
+                    
                     <div>
-                        <label>安全碼 CVV</label>
-                        <input type="text" id="cvv" required maxlength="3" placeholder="三碼">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">電子信箱</label>
+                        <input type="email" id="email" required placeholder="用來接收付款通知的電子信箱" 
+                               class="form-input">
                     </div>
                 </div>
             `;
         }
 
-        if (method === "line_pay") {
-            document.getElementById("displayPaymentMethod").textContent = "Line Pay";
-
+        if (method === "jkopay") {
+            document.getElementById("paymentMethodDisplay").textContent = "街口支付";
+            
             fields.innerHTML = `
-                <p>您將被導向 Line Pay 進行付款授權</p>
-
-                <label>信箱 (接收付款通知)</label>
-                <input type="email" id="email" required placeholder="example@mail.com">
+                <div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                        <span class="mr-2">🟣</span> 街口支付
+                    </h3>
+                    
+                    <div class="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-4">
+                        <p class="text-sm text-purple-700">
+                            確認付款後將顯示街口支付 QR Code，請使用街口支付 App 掃碼完成付款
+                        </p>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">手機號碼</label>
+                        <input type="tel" id="phone" required placeholder="用來接收付款通知的手機號碼" 
+                               class="form-input" pattern="[0-9]{10}">
+                    </div>
+                </div>
             `;
         }
     }
 
-    // 讀取資料
+    // 信用卡號碼格式化
+    function setupCardNumberFormatting() {
+        const cardNumberInput = document.getElementById('card_number');
+        if (cardNumberInput) {
+            cardNumberInput.addEventListener('input', function(e) {
+                let value = e.target.value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+                let formattedValue = value.match(/.{1,4}/g)?.join(' ') || value;
+                e.target.value = formattedValue;
+            });
+        }
+    }
+
+    // 有效期限格式化
+    function setupExpiryDateFormatting() {
+        const expiryInput = document.getElementById('expiry_date');
+        if (expiryInput) {
+            expiryInput.addEventListener('input', function(e) {
+                let value = e.target.value.replace(/\D/g, '');
+                if (value.length >= 2) {
+                    value = value.substring(0, 2) + '/' + value.substring(2, 4);
+                }
+                e.target.value = value;
+            });
+        }
+    }
+
+    // 載入訂單資料
     function loadBookingData() {
         const stored = localStorage.getItem("currentBooking");
 
@@ -174,52 +354,131 @@
 
         try {
             currentBooking = JSON.parse(stored);
+            console.log('載入訂單資料:', currentBooking);
         } catch (e) {
+            console.error('解析訂單資料失敗:', e);
             safeNavigate("booking_flow_5.html");
             return;
         }
 
-        // ⚠ 修正：不能用 !totalPrice（0 會被誤判）
+        // 資料驗證
         if (currentBooking.totalPrice == null || !currentBooking.payment_method) {
             console.error("資料不完整 → 返回 Step5");
             safeNavigate("booking_flow_5.html");
             return;
         }
 
-        document.getElementById("displayTotalAmount").textContent = currentBooking.totalPrice;
+        // 顯示訂單摘要
+        document.getElementById("movieTitle").textContent = currentBooking.movie?.title || currentBooking.movieTitle || "未選擇";
+        
+        if (currentBooking.showtime) {
+            const showtime = currentBooking.showtime;
+            document.getElementById("showtimeDetails").textContent = 
+                `${showtime.date} ${showtime.time} ${showtime.theater}`;
+        } else {
+            document.getElementById("showtimeDetails").textContent = currentBooking.showtimeDetail || "未選擇";
+        }
+        
+        document.getElementById("selectedSeats").textContent = currentBooking.selectedSeats ? 
+            currentBooking.selectedSeats.join('、') : "未選擇";
 
-        // 渲染欄位
+        // 顯示金額明細
+        const totalPrice = currentBooking.totalPrice || 0;
+        const ticketPrice = currentBooking.totalTicketPrice || 0;
+        const foodPrice = currentBooking.totalComboPrice || 0;
+
+        document.getElementById("ticketAmount").textContent = `NT$ ${ticketPrice.toLocaleString('en-US')}`;
+        document.getElementById("foodAmount").textContent = `NT$ ${foodPrice.toLocaleString('en-US')}`;
+        document.getElementById("displayTotalAmount").textContent = totalPrice.toLocaleString('en-US');
+
+        // 渲染付款表單
         renderPaymentFields(currentBooking.payment_method);
     }
 
-    // 提交付款
-    document.getElementById("paymentDetailForm").addEventListener("submit", function (e) {
-        e.preventDefault();
+    // 顯示錯誤訊息
+    function showError(message) {
+        const errorDiv = document.getElementById('errorMessage');
+        const errorText = document.getElementById('errorText');
+        errorText.textContent = message;
+        errorDiv.classList.remove('hidden');
+    }
 
-        if (!this.checkValidity()) {
-            document.getElementById("errorMessage").style.display = "block";
+    // 隱藏錯誤訊息
+    function hideError() {
+        document.getElementById('errorMessage').classList.add('hidden');
+    }
+
+    // 表單提交
+    document.getElementById("paymentDetailForm").addEventListener("submit", async function (e) {
+        e.preventDefault();
+        hideError();
+
+        // 檢查服務條款同意
+        if (!document.getElementById('agreeTerms').checked) {
+            showError('請同意服務條款及隱私權政策');
             return;
         }
 
-        // 模擬付款成功
-        currentBooking.status = "COMPLETED";
-        localStorage.setItem("lastCompletedBooking", JSON.stringify(currentBooking));
-        localStorage.removeItem("currentBooking");
+        // 表單驗證
+        if (!this.checkValidity()) {
+            showError('請填寫所有必填欄位');
+            return;
+        }
 
-        safeNavigate("booking_result.html?status=success");
+        // 顯示載入狀態
+        const submitButton = this.querySelector('button[type="submit"]');
+        const submitText = document.getElementById('submitButtonText');
+        const spinner = document.getElementById('loadingSpinner');
+        
+        submitText.textContent = '付款處理中...';
+        spinner.classList.remove('hidden');
+        submitButton.disabled = true;
+
+        try {
+            // 模擬付款處理時間
+            await new Promise(resolve => setTimeout(resolve, 2000));
+
+            // 更新訂單狀態
+            currentBooking.status = "COMPLETED";
+            currentBooking.paid_at = new Date().toISOString();
+            currentBooking.order_id = 'VS' + Date.now().toString().slice(-8);
+            
+            // 儲存付款資訊
+            if (currentBooking.payment_method === 'credit_card') {
+                currentBooking.payment_info = {
+                    card_last4: document.getElementById('card_number').value.slice(-4),
+                    card_type: 'credit_card'
+                };
+            }
+
+            // 儲存完成的訂單
+            localStorage.setItem("lastCompletedBooking", JSON.stringify(currentBooking));
+            localStorage.removeItem("currentBooking");
+
+            console.log("✅ 付款完成：", currentBooking);
+
+            // 導向成功頁面
+            safeNavigate("booking_complete.html");
+
+        } catch (error) {
+            console.error('付款處理失敗:', error);
+            showError('付款處理失敗，請稍後再試');
+            
+            // 恢復按鈕狀態
+            submitText.textContent = '確認付款並送出訂單';
+            spinner.classList.add('hidden');
+            submitButton.disabled = false;
+        }
     });
 
-    // 返回上一頁
-    document.getElementById("backLink").addEventListener("click", function (e) {
-        e.preventDefault();
-        safeNavigate("booking_flow_5.html");
-    });
-
-    loadBookingData();
+    // 頁面載入
+    window.onload = function() {
+        loadBookingData();
+    };
 </script>
 
-<footer class="bg-gray-800 text-white text-center py-4 mt-8 shadow-inner">
-    <p>&copy; 2025 Vieshow Ticketing System</p>
+<footer class="bg-vieshow-dark text-white text-center py-4 mt-8 shadow-inner">
+    <p>&copy; 2025 Vieshow Ticketing System - 訂票步驟 5</p>
 </footer>
 
 </body>
