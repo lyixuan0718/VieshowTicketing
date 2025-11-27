@@ -7,121 +7,411 @@
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script>
+        // Tailwind 配置，確保顏色和字體與專案一致
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'vieshow-red': '#e50914',
+                        'vieshow-gold': '#f7a83d',
+                        'vieshow-dark': '#1a1a1a',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'Noto Sans TC', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
 
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6;
+        /* 動畫效果 */
+        @keyframes confetti {
+            0% { transform: translateY(0) rotate(0); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
         }
-        .btn-main {
-            display: inline-block;
-            padding: 10px 16px;
-            background-color: #2563eb;
-            color: white;
-            border-radius: 6px;
-            font-weight: bold;
-            text-align: center;
-            transition: 0.2s;
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            opacity: 0;
+            pointer-events: none;
         }
-        .btn-main:hover {
-            background-color: #1e40af;
+        .confetti-animation {
+            animation: confetti 3s ease-out forwards;
         }
-        .btn-danger {
-            background-color: #e50914;
+        
+        /* 票券樣式 */
+        .ticket-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            position: relative;
+            overflow: hidden;
         }
-        .btn-danger:hover {
-            background-color: #b20710;
+        .ticket-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 20%;
+            right: 20%;
+            height: 2px;
+            background: repeating-linear-gradient(
+                90deg,
+                transparent,
+                transparent 5px,
+                white 5px,
+                white 10px
+            );
+        }
+        
+        /* 列印樣式 */
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            .print-ticket {
+                box-shadow: none !important;
+                border: 2px solid #000 !important;
+            }
         }
     </style>
 </head>
 
-<body class="antialiased">
+<body class="antialiased bg-gray-100 font-sans min-h-screen flex flex-col">
 
 <!-- Header -->
-<header class="bg-gray-800 text-white shadow-md">
+<header class="bg-vieshow-dark text-white shadow-md sticky top-0 z-50 no-print">
     <nav class="container mx-auto px-4 py-4 flex justify-between items-center">
-        <a href="../../index.html" class="text-xl font-bold hover:text-red-400 transition">Vieshow 影城</a>
+        <a href="../../index.html" class="text-xl font-bold hover:text-vieshow-gold transition duration-300 flex items-center">
+            <span class="mr-2">🎬</span> Vieshow 影城
+        </a>
         <div class="space-x-4">
-            <a href="../auth/login.html" class="hover:text-yellow-300 transition">登入</a>
-            <a href="../member/member_home.html" class="hover:text-yellow-300 transition">會員中心</a>
+            <a href="../auth/login.html" class="hover:text-vieshow-gold transition duration-300">登入</a>
+            <a href="../member/member_home.html" class="hover:text-vieshow-gold transition duration-300">會員中心</a>
         </div>
     </nav>
 </header>
 
 <!-- Main Container -->
-<div class="w-11/12 md:max-w-2xl mx-auto my-8 p-6 bg-white border border-gray-200 rounded-xl shadow-2xl text-center">
-
-    <h2 class="text-2xl font-extrabold text-gray-900 mb-6 text-center">
-        🎬 訂票結果
-    </h2>
-
+<div class="container mx-auto px-4 py-8 flex-grow max-w-4xl">
+    
     <!-- 成功結果 -->
-    <div id="successSection" class="hidden text-center">
-        <h3 class="text-green-600 text-xl font-bold">🎉 訂票成功！</h3>
+    <div id="successSection" class="hidden">
+        <div class="bg-white p-6 md:p-10 rounded-xl shadow-2xl border-t-4 border-green-500 text-center mb-8">
+            <!-- 成功圖示和標題 -->
+            <div class="mb-6">
+                <div class="text-6xl mb-4">🎉</div>
+                <h1 class="text-3xl font-extrabold text-green-600 mb-2">訂票成功！</h1>
+                <p class="text-gray-600">您的訂單已成功建立並完成付款</p>
+            </div>
 
-        <p class="mt-3 text-gray-700">您的訂單已成功建立並付款。</p>
+            <!-- 訂單編號 -->
+            <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-6 inline-block">
+                <p class="text-sm text-green-700 font-medium">訂單編號</p>
+                <p id="orderId" class="text-xl font-bold text-green-800 font-mono">載入中...</p>
+            </div>
 
-        <p class="mt-2 text-gray-900 text-lg font-semibold">
-            訂單編號：<span id="orderId" class="text-blue-600"></span>
-        </p>
+            <!-- 電子票券 -->
+            <div class="ticket-card p-6 text-white text-left mb-8 print-ticket">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
+                    <div>
+                        <h3 id="ticketMovieTitle" class="text-2xl font-bold mb-2">載入中...</h3>
+                        <p id="ticketCinema" class="text-green-200">載入中...</p>
+                    </div>
+                    <div id="ticketQrCode" class="bg-white p-2 rounded-lg hidden">
+                        <!-- QR Code 將由 JavaScript 生成 -->
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                    <div>
+                        <p class="text-green-200">場次時間</p>
+                        <p id="ticketShowtime" class="font-semibold text-lg">載入中...</p>
+                    </div>
+                    <div>
+                        <p class="text-green-200">影廳座位</p>
+                        <p id="ticketSeats" class="font-semibold text-lg">載入中...</p>
+                    </div>
+                    <div>
+                        <p class="text-green-200">票數</p>
+                        <p id="ticketCount" class="font-semibold text-lg">載入中...</p>
+                    </div>
+                </div>
+            </div>
 
-        <p class="mt-2 text-gray-700">您可至「訂票紀錄」查看詳細資訊。</p>
+            <!-- 重要提醒 -->
+            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6 text-left">
+                <h4 class="font-semibold text-yellow-800 mb-2 flex items-center">
+                    <span class="mr-2">📋</span> 重要提醒
+                </h4>
+                <ul class="text-sm text-yellow-700 space-y-1">
+                    <li>• 請於電影開演前 30 分鐘至影城取票</li>
+                    <li>• 入場時請出示此電子票券或訂單編號</li>
+                    <li>• 退票須於電影開演前 30 分鐘辦理</li>
+                    <li>• 電子票券已寄送至您的信箱</li>
+                </ul>
+            </div>
 
-        <a href="booking_history.html" class="btn-main mt-5 inline-block">查看訂票紀錄</a>
+            <!-- 操作按鈕 -->
+            <div class="flex flex-col sm:flex-row gap-4 justify-center no-print">
+                <button onclick="printTicket()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition duration-300 flex items-center justify-center">
+                    <span class="mr-2">🖨️</span> 列印票券
+                </button>
+                <button onclick="shareOrder()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg transition duration-300 flex items-center justify-center">
+                    <span class="mr-2">📤</span> 分享訂單
+                </button>
+                <a href="../member/booking_history.html" class="bg-vieshow-gold hover:bg-yellow-600 text-white font-bold py-3 px-6 rounded-lg transition duration-300 flex items-center justify-center">
+                    <span class="mr-2">📋</span> 查看訂票紀錄
+                </a>
+                <a href="../../index.html" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded-lg transition duration-300 flex items-center justify-center">
+                    <span class="mr-2">🎬</span> 回到首頁
+                </a>
+            </div>
+        </div>
+
+        <!-- 推薦電影 -->
+        <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-200 no-print">
+            <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="mr-2">🎭</span> 您可能也會喜歡
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="text-center">
+                    <div class="bg-gray-200 h-32 rounded-lg mb-2 flex items-center justify-center text-gray-400">
+                        🎬
+                    </div>
+                    <p class="font-semibold">阿凡達 3: 最終戰役</p>
+                    <p class="text-sm text-gray-500">科幻/動作</p>
+                </div>
+                <div class="text-center">
+                    <div class="bg-gray-200 h-32 rounded-lg mb-2 flex items-center justify-center text-gray-400">
+                        🎬
+                    </div>
+                    <p class="font-semibold">不可能的任務 8</p>
+                    <p class="text-sm text-gray-500">動作/冒險</p>
+                </div>
+                <div class="text-center">
+                    <div class="bg-gray-200 h-32 rounded-lg mb-2 flex items-center justify-center text-gray-400">
+                        🎬
+                    </div>
+                    <p class="font-semibold">駭客任務 5</p>
+                    <p class="text-sm text-gray-500">科幻/動作</p>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- 失敗結果 -->
-    <div id="failSection" class="hidden text-center">
-        <h3 class="text-red-600 text-xl font-bold">❌ 訂票失敗</h3>
+    <div id="failSection" class="hidden">
+        <div class="bg-white p-6 md:p-10 rounded-xl shadow-2xl border-t-4 border-red-500 text-center">
+            <!-- 失敗圖示和標題 -->
+            <div class="mb-6">
+                <div class="text-6xl mb-4">❌</div>
+                <h1 class="text-3xl font-extrabold text-red-600 mb-2">訂票失敗</h1>
+                <p class="text-gray-600" id="failReason">付款過程發生錯誤或您取消了交易</p>
+            </div>
 
-        <p class="mt-3 text-gray-700">付款過程發生錯誤或您取消了交易。</p>
-        <p class="mt-2 text-gray-700">請確認付款資訊後再試一次。</p>
+            <!-- 錯誤詳情 -->
+            <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 max-w-md mx-auto text-left">
+                <h4 class="font-semibold text-red-800 mb-2 flex items-center">
+                    <span class="mr-2">⚠️</span> 可能的原因
+                </h4>
+                <ul class="text-sm text-red-700 space-y-1">
+                    <li id="errorDetail1">• 信用卡授權失敗</li>
+                    <li id="errorDetail2">• 網路連線不穩定</li>
+                    <li id="errorDetail3">• 付款資訊輸入錯誤</li>
+                    <li id="errorDetail4">• 銀行拒絕交易</li>
+                </ul>
+            </div>
 
-        <a href="booking_flow_5.html" class="btn-main btn-danger mt-5 inline-block">
-            重新付款（返回步驟 5）
-        </a>
+            <!-- 操作按鈕 -->
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="booking_flow_5.html" class="bg-vieshow-red hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg transition duration-300 flex items-center justify-center">
+                    <span class="mr-2">💳</span> 重新付款
+                </a>
+                <a href="booking_flow_1.html" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded-lg transition duration-300 flex items-center justify-center">
+                    <span class="mr-2">🔄</span> 重新選擇場次
+                </a>
+                <a href="../../index.html" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition duration-300 flex items-center justify-center">
+                    <span class="mr-2">🏠</span> 回到首頁
+                </a>
+            </div>
+
+            <!-- 客服資訊 -->
+            <div class="mt-8 pt-6 border-t border-gray-200">
+                <p class="text-sm text-gray-600 mb-2">需要協助嗎？</p>
+                <div class="flex flex-col sm:flex-row gap-4 justify-center text-sm">
+                    <div class="flex items-center">
+                        <span class="mr-2">📞</span>
+                        <span>客服專線：02-1234-5678</span>
+                    </div>
+                    <div class="flex items-center">
+                        <span class="mr-2">✉️</span>
+                        <span>客服信箱：service@vieshow.com</span>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
+    <!-- 載入狀態 -->
+    <div id="loadingSection" class="text-center py-12">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-vieshow-red mx-auto mb-4"></div>
+        <p class="text-gray-600">處理中，請稍候...</p>
+    </div>
 </div>
 
 <!-- JS -->
 <script>
+    // 載入結果
     function loadResult() {
         const params = new URLSearchParams(window.location.search);
         const status = params.get("status");
+        const errorType = params.get("error");
 
         const successSection = document.getElementById("successSection");
         const failSection = document.getElementById("failSection");
+        const loadingSection = document.getElementById("loadingSection");
 
-        if (status === "success") {
-            const orderData = localStorage.getItem("lastCompletedBooking");
+        // 模擬載入延遲
+        setTimeout(() => {
+            loadingSection.classList.add('hidden');
 
-            if (!orderData) {
-                successSection.classList.add("hidden");
-                failSection.classList.remove("hidden");
-                return;
+            if (status === "success") {
+                const orderData = localStorage.getItem("lastCompletedBooking");
+
+                if (!orderData) {
+                    showFailSection("訂單資料遺失，請聯繫客服");
+                    return;
+                }
+
+                try {
+                    const order = JSON.parse(orderData);
+                    showSuccessSection(order);
+                    createConfetti();
+                } catch (e) {
+                    console.error('解析訂單資料失敗:', e);
+                    showFailSection("訂單資料格式錯誤");
+                }
+
+                // 清理暫存資料
+                localStorage.removeItem("currentBooking");
+
+            } else {
+                showFailSection(getErrorMessage(errorType));
             }
+        }, 1500);
+    }
 
-            const order = JSON.parse(orderData);
-
-            document.getElementById("orderId").textContent = order.orderId || "ORDER-UNKNOWN";
-
-            successSection.classList.remove("hidden");
-            failSection.classList.add("hidden");
-
-            localStorage.removeItem("currentBooking");
-
+    // 顯示成功頁面
+    function showSuccessSection(order) {
+        const successSection = document.getElementById("successSection");
+        
+        // 更新訂單資訊
+        document.getElementById("orderId").textContent = order.order_id || order.id || 'VS' + Date.now().toString().slice(-8);
+        document.getElementById("ticketMovieTitle").textContent = order.movie?.title || order.movieTitle || '電影名稱';
+        document.getElementById("ticketCinema").textContent = order.cinema?.name || order.cinemaName || '影城名稱';
+        
+        if (order.showtime) {
+            document.getElementById("ticketShowtime").textContent = 
+                `${order.showtime.date} ${order.showtime.time}`;
         } else {
-            successSection.classList.add("hidden");
-            failSection.classList.remove("hidden");
+            document.getElementById("ticketShowtime").textContent = order.showtimeDetail || '場次時間';
+        }
+        
+        document.getElementById("ticketSeats").textContent = order.selectedSeats ? 
+            order.selectedSeats.join('、') : '座位資訊';
+        document.getElementById("ticketCount").textContent = order.totalTicketQty ? 
+            `${order.totalTicketQty} 張` : '票數';
+
+        // 生成簡單的 QR Code (模擬)
+        generateSimpleQRCode(order.order_id || order.id);
+
+        successSection.classList.remove("hidden");
+    }
+
+    // 顯示失敗頁面
+    function showFailSection(message) {
+        const failSection = document.getElementById("failSection");
+        document.getElementById("failReason").textContent = message;
+        failSection.classList.remove("hidden");
+    }
+
+    // 取得錯誤訊息
+    function getErrorMessage(errorType) {
+        const errorMessages = {
+            'payment_failed': '付款授權失敗，請確認信用卡資訊',
+            'network_error': '網路連線不穩定，請稍後再試',
+            'timeout': '交易逾時，請重新操作',
+            'cancelled': '您取消了付款流程',
+            'insufficient_funds': '餘額不足，請使用其他付款方式',
+            'default': '付款過程發生錯誤，請稍後再試'
+        };
+        return errorMessages[errorType] || errorMessages['default'];
+    }
+
+    // 生成簡單的 QR Code (模擬)
+    function generateSimpleQRCode(orderId) {
+        const qrContainer = document.getElementById("ticketQrCode");
+        qrContainer.innerHTML = `
+            <div class="text-center p-2">
+                <div class="bg-black text-white p-4 rounded font-mono text-xs mb-2">
+                    QR-${orderId.slice(-6)}
+                </div>
+                <p class="text-gray-600 text-xs">電子票券條碼</p>
+            </div>
+        `;
+        qrContainer.classList.remove('hidden');
+    }
+
+    // 創建慶祝彩花
+    function createConfetti() {
+        const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff'];
+        for (let i = 0; i < 50; i++) {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti confetti-animation';
+            confetti.style.left = Math.random() * 100 + 'vw';
+            confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            document.body.appendChild(confetti);
+            
+            setTimeout(() => confetti.remove(), 3000);
         }
     }
 
-    loadResult();
+    // 列印票券
+    function printTicket() {
+        window.print();
+    }
+
+    // 分享訂單
+    function shareOrder() {
+        const orderId = document.getElementById("orderId").textContent;
+        const movieTitle = document.getElementById("ticketMovieTitle").textContent;
+        
+        const shareText = `我訂了 ${movieTitle} 的電影票！訂單編號：${orderId}`;
+        
+        if (navigator.share) {
+            navigator.share({
+                title: 'Vieshow 電影票',
+                text: shareText,
+                url: window.location.href
+            });
+        } else {
+            // 複製到剪貼簿
+            navigator.clipboard.writeText(shareText).then(() => {
+                alert('分享連結已複製到剪貼簿！');
+            });
+        }
+    }
+
+    // 頁面載入
+    window.onload = loadResult;
 </script>
 
-<footer class="bg-gray-800 text-white text-center py-4 mt-8 shadow-inner">
-    <p>&copy; 2025 Vieshow Ticketing System</p>
+<footer class="bg-vieshow-dark text-white text-center py-4 mt-8 shadow-inner no-print">
+    <p>&copy; 2025 Vieshow Ticketing System - 訂票結果</p>
 </footer>
 
 </body>
