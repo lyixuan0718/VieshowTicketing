@@ -5,272 +5,849 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>訂票步驟 1: 選擇票務類型與場次 - Vieshow Ticketing</title> 
     
-    <!-- 引入 Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <script>
-        // Tailwind 配置，確保顏色和字體與專案一致
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        'vieshow-red': '#e50914',
-                        'vieshow-gold': '#f7a83d',
-                        'vieshow-dark': '#1a1a1a',
-                        'vieshow-blue': '#3b82f6',
-                        'vieshow-green': '#10b981',
-                    },
-                    fontFamily: {
-                        sans: ['Inter', 'Noto Sans TC', 'sans-serif'],
-                    },
-                }
-            }
-        }
-    </script>
-    
     <style>
-        /* 基礎選擇框樣式 */
-        .select-styled {
-            @apply w-full p-3 bg-white border border-gray-300 rounded-lg shadow-sm
-                   focus:outline-none focus:ring-2 focus:ring-vieshow-gold focus:border-vieshow-gold
-                   transition duration-200;
+        /* 基礎樣式 */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
-        /* 下一步按鈕的 Vieshow 紅色風格 */
-        .next-step-button {
-            @apply w-full bg-vieshow-red hover:bg-red-700 text-white font-bold py-3 px-4 rounded-xl 
-                   transition duration-300 shadow-lg mt-8 text-lg disabled:opacity-50 disabled:cursor-not-allowed
-                   transform hover:scale-[1.02] active:scale-[0.98];
+        
+        body {
+            font-family: 'Inter', 'Noto Sans TC', sans-serif;
+            background-color: #f3f4f6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
-        /* 載入訊息樣式 */
-        .loading-message {
-            @apply text-center text-base text-gray-500 mt-4 italic;
+        
+        /* 顏色變數 */
+        :root {
+            --vieshow-red: #e50914;
+            --vieshow-gold: #f7a83d;
+            --vieshow-dark: #1a1a1a;
+            --vieshow-blue: #3b82f6;
+            --vieshow-green: #10b981;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-500: #6b7280;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
         }
+        
+        /* 容器樣式 */
+        .container {
+            max-width: 56rem;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+        
+        /* Header 樣式 */
+        header {
+            background-color: var(--vieshow-dark);
+            color: white;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        
+        .header-nav {
+            max-width: 56rem;
+            margin: 0 auto;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header-logo {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: white;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            transition: color 0.3s;
+        }
+        
+        .header-logo:hover {
+            color: var(--vieshow-gold);
+        }
+        
+        .header-links {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .header-link {
+            color: white;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .header-link:hover {
+            color: var(--vieshow-gold);
+        }
+        
+        /* 主內容區域 */
+        .main-content {
+            flex-grow: 1;
+            padding: 2rem 0;
+        }
+        
         /* 步驟指示器 */
         .step-indicator {
-            @apply flex items-center justify-center mb-8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 2rem;
         }
+        
         .step-circle {
-            @apply w-10 h-10 rounded-full flex items-center justify-center text-white font-bold
-                   transition duration-300;
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            transition: all 0.3s;
         }
+        
         .step-line {
-            @apply h-1 w-16 bg-gray-300 transition duration-300;
+            height: 0.25rem;
+            width: 4rem;
+            background-color: var(--gray-300);
+            transition: all 0.3s;
         }
+        
         .step-active {
-            @apply bg-vieshow-red;
+            background-color: var(--vieshow-red);
         }
+        
         .step-completed {
-            @apply bg-vieshow-gold;
+            background-color: var(--vieshow-gold);
         }
+        
         .step-pending {
-            @apply bg-gray-300;
+            background-color: var(--gray-300);
         }
-        /* 票務類型選擇卡片 */
+        
+        /* 主要訂票卡片 */
+        .booking-card {
+            background-color: white;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            border-top: 4px solid var(--vieshow-red);
+        }
+        
+        @media (min-width: 768px) {
+            .booking-card {
+                padding: 2.5rem;
+            }
+        }
+        
+        /* 標題區塊 */
+        .title-section {
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--gray-200);
+        }
+        
+        .main-title {
+            font-size: 1.875rem;
+            font-weight: 800;
+            color: var(--gray-900);
+            margin-bottom: 0.5rem;
+        }
+        
+        .step-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--vieshow-red);
+        }
+        
+        .step-description {
+            font-size: 0.875rem;
+            color: var(--gray-500);
+            margin-top: 0.25rem;
+        }
+        
+        /* 表單區塊 */
+        .form-section {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+        
+        .section-label {
+            display: block;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--gray-800);
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--gray-200);
+            display: flex;
+            align-items: center;
+        }
+        
+        /* 票務類型卡片 */
+        .ticket-type-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+            margin-top: 1rem;
+        }
+        
+        @media (min-width: 768px) {
+            .ticket-type-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        
         .ticket-type-card {
-            @apply bg-white rounded-xl shadow-md overflow-hidden border-2 border-gray-200 p-6
-                   transition duration-300 hover:shadow-lg cursor-pointer;
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            border: 2px solid var(--gray-200);
+            padding: 1.5rem;
+            transition: all 0.3s;
+            cursor: pointer;
         }
+        
+        .ticket-type-card:hover {
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        
         .ticket-type-card.selected {
-            @apply border-vieshow-red ring-2 ring-vieshow-red ring-opacity-50;
+            border-color: var(--vieshow-red);
+            box-shadow: 0 0 0 2px rgba(229, 9, 20, 0.5);
         }
-        .ticket-type-card.general {
-            @apply hover:border-vieshow-blue;
+        
+        .ticket-type-card.general:hover {
+            border-color: var(--vieshow-blue);
         }
-        .ticket-type-card.group {
-            @apply hover:border-vieshow-green;
+        
+        .ticket-type-card.group:hover {
+            border-color: var(--vieshow-green);
         }
-        /* 電影卡片樣式 */
+        
+        .ticket-type-content {
+            text-align: center;
+        }
+        
+        .ticket-icon {
+            font-size: 2.25rem;
+            margin-bottom: 0.75rem;
+        }
+        
+        .ticket-title {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: var(--gray-900);
+            margin-bottom: 0.5rem;
+        }
+        
+        .ticket-description {
+            color: var(--gray-500);
+            margin-bottom: 1rem;
+        }
+        
+        .ticket-features {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            text-align: left;
+            font-size: 0.875rem;
+            color: var(--gray-500);
+        }
+        
+        .feature-item {
+            display: flex;
+            align-items: center;
+        }
+        
+        .feature-dot {
+            width: 0.5rem;
+            height: 0.5rem;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+        }
+        
+        .dot-blue {
+            background-color: var(--vieshow-blue);
+        }
+        
+        .dot-green {
+            background-color: var(--vieshow-green);
+        }
+        
+        /* 團體票資訊 */
+        .group-ticket-info {
+            background-color: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-top: 1rem;
+            display: none;
+        }
+        
+        .group-ticket-title {
+            font-weight: bold;
+            color: #1e40af;
+            margin-bottom: 0.5rem;
+        }
+        
+        .group-ticket-list {
+            font-size: 0.875rem;
+            color: #1d4ed8;
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+        
+        /* 選擇框樣式 */
+        .select-styled {
+            width: 100%;
+            padding: 0.75rem;
+            background-color: white;
+            border: 1px solid var(--gray-300);
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            outline: none;
+            transition: all 0.2s;
+        }
+        
+        .select-styled:focus {
+            border-color: var(--vieshow-gold);
+            box-shadow: 0 0 0 2px rgba(247, 168, 61, 0.5);
+        }
+        
+        .select-help {
+            font-size: 0.875rem;
+            color: var(--gray-500);
+            margin-top: 0.5rem;
+        }
+        
+        /* 電影選擇區域 */
+        .movie-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        @media (min-width: 768px) {
+            .movie-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        
         .movie-card {
-            @apply bg-white rounded-xl shadow-md overflow-hidden border border-gray-200
-                   transition duration-300 hover:shadow-lg hover:border-vieshow-gold;
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            border: 1px solid var(--gray-200);
+            transition: all 0.3s;
+            cursor: pointer;
         }
-        /* 場次卡片樣式 */
+        
+        .movie-card:hover {
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            border-color: var(--vieshow-gold);
+        }
+        
+        .movie-card.selected {
+            border-color: var(--vieshow-red);
+            box-shadow: 0 0 0 2px rgba(229, 9, 20, 0.5);
+        }
+        
+        .movie-content {
+            position: relative;
+        }
+        
+        .group-badge {
+            background-color: #dcfce7;
+            color: #166534;
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+        }
+        
+        .movie-layout {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        @media (min-width: 768px) {
+            .movie-layout {
+                flex-direction: row;
+            }
+        }
+        
+        .movie-poster {
+            width: 100%;
+            height: 12rem;
+            object-fit: cover;
+        }
+        
+        @media (min-width: 768px) {
+            .movie-poster {
+                width: 33.333%;
+                height: auto;
+            }
+        }
+        
+        .movie-details {
+            padding: 1rem;
+            width: 100%;
+        }
+        
+        @media (min-width: 768px) {
+            .movie-details {
+                width: 66.667%;
+            }
+        }
+        
+        .movie-title {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: var(--gray-900);
+        }
+        
+        .movie-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+        
+        .movie-tag {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+        }
+        
+        .tag-red {
+            background-color: var(--vieshow-red);
+            color: white;
+        }
+        
+        .tag-gray {
+            background-color: var(--gray-200);
+            color: var(--gray-700);
+        }
+        
+        .movie-description {
+            color: var(--gray-500);
+            margin-top: 0.5rem;
+            font-size: 0.875rem;
+        }
+        
+        .movie-warning {
+            color: #ef4444;
+            font-size: 0.75rem;
+            margin-top: 0.5rem;
+        }
+        
+        /* 場次選擇區域 */
+        .showtime-section {
+            margin-top: 1rem;
+        }
+        
+        .date-section {
+            margin-bottom: 1.5rem;
+        }
+        
+        .date-header {
+            font-size: 1.125rem;
+            font-weight: bold;
+            color: var(--gray-800);
+            margin-bottom: 0.75rem;
+        }
+        
+        .showtime-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0.75rem;
+        }
+        
+        @media (min-width: 768px) {
+            .showtime-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        
+        @media (min-width: 1024px) {
+            .showtime-grid {
+                grid-template-columns: 1fr 1fr 1fr;
+            }
+        }
+        
         .showtime-card {
-            @apply bg-gray-50 p-4 rounded-lg border border-gray-200 cursor-pointer
-                   transition duration-200 hover:border-vieshow-red hover:bg-red-50;
+            background-color: #f9fafb;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid var(--gray-200);
+            cursor: pointer;
+            transition: all 0.2s;
         }
+        
+        .showtime-card:hover {
+            border-color: var(--vieshow-red);
+            background-color: #fef2f2;
+        }
+        
         .showtime-card.selected {
-            @apply border-vieshow-red bg-red-50 ring-2 ring-vieshow-red ring-opacity-50;
+            border-color: var(--vieshow-red);
+            background-color: #fef2f2;
+            box-shadow: 0 0 0 2px rgba(229, 9, 20, 0.5);
         }
+        
+        .showtime-group-badge {
+            background-color: #dcfce7;
+            color: #166534;
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            margin-bottom: 0.5rem;
+            display: inline-block;
+        }
+        
+        .showtime-time {
+            font-weight: bold;
+            font-size: 1.125rem;
+            text-align: center;
+            margin-bottom: 0.5rem;
+        }
+        
+        .showtime-details {
+            font-size: 0.875rem;
+            color: var(--gray-500);
+        }
+        
+        .showtime-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.25rem;
+        }
+        
+        .showtime-divider {
+            margin-top: 0.5rem;
+            padding-top: 0.5rem;
+            border-top: 1px solid var(--gray-200);
+        }
+        
+        .seats-low {
+            color: #dc2626;
+            font-weight: 500;
+        }
+        
+        .seats-available {
+            color: #059669;
+            font-weight: 500;
+        }
+        
+        /* 載入狀態訊息 */
+        .loading-message {
+            text-align: center;
+            font-size: 1rem;
+            color: var(--gray-500);
+            margin-top: 1rem;
+            font-style: italic;
+        }
+        
+        /* 下一步按鈕 */
+        .button-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        @media (min-width: 768px) {
+            .button-container {
+                flex-direction: row;
+                gap: 1rem;
+            }
+        }
+        
+        .next-step-button {
+            width: 100%;
+            background-color: var(--vieshow-red);
+            color: white;
+            font-weight: bold;
+            padding: 0.75rem 1rem;
+            border-radius: 0.75rem;
+            transition: all 0.3s;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            margin-top: 2rem;
+            font-size: 1.125rem;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .next-step-button:hover:not(:disabled) {
+            background-color: #b91c1c;
+            transform: scale(1.02);
+        }
+        
+        .next-step-button:active:not(:disabled) {
+            transform: scale(0.98);
+        }
+        
+        .next-step-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        /* 成功狀態 */
+        .success-message {
+            background-color: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-radius: 0.5rem;
+            padding: 1rem;
+        }
+        
+        .success-text {
+            color: #166534;
+            font-weight: 500;
+        }
+        
+        /* Footer 樣式 */
+        footer {
+            background-color: var(--vieshow-dark);
+            color: white;
+            text-align: center;
+            padding: 1rem 0;
+            margin-top: 2rem;
+            box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+        }
+        
+        /* 工具類 */
+        .hidden {
+            display: none;
+        }
+        
+        .cursor-pointer {
+            cursor: pointer;
+        }
+        
+        .cursor-not-allowed {
+            cursor: not-allowed;
+        }
+        
+        .opacity-50 {
+            opacity: 0.5;
+        }
+        
+        .text-center {
+            text-align: center;
+        }
+        
+        .flex-1 {
+            flex: 1;
+        }
+        
         /* 響應式調整 */
         @media (max-width: 640px) {
             .step-line {
-                @apply w-8;
+                width: 2rem;
             }
-        }
-        /* 團體票提示樣式 */
-        .group-ticket-info {
-            @apply bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4;
         }
     </style>
 </head>
-<body class="bg-gray-100 font-sans min-h-screen flex flex-col">
+<body>
     
-    <!-- Header 導航 (模擬共用 header) -->
-    <header class="bg-vieshow-dark text-white shadow-md sticky top-0 z-10">
-        <nav class="container mx-auto px-4 py-4 flex justify-between items-center">
-            <!-- 確保首頁連結正確 -->
-            <a href="../../index.html" class="text-xl font-bold hover:text-vieshow-gold transition duration-300 flex items-center">
-                <span class="mr-2">🎬</span> Vieshow 影城
+    <!-- Header 導航 -->
+    <header>
+        <nav class="header-nav">
+            <!-- 使用相對路徑 -->
+            <a href="../index.html" class="header-logo">
+                <span style="margin-right: 0.5rem;">🎬</span> Vieshow 影城
             </a>
-            <div class="space-x-4">
-                <a href="../auth/login.html" class="hover:text-vieshow-gold transition duration-300">登入</a>
-                <a href="../member/member_home.html" class="hover:text-vieshow-gold transition duration-300">會員中心</a>
+            <div class="header-links">
+                <!-- 使用相對路徑 -->
+                <a href="../auth/login.html" class="header-link">登入</a>
+                <a href="../member/member_home.html" class="header-link">會員中心</a>
             </div>
         </nav>
     </header>
 
-    <div class="container mx-auto px-4 py-8 flex-grow max-w-4xl">
-        
-        <!-- 步驟指示器 -->
-        <div class="step-indicator">
-            <div class="step-circle step-active">1</div>
-            <div class="step-line step-pending"></div>
-            <div class="step-circle step-pending">2</div>
-            <div class="step-line step-pending"></div>
-            <div class="step-circle step-pending">3</div>
-            <div class="step-line step-pending"></div>
-            <div class="step-circle step-pending">4</div>
-            <div class="step-line step-pending"></div>
-            <div class="step-circle step-pending">5</div>
-        </div>
-        
-        <!-- 主要訂票卡片 -->
-        <div id="bookingCard" class="bg-white p-6 md:p-10 rounded-xl shadow-2xl border-t-4 border-vieshow-red">
-            
-            <!-- 標題區塊 -->
-            <div class="mb-8 pb-4 border-b border-gray-200">
-                <h1 class="text-3xl font-extrabold text-gray-900 mb-2">🎟️ 訂票流程</h1>
-                <p class="text-xl font-semibold text-vieshow-red">步驟 1/5: 選擇票務類型與場次</p>
-                <p class="text-sm text-gray-500 mt-1">請先選擇票務類型，然後依序選擇影城、電影和場次。</p>
+    <div class="main-content">
+        <div class="container">
+            <!-- 步驟指示器 -->
+            <div class="step-indicator">
+                <div class="step-circle step-active">1</div>
+                <div class="step-line step-pending"></div>
+                <div class="step-circle step-pending">2</div>
+                <div class="step-line step-pending"></div>
+                <div class="step-circle step-pending">3</div>
+                <div class="step-line step-pending"></div>
+                <div class="step-circle step-pending">4</div>
+                <div class="step-line step-pending"></div>
+                <div class="step-circle step-pending">5</div>
             </div>
-
-            <!-- 表單區塊 -->
-            <form id="bookingFlow1Form" action="#" method="POST" class="space-y-8">
+            
+            <!-- 主要訂票卡片 -->
+            <div id="bookingCard" class="booking-card">
                 
-                <!-- 0. 選擇票務類型 -->
-                <div id="ticketTypeSection">
-                    <label class="block text-2xl font-bold text-gray-800 mb-4 border-b pb-2 flex items-center">
-                        <span class="mr-2">🎫</span> 0. 選擇票務類型
-                    </label>
+                <!-- 標題區塊 -->
+                <div class="title-section">
+                    <h1 class="main-title">🎟️ 訂票流程</h1>
+                    <p class="step-title">步驟 1/5: 選擇票務類型與場次</p>
+                    <p class="step-description">請先選擇票務類型，然後依序選擇影城、電影和場次。</p>
+                </div>
+
+                <!-- 表單區塊 -->
+                <form id="bookingFlow1Form" action="#" method="POST" class="form-section">
                     
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
-                        <!-- 一般購票 -->
-                        <div class="ticket-type-card general" data-type="general">
-                            <div class="text-center">
-                                <div class="text-4xl mb-3">👤</div>
-                                <h3 class="text-xl font-bold text-gray-900 mb-2">一般購票</h3>
-                                <p class="text-gray-600 mb-4">個人或小團體觀影選擇</p>
-                                <div class="space-y-2 text-sm text-gray-500 text-left">
-                                    <div class="flex items-center">
-                                        <span class="w-2 h-2 bg-vieshow-blue rounded-full mr-2"></span>
-                                        <span>適合 1-8 人觀影</span>
+                    <!-- 0. 選擇票務類型 -->
+                    <div id="ticketTypeSection">
+                        <label class="section-label">
+                            <span style="margin-right: 0.5rem;">🎫</span> 0. 選擇票務類型
+                        </label>
+                        
+                        <div class="ticket-type-grid">
+                            <!-- 一般購票 -->
+                            <div class="ticket-type-card general" data-type="general">
+                                <div class="ticket-type-content">
+                                    <div class="ticket-icon">👤</div>
+                                    <h3 class="ticket-title">一般購票</h3>
+                                    <p class="ticket-description">個人或小團體觀影選擇</p>
+                                    <div class="ticket-features">
+                                        <div class="feature-item">
+                                            <span class="feature-dot dot-blue"></span>
+                                            <span>適合 1-8 人觀影</span>
+                                        </div>
+                                        <div class="feature-item">
+                                            <span class="feature-dot dot-blue"></span>
+                                            <span>多種票種選擇</span>
+                                        </div>
+                                        <div class="feature-item">
+                                            <span class="feature-dot dot-blue"></span>
+                                            <span>即時線上選位</span>
+                                        </div>
                                     </div>
-                                    <div class="flex items-center">
-                                        <span class="w-2 h-2 bg-vieshow-blue rounded-full mr-2"></span>
-                                        <span>多種票種選擇</span>
-                                    </div>
-                                    <div class="flex items-center">
-                                        <span class="w-2 h-2 bg-vieshow-blue rounded-full mr-2"></span>
-                                        <span>即時線上選位</span>
+                                </div>
+                            </div>
+                            
+                            <!-- 團體票 -->
+                            <div class="ticket-type-card group" data-type="group">
+                                <div class="ticket-type-content">
+                                    <div class="ticket-icon">👥</div>
+                                    <h3 class="ticket-title">團體票</h3>
+                                    <p class="ticket-description">10人以上團體優惠</p>
+                                    <div class="ticket-features">
+                                        <div class="feature-item">
+                                            <span class="feature-dot dot-green"></span>
+                                            <span>適合 10人以上團體</span>
+                                        </div>
+                                        <div class="feature-item">
+                                            <span class="feature-dot dot-green"></span>
+                                            <span>專屬團體優惠價</span>
+                                        </div>
+                                        <div class="feature-item">
+                                            <span class="feature-dot dot-green"></span>
+                                            <span>需提前預約</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                         
-                        <!-- 團體票 -->
-                        <div class="ticket-type-card group" data-type="group">
-                            <div class="text-center">
-                                <div class="text-4xl mb-3">👥</div>
-                                <h3 class="text-xl font-bold text-gray-900 mb-2">團體票</h3>
-                                <p class="text-gray-600 mb-4">10人以上團體優惠</p>
-                                <div class="space-y-2 text-sm text-gray-500 text-left">
-                                    <div class="flex items-center">
-                                        <span class="w-2 h-2 bg-vieshow-green rounded-full mr-2"></span>
-                                        <span>適合 10人以上團體</span>
-                                    </div>
-                                    <div class="flex items-center">
-                                        <span class="w-2 h-2 bg-vieshow-green rounded-full mr-2"></span>
-                                        <span>專屬團體優惠價</span>
-                                    </div>
-                                    <div class="flex items-center">
-                                        <span class="w-2 h-2 bg-vieshow-green rounded-full mr-2"></span>
-                                        <span>需提前預約</span>
-                                    </div>
-                                </div>
+                        <!-- 團體票詳細資訊 -->
+                        <div id="groupTicketInfo" class="group-ticket-info">
+                            <h4 class="group-ticket-title">🎉 團體票專屬優惠</h4>
+                            <ul class="group-ticket-list">
+                                <li>• 10人以上享團體優惠價</li>
+                                <li>• 可預約專屬場次時段</li>
+                                <li>• 專人服務協助安排座位</li>
+                                <li>• 可客製化餐點組合</li>
+                                <li>• 需於觀影前3天預訂</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <!-- 1. 選擇影城地點 -->
+                    <div id="cinemaSelectionSection" class="hidden">
+                        <label for="cinema_location" class="section-label">
+                            <span style="margin-right: 0.5rem;">📍</span> 1. 選擇影城地點
+                        </label>
+                        <select id="cinema_location" name="cinema_location" required class="select-styled">
+                            <option value="" disabled selected>請選擇影城地點</option>
+                            <!-- Options filled by JavaScript -->
+                        </select>
+                        <p class="select-help">選擇您想觀影的影城地點</p>
+                    </div>
+                    
+                    <!-- 2. 選擇電影 -->
+                    <div id="movieSelectionSection" class="hidden">
+                        <label class="section-label">
+                            <span style="margin-right: 0.5rem;">🎬</span> 2. 選擇電影
+                        </label>
+                        
+                        <!-- 電影選擇區域 -->
+                        <div id="movieSelection" class="movie-grid">
+                            <div style="grid-column: 1 / -1; text-align: center; padding: 2rem 0; color: var(--gray-500);">
+                                請先選擇影城地點以顯示電影清單
                             </div>
                         </div>
                     </div>
                     
-                    <!-- 團體票詳細資訊 -->
-                    <div id="groupTicketInfo" class="group-ticket-info hidden">
-                        <h4 class="font-bold text-blue-800 mb-2">🎉 團體票專屬優惠</h4>
-                        <ul class="text-sm text-blue-700 space-y-1">
-                            <li>• 10人以上享團體優惠價</li>
-                            <li>• 可預約專屬場次時段</li>
-                            <li>• 專人服務協助安排座位</li>
-                            <li>• 可客製化餐點組合</li>
-                            <li>• 需於觀影前3天預訂</li>
-                        </ul>
-                    </div>
-                </div>
-                
-                <!-- 1. 選擇影城地點 -->
-                <div id="cinemaSelectionSection" class="hidden">
-                    <label for="cinema_location" class="block text-2xl font-bold text-gray-800 mb-4 border-b pb-2 flex items-center">
-                        <span class="mr-2">📍</span> 1. 選擇影城地點
-                    </label>
-                    <select id="cinema_location" name="cinema_location" required class="select-styled">
-                        <option value="" disabled selected>請選擇影城地點</option>
-                        <!-- Options filled by JavaScript -->
-                    </select>
-                    <p class="text-sm text-gray-500 mt-2">選擇您想觀影的影城地點</p>
-                </div>
-                
-                <!-- 2. 選擇電影 -->
-                <div id="movieSelectionSection" class="hidden">
-                    <label class="block text-2xl font-bold text-gray-800 mb-4 border-b pb-2 flex items-center">
-                        <span class="mr-2">🎬</span> 2. 選擇電影
-                    </label>
-                    
-                    <!-- 電影選擇區域 -->
-                    <div id="movieSelection" class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                        <!-- 電影卡片將由 JavaScript 動態生成 -->
-                        <div class="col-span-full text-center py-8 text-gray-500">
-                            請先選擇影城地點以顯示電影清單
+                    <!-- 3. 選擇場次 -->
+                    <div id="showtimeSelectionSection" class="hidden">
+                        <label class="section-label">
+                            <span style="margin-right: 0.5rem;">🕒</span> 3. 選擇場次
+                        </label>
+                        
+                        <!-- 場次選擇區域 -->
+                        <div id="showtimeSelection" class="showtime-section">
+                            <div style="text-align: center; padding: 2rem 0; color: var(--gray-500);">
+                                請先選擇電影以顯示場次資訊
+                            </div>
                         </div>
                     </div>
-                </div>
-                
-                <!-- 3. 選擇場次 -->
-                <div id="showtimeSelectionSection" class="hidden">
-                    <label class="block text-2xl font-bold text-gray-800 mb-4 border-b pb-2 flex items-center">
-                        <span class="mr-2">🕒</span> 3. 選擇場次
-                    </label>
                     
-                    <!-- 場次選擇區域 -->
-                    <div id="showtimeSelection" class="space-y-4 mt-4">
-                        <div class="text-center py-8 text-gray-500">
-                            請先選擇電影以顯示場次資訊
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- 載入狀態訊息 -->
-                <div id="loadingStatus" class="loading-message"></div>
+                    <!-- 載入狀態訊息 -->
+                    <div id="loadingStatus" class="loading-message"></div>
 
-                <!-- 下一步按鈕 -->
-                <div class="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4">
-                    <button type="submit" id="nextStepButton" class="next-step-button flex-1" disabled>
-                        下一步: 選擇票種與餐點 (步驟 2)
-                    </button>
-                </div>
-            </form>
+                    <!-- 下一步按鈕 -->
+                    <div class="button-container">
+                        <button type="submit" id="nextStepButton" class="next-step-button" disabled>
+                            下一步: 選擇票種與餐點 (步驟 2)
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 
-    <!-- 訂票頁面專屬的 JavaScript 邏輯：動態載入資料並處理表單 -->
+    <!-- JavaScript 邏輯 -->
     <script>
+        // 檢查登入狀態
+        function checkLoginStatus() {
+            const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+            
+            if (!isLoggedIn) {
+                alert('請先登入才能進行訂票');
+                // 傳遞當前頁面路徑作為參數
+                const currentPage = 'booking/booking1.html'; // 直接指定相對路徑
+                window.location.href = `../auth/login.html?redirect=${encodeURIComponent(currentPage)}`;
+                return false;
+            }
+            return true;
+        }
+
         // 取得 DOM 元素
         const ticketTypeSection = document.getElementById('ticketTypeSection');
         const cinemaSelectionSection = document.getElementById('cinemaSelectionSection');
@@ -392,8 +969,8 @@
 
         // 步驟 2: 根據選擇的影城，動態載入電影清單 (使用 Mock Data)
         async function loadMovies(cinemaId) {
-            movieSelection.innerHTML = '<div class="col-span-full text-center py-8 text-gray-500">載入電影中...</div>';
-            showtimeSelection.innerHTML = '<div class="text-center py-8 text-gray-500">請先選擇電影以顯示場次資訊</div>';
+            movieSelection.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 2rem 0; color: var(--gray-500);">載入電影中...</div>';
+            showtimeSelection.innerHTML = '<div style="text-align: center; padding: 2rem 0; color: var(--gray-500);">請先選擇電影以顯示場次資訊</div>';
             nextButton.disabled = true;
             currentSelections.movie = null;
             currentSelections.showtime = null;
@@ -473,7 +1050,7 @@
                 movieSelection.innerHTML = '';
                 
                 if (movies.length === 0) {
-                    movieSelection.innerHTML = '<div class="col-span-full text-center py-8 text-gray-500">此影城暫無上映電影</div>';
+                    movieSelection.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 2rem 0; color: var(--gray-500);">此影城暫無上映電影</div>';
                     return;
                 }
                 
@@ -484,25 +1061,25 @@
                     
                     // 團體票標記
                     const groupBadge = movie.availableForGroup ? 
-                        '<span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded absolute top-2 right-2">可團體預訂</span>' : '';
+                        '<span class="group-badge">可團體預訂</span>' : '';
                     
                     movieCard.innerHTML = `
-                        <div class="relative">
+                        <div class="movie-content">
                             ${groupBadge}
-                            <div class="flex flex-col md:flex-row">
-                                <div class="md:w-1/3">
-                                    <img src="${movie.image}" alt="${movie.title}" class="w-full h-48 md:h-full object-cover">
+                            <div class="movie-layout">
+                                <div class="movie-poster-container">
+                                    <img src="${movie.image}" alt="${movie.title}" class="movie-poster">
                                 </div>
-                                <div class="p-4 md:w-2/3">
-                                    <h3 class="text-xl font-bold text-gray-900">${movie.title}</h3>
-                                    <div class="flex flex-wrap gap-2 mt-2">
-                                        <span class="bg-vieshow-red text-white text-xs px-2 py-1 rounded">${movie.rating}</span>
-                                        <span class="bg-gray-200 text-gray-700 text-xs px-2 py-1 rounded">${movie.genre}</span>
-                                        <span class="bg-gray-200 text-gray-700 text-xs px-2 py-1 rounded">${movie.duration}</span>
+                                <div class="movie-details">
+                                    <h3 class="movie-title">${movie.title}</h3>
+                                    <div class="movie-tags">
+                                        <span class="movie-tag tag-red">${movie.rating}</span>
+                                        <span class="movie-tag tag-gray">${movie.genre}</span>
+                                        <span class="movie-tag tag-gray">${movie.duration}</span>
                                     </div>
-                                    <p class="text-gray-600 mt-2 text-sm">${movie.description}</p>
+                                    <p class="movie-description">${movie.description}</p>
                                     ${currentSelections.ticketType === 'group' && !movie.availableForGroup ? 
-                                        '<p class="text-red-500 text-xs mt-2">⚠️ 此電影不適用團體票預訂</p>' : ''}
+                                        '<p class="movie-warning">⚠️ 此電影不適用團體票預訂</p>' : ''}
                                 </div>
                             </div>
                         </div>
@@ -524,7 +1101,7 @@
                 
             } catch (error) {
                 console.error('載入電影失敗:', error);
-                movieSelection.innerHTML = '<div class="col-span-full text-center py-8 text-gray-500">載入電影清單失敗</div>';
+                movieSelection.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 2rem 0; color: var(--gray-500);">載入電影清單失敗</div>';
                 showRetryButton('載入電影失敗，請重試', `loadMovies('${cinemaId}')`);
             }
         }
@@ -533,13 +1110,13 @@
         function selectMovie(movie) {
             // 移除之前選擇的樣式
             document.querySelectorAll('.movie-card').forEach(card => {
-                card.classList.remove('border-vieshow-red', 'ring-2', 'ring-vieshow-red');
+                card.classList.remove('selected');
             });
             
             // 添加當前選擇樣式
             const selectedCard = document.querySelector(`[data-movie-id="${movie.id}"]`);
             if (selectedCard) {
-                selectedCard.classList.add('border-vieshow-red', 'ring-2', 'ring-vieshow-red');
+                selectedCard.classList.add('selected');
             }
             
             currentSelections.movie = movie;
@@ -548,7 +1125,7 @@
 
         // 步驟 3: 根據選擇的影城和電影，動態載入場次清單 (使用 Mock Data)
         async function loadShowtimes(cinemaId, movieId) {
-            showtimeSelection.innerHTML = '<div class="text-center py-8 text-gray-500">載入場次中...</div>';
+            showtimeSelection.innerHTML = '<div style="text-align: center; padding: 2rem 0; color: var(--gray-500);">載入場次中...</div>';
             nextButton.disabled = true;
             currentSelections.showtime = null;
 
@@ -631,7 +1208,7 @@
                 showtimeSelection.innerHTML = '';
                 
                 if (showtimes.length === 0) {
-                    showtimeSelection.innerHTML = '<div class="text-center py-8 text-gray-500">此時段無可用場次</div>';
+                    showtimeSelection.innerHTML = '<div style="text-align: center; padding: 2rem 0; color: var(--gray-500);">此時段無可用場次</div>';
                     loadingStatus.textContent = "該電影在選擇的影城暫無場次";
                     return;
                 }
@@ -648,15 +1225,15 @@
                 // 生成場次選擇介面
                 Object.keys(groupedByDate).forEach(date => {
                     const dateSection = document.createElement('div');
-                    dateSection.className = 'mb-6';
+                    dateSection.className = 'date-section';
                     
                     const dateHeader = document.createElement('h4');
-                    dateHeader.className = 'text-lg font-bold text-gray-800 mb-3';
+                    dateHeader.className = 'date-header';
                     dateHeader.textContent = date;
                     dateSection.appendChild(dateHeader);
                     
                     const showtimesGrid = document.createElement('div');
-                    showtimesGrid.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3';
+                    showtimesGrid.className = 'showtime-grid';
                     
                     groupedByDate[date].forEach(showtime => {
                         const showtimeCard = document.createElement('div');
@@ -665,27 +1242,27 @@
                         
                         // 團體票標記
                         const groupBadge = showtime.availableForGroup ? 
-                            '<span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded mb-2 inline-block">團體場</span>' : '';
+                            '<span class="showtime-group-badge">團體場</span>' : '';
                         
                         showtimeCard.innerHTML = `
                             ${groupBadge}
-                            <div class="font-bold text-lg text-center mb-2">${showtime.time}</div>
-                            <div class="text-sm text-gray-600">
-                                <div class="flex justify-between mb-1">
+                            <div class="showtime-time">${showtime.time}</div>
+                            <div class="showtime-details">
+                                <div class="showtime-row">
                                     <span>影廳:</span>
                                     <span class="font-medium">${showtime.theater}</span>
                                 </div>
-                                <div class="flex justify-between mb-1">
+                                <div class="showtime-row">
                                     <span>版本:</span>
                                     <span class="font-medium">${showtime.type}</span>
                                 </div>
-                                <div class="flex justify-between mb-1">
+                                <div class="showtime-row">
                                     <span>語言/字幕:</span>
                                     <span class="font-medium">${showtime.language}/${showtime.subtitle}</span>
                                 </div>
-                                <div class="flex justify-between mt-2 pt-2 border-t border-gray-200">
+                                <div class="showtime-row showtime-divider">
                                     <span>剩餘座位:</span>
-                                    <span class="font-medium ${showtime.seats < 10 ? 'text-red-600' : 'text-green-600'}">${showtime.seats}</span>
+                                    <span class="${showtime.seats < 10 ? 'seats-low' : 'seats-available'}">${showtime.seats}</span>
                                 </div>
                             </div>
                         `;
@@ -711,7 +1288,7 @@
                 loadingStatus.textContent = "";
             } catch (error) {
                 console.error('載入場次失敗:', error);
-                showtimeSelection.innerHTML = '<div class="text-center py-8 text-gray-500">載入場次清單失敗</div>';
+                showtimeSelection.innerHTML = '<div style="text-align: center; padding: 2rem 0; color: var(--gray-500);">載入場次清單失敗</div>';
                 showRetryButton('載入場次失敗，請重試', `loadShowtimes('${cinemaId}', '${movieId}')`);
             }
         }
@@ -734,12 +1311,12 @@
             
             // 顯示選擇摘要
             loadingStatus.innerHTML = `
-                <div class="bg-green-50 border border-green-200 rounded-lg p-4">
-                    <p class="text-green-800 font-medium">已選擇: 
-                        <span class="font-bold">${currentSelections.ticketType === 'general' ? '一般購票' : '團體票'}</span> | 
-                        <span class="font-bold">${currentSelections.cinema.name}</span> | 
-                        <span class="font-bold">${currentSelections.movie.title}</span> | 
-                        <span class="font-bold">${showtime.date} ${showtime.time} ${showtime.theater}</span>
+                <div class="success-message">
+                    <p class="success-text">已選擇: 
+                        <span style="font-weight: bold;">${currentSelections.ticketType === 'general' ? '一般購票' : '團體票'}</span> | 
+                        <span style="font-weight: bold;">${currentSelections.cinema.name}</span> | 
+                        <span style="font-weight: bold;">${currentSelections.movie.title}</span> | 
+                        <span style="font-weight: bold;">${showtime.date} ${showtime.time} ${showtime.theater}</span>
                     </p>
                 </div>
             `;
@@ -749,7 +1326,7 @@
         function showRetryButton(message, retryFunction) {
             loadingStatus.innerHTML = `
                 ${message}
-                <button onclick="${retryFunction}" class="ml-2 text-vieshow-red underline font-medium">
+                <button onclick="${retryFunction}" style="margin-left: 0.5rem; color: var(--vieshow-red); text-decoration: underline; font-weight: 500;">
                     點此重試
                 </button>
             `;
@@ -791,18 +1368,30 @@
             
             console.log('已儲存訂票步驟 1 資料:', bookingData);
             
-            // 跳轉到步驟 2 頁面
+            // 使用相對路徑跳轉到步驟 2 頁面
             window.location.href = 'booking_flow_2.html';
         });
 
         // 頁面載入時，執行初始化
         window.onload = function() {
+            // 檢查登入狀態
+            if (!checkLoginStatus()) {
+                return;
+            }
+            
+            // 如果登入成功，可以顯示歡迎訊息
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            if (user.name) {
+                console.log(`歡迎回來，${user.name}！`);
+                // 可以在頁面上顯示歡迎訊息
+            }
+            
             setupTicketTypeSelection();
         };
     </script>
 
-    <!-- Footer 內容 (模擬共用 footer) -->
-    <footer class="bg-vieshow-dark text-white text-center py-4 mt-8 shadow-inner">
+    <!-- Footer 內容 -->
+    <footer>
         <p>&copy; 2025 Vieshow Ticketing System - 訂票步驟 1</p>
     </footer>
     
