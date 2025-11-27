@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>訂票步驟 1: 選電影/場次/地點 - Vieshow Ticketing</title> 
+    <title>訂票步驟 1: 選擇票務類型與場次 - Vieshow Ticketing</title> 
     
     <!-- 引入 Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -16,6 +16,9 @@
                     colors: {
                         'vieshow-red': '#e50914',
                         'vieshow-gold': '#f7a83d',
+                        'vieshow-dark': '#1a1a1a',
+                        'vieshow-blue': '#3b82f6',
+                        'vieshow-green': '#10b981',
                     },
                     fontFamily: {
                         sans: ['Inter', 'Noto Sans TC', 'sans-serif'],
@@ -29,26 +32,87 @@
         /* 基礎選擇框樣式 */
         .select-styled {
             @apply w-full p-3 bg-white border border-gray-300 rounded-lg shadow-sm
-                   focus:outline-none focus:ring-2 focus:ring-vieshow-gold focus:border-vieshow-gold;
+                   focus:outline-none focus:ring-2 focus:ring-vieshow-gold focus:border-vieshow-gold
+                   transition duration-200;
         }
         /* 下一步按鈕的 Vieshow 紅色風格 */
         .next-step-button {
             @apply w-full bg-vieshow-red hover:bg-red-700 text-white font-bold py-3 px-4 rounded-xl 
-                   transition duration-300 shadow-lg mt-8 text-lg disabled:opacity-50 disabled:cursor-not-allowed;
+                   transition duration-300 shadow-lg mt-8 text-lg disabled:opacity-50 disabled:cursor-not-allowed
+                   transform hover:scale-[1.02] active:scale-[0.98];
         }
         /* 載入訊息樣式 */
         .loading-message {
             @apply text-center text-base text-gray-500 mt-4 italic;
+        }
+        /* 步驟指示器 */
+        .step-indicator {
+            @apply flex items-center justify-center mb-8;
+        }
+        .step-circle {
+            @apply w-10 h-10 rounded-full flex items-center justify-center text-white font-bold
+                   transition duration-300;
+        }
+        .step-line {
+            @apply h-1 w-16 bg-gray-300 transition duration-300;
+        }
+        .step-active {
+            @apply bg-vieshow-red;
+        }
+        .step-completed {
+            @apply bg-vieshow-gold;
+        }
+        .step-pending {
+            @apply bg-gray-300;
+        }
+        /* 票務類型選擇卡片 */
+        .ticket-type-card {
+            @apply bg-white rounded-xl shadow-md overflow-hidden border-2 border-gray-200 p-6
+                   transition duration-300 hover:shadow-lg cursor-pointer;
+        }
+        .ticket-type-card.selected {
+            @apply border-vieshow-red ring-2 ring-vieshow-red ring-opacity-50;
+        }
+        .ticket-type-card.general {
+            @apply hover:border-vieshow-blue;
+        }
+        .ticket-type-card.group {
+            @apply hover:border-vieshow-green;
+        }
+        /* 電影卡片樣式 */
+        .movie-card {
+            @apply bg-white rounded-xl shadow-md overflow-hidden border border-gray-200
+                   transition duration-300 hover:shadow-lg hover:border-vieshow-gold;
+        }
+        /* 場次卡片樣式 */
+        .showtime-card {
+            @apply bg-gray-50 p-4 rounded-lg border border-gray-200 cursor-pointer
+                   transition duration-200 hover:border-vieshow-red hover:bg-red-50;
+        }
+        .showtime-card.selected {
+            @apply border-vieshow-red bg-red-50 ring-2 ring-vieshow-red ring-opacity-50;
+        }
+        /* 響應式調整 */
+        @media (max-width: 640px) {
+            .step-line {
+                @apply w-8;
+            }
+        }
+        /* 團體票提示樣式 */
+        .group-ticket-info {
+            @apply bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4;
         }
     </style>
 </head>
 <body class="bg-gray-100 font-sans min-h-screen flex flex-col">
     
     <!-- Header 導航 (模擬共用 header) -->
-    <header class="bg-gray-800 text-white shadow-md">
+    <header class="bg-vieshow-dark text-white shadow-md sticky top-0 z-10">
         <nav class="container mx-auto px-4 py-4 flex justify-between items-center">
             <!-- 確保首頁連結正確 -->
-            <a href="../../index.html" class="text-xl font-bold hover:text-vieshow-red transition duration-300">Vieshow 影城</a>
+            <a href="../../index.html" class="text-xl font-bold hover:text-vieshow-gold transition duration-300 flex items-center">
+                <span class="mr-2">🎬</span> Vieshow 影城
+            </a>
             <div class="space-x-4">
                 <a href="../auth/login.html" class="hover:text-vieshow-gold transition duration-300">登入</a>
                 <a href="../member/member_home.html" class="hover:text-vieshow-gold transition duration-300">會員中心</a>
@@ -56,55 +120,150 @@
         </nav>
     </header>
 
-    <div class="container mx-auto px-4 py-8 flex-grow max-w-2xl">
+    <div class="container mx-auto px-4 py-8 flex-grow max-w-4xl">
         
-        <!-- 主要訂票卡片 (包含步驟指示與表單，合併為一個框框) -->
+        <!-- 步驟指示器 -->
+        <div class="step-indicator">
+            <div class="step-circle step-active">1</div>
+            <div class="step-line step-pending"></div>
+            <div class="step-circle step-pending">2</div>
+            <div class="step-line step-pending"></div>
+            <div class="step-circle step-pending">3</div>
+            <div class="step-line step-pending"></div>
+            <div class="step-circle step-pending">4</div>
+            <div class="step-line step-pending"></div>
+            <div class="step-circle step-pending">5</div>
+        </div>
+        
+        <!-- 主要訂票卡片 -->
         <div id="bookingCard" class="bg-white p-6 md:p-10 rounded-xl shadow-2xl border-t-4 border-vieshow-red">
             
-            <!-- 步驟指示器 (您的 (1) 區塊) -->
+            <!-- 標題區塊 -->
             <div class="mb-8 pb-4 border-b border-gray-200">
                 <h1 class="text-3xl font-extrabold text-gray-900 mb-2">🎟️ 訂票流程</h1>
-                <p class="text-xl font-semibold text-vieshow-red">步驟 1/7: 選擇場次</p>
-                <p class="text-sm text-gray-500 mt-1">請依序選擇影城、電影，最後確認場次。</p>
+                <p class="text-xl font-semibold text-vieshow-red">步驟 1/5: 選擇票務類型與場次</p>
+                <p class="text-sm text-gray-500 mt-1">請先選擇票務類型，然後依序選擇影城、電影和場次。</p>
             </div>
 
-            <!-- 表單區塊 (您的 (2) 區塊) -->
-            <form id="bookingFlow1Form" action="#" method="POST" class="space-y-6">
+            <!-- 表單區塊 -->
+            <form id="bookingFlow1Form" action="#" method="POST" class="space-y-8">
+                
+                <!-- 0. 選擇票務類型 -->
+                <div id="ticketTypeSection">
+                    <label class="block text-2xl font-bold text-gray-800 mb-4 border-b pb-2 flex items-center">
+                        <span class="mr-2">🎫</span> 0. 選擇票務類型
+                    </label>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                        <!-- 一般購票 -->
+                        <div class="ticket-type-card general" data-type="general">
+                            <div class="text-center">
+                                <div class="text-4xl mb-3">👤</div>
+                                <h3 class="text-xl font-bold text-gray-900 mb-2">一般購票</h3>
+                                <p class="text-gray-600 mb-4">個人或小團體觀影選擇</p>
+                                <div class="space-y-2 text-sm text-gray-500 text-left">
+                                    <div class="flex items-center">
+                                        <span class="w-2 h-2 bg-vieshow-blue rounded-full mr-2"></span>
+                                        <span>適合 1-8 人觀影</span>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <span class="w-2 h-2 bg-vieshow-blue rounded-full mr-2"></span>
+                                        <span>多種票種選擇</span>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <span class="w-2 h-2 bg-vieshow-blue rounded-full mr-2"></span>
+                                        <span>即時線上選位</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 團體票 -->
+                        <div class="ticket-type-card group" data-type="group">
+                            <div class="text-center">
+                                <div class="text-4xl mb-3">👥</div>
+                                <h3 class="text-xl font-bold text-gray-900 mb-2">團體票</h3>
+                                <p class="text-gray-600 mb-4">10人以上團體優惠</p>
+                                <div class="space-y-2 text-sm text-gray-500 text-left">
+                                    <div class="flex items-center">
+                                        <span class="w-2 h-2 bg-vieshow-green rounded-full mr-2"></span>
+                                        <span>適合 10人以上團體</span>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <span class="w-2 h-2 bg-vieshow-green rounded-full mr-2"></span>
+                                        <span>專屬團體優惠價</span>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <span class="w-2 h-2 bg-vieshow-green rounded-full mr-2"></span>
+                                        <span>需提前預約</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 團體票詳細資訊 -->
+                    <div id="groupTicketInfo" class="group-ticket-info hidden">
+                        <h4 class="font-bold text-blue-800 mb-2">🎉 團體票專屬優惠</h4>
+                        <ul class="text-sm text-blue-700 space-y-1">
+                            <li>• 10人以上享團體優惠價</li>
+                            <li>• 可預約專屬場次時段</li>
+                            <li>• 專人服務協助安排座位</li>
+                            <li>• 可客製化餐點組合</li>
+                            <li>• 需於觀影前3天預訂</li>
+                        </ul>
+                    </div>
+                </div>
                 
                 <!-- 1. 選擇影城地點 -->
-                <div>
-                    <label for="cinema_location" class="block text-2xl font-bold text-gray-800 mb-4 border-b pb-2">1. 影城地點:</label>
+                <div id="cinemaSelectionSection" class="hidden">
+                    <label for="cinema_location" class="block text-2xl font-bold text-gray-800 mb-4 border-b pb-2 flex items-center">
+                        <span class="mr-2">📍</span> 1. 選擇影城地點
+                    </label>
                     <select id="cinema_location" name="cinema_location" required class="select-styled">
                         <option value="" disabled selected>請選擇影城地點</option>
                         <!-- Options filled by JavaScript -->
                     </select>
+                    <p class="text-sm text-gray-500 mt-2">選擇您想觀影的影城地點</p>
                 </div>
                 
                 <!-- 2. 選擇電影 -->
-                <div>
-                    <label for="movie_select" class="block text-2xl font-bold text-gray-800 mb-4 border-b pb-2">2. 選擇電影:</label>
-                    <select id="movie_select" name="movie_id" required disabled class="select-styled">
-                        <option value="" disabled selected>請先選擇影城地點</option>
-                    </select>
+                <div id="movieSelectionSection" class="hidden">
+                    <label class="block text-2xl font-bold text-gray-800 mb-4 border-b pb-2 flex items-center">
+                        <span class="mr-2">🎬</span> 2. 選擇電影
+                    </label>
+                    
+                    <!-- 電影選擇區域 -->
+                    <div id="movieSelection" class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                        <!-- 電影卡片將由 JavaScript 動態生成 -->
+                        <div class="col-span-full text-center py-8 text-gray-500">
+                            請先選擇影城地點以顯示電影清單
+                        </div>
+                    </div>
                 </div>
                 
                 <!-- 3. 選擇場次 -->
-                <div>
-                    <label for="showtime_select" class="block text-2xl font-bold text-gray-800 mb-4 border-b pb-2">3. 選擇場次 (日期/時間/影廳):</label>
-                    <select id="showtime_select" name="showtime_id" required disabled class="select-styled">
-                        <option value="" disabled selected>請先選擇電影</option>
-                    </select>
+                <div id="showtimeSelectionSection" class="hidden">
+                    <label class="block text-2xl font-bold text-gray-800 mb-4 border-b pb-2 flex items-center">
+                        <span class="mr-2">🕒</span> 3. 選擇場次
+                    </label>
+                    
+                    <!-- 場次選擇區域 -->
+                    <div id="showtimeSelection" class="space-y-4 mt-4">
+                        <div class="text-center py-8 text-gray-500">
+                            請先選擇電影以顯示場次資訊
+                        </div>
+                    </div>
                 </div>
                 
                 <!-- 載入狀態訊息 -->
-                <div id="loadingStatus" class="loading-message">載入中...</div>
+                <div id="loadingStatus" class="loading-message"></div>
 
                 <!-- 下一步按鈕 -->
-                    <div class="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4">
-                        <button type="submit" id="nextStepButton" class="next-step-button flex-1" disabled style="border: 2px solid #333; border-radius: 6px;">
-                            下一步: 選擇票種與餐點 (步驟 2)
-                        </button>
-                    </div>
+                <div class="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4">
+                    <button type="submit" id="nextStepButton" class="next-step-button flex-1" disabled>
+                        下一步: 選擇票種與餐點 (步驟 2)
+                    </button>
                 </div>
             </form>
         </div>
@@ -112,42 +271,113 @@
 
     <!-- 訂票頁面專屬的 JavaScript 邏輯：動態載入資料並處理表單 -->
     <script>
-        // 設定未來 FastAPI 後端 API 的基礎 URL (暫時不需要，改用 Mock Data)
-        // const API_BASE_URL = 'https://your-fastapi-backend.com/api/v1'; 
-
         // 取得 DOM 元素
+        const ticketTypeSection = document.getElementById('ticketTypeSection');
+        const cinemaSelectionSection = document.getElementById('cinemaSelectionSection');
+        const movieSelectionSection = document.getElementById('movieSelectionSection');
+        const showtimeSelectionSection = document.getElementById('showtimeSelectionSection');
         const cinemaSelect = document.getElementById('cinema_location');
-        const movieSelect = document.getElementById('movie_select');
-        const showtimeSelect = document.getElementById('showtime_select');
-        const nextButton = document.querySelector('.next-step-button');
+        const movieSelection = document.getElementById('movieSelection');
+        const showtimeSelection = document.getElementById('showtimeSelection');
+        const nextButton = document.getElementById('nextStepButton');
         const loadingStatus = document.getElementById('loadingStatus');
         const form = document.getElementById('bookingFlow1Form');
+        const groupTicketInfo = document.getElementById('groupTicketInfo');
+
+        // 當前選擇狀態
+        let currentSelections = {
+            ticketType: null, // 'general' 或 'group'
+            cinema: null,
+            movie: null,
+            showtime: null
+        };
+
+        // 票務類型選擇
+        function setupTicketTypeSelection() {
+            const ticketCards = document.querySelectorAll('.ticket-type-card');
+            
+            ticketCards.forEach(card => {
+                card.addEventListener('click', function() {
+                    // 移除所有選擇狀態
+                    ticketCards.forEach(c => c.classList.remove('selected'));
+                    
+                    // 設定當前選擇
+                    this.classList.add('selected');
+                    currentSelections.ticketType = this.dataset.type;
+                    
+                    // 顯示團體票資訊
+                    if (currentSelections.ticketType === 'group') {
+                        groupTicketInfo.classList.remove('hidden');
+                    } else {
+                        groupTicketInfo.classList.add('hidden');
+                    }
+                    
+                    // 顯示影城選擇區塊
+                    cinemaSelectionSection.classList.remove('hidden');
+                    
+                    // 載入影城資料
+                    loadCinemas();
+                    
+                    // 更新步驟指示器
+                    updateStepIndicator(1);
+                });
+            });
+        }
+
+        // 更新步驟指示器
+        function updateStepIndicator(step) {
+            // 重置所有步驟
+            document.querySelectorAll('.step-circle').forEach((circle, index) => {
+                circle.classList.remove('step-active', 'step-completed');
+                circle.classList.add('step-pending');
+            });
+            
+            document.querySelectorAll('.step-line').forEach(line => {
+                line.classList.remove('step-active');
+                line.classList.add('step-pending');
+            });
+            
+            // 設定已完成和當前步驟
+            for (let i = 0; i < step; i++) {
+                document.querySelectorAll('.step-circle')[i].classList.remove('step-pending');
+                document.querySelectorAll('.step-circle')[i].classList.add('step-completed');
+                
+                if (i > 0) {
+                    document.querySelectorAll('.step-line')[i-1].classList.remove('step-pending');
+                    document.querySelectorAll('.step-line')[i-1].classList.add('step-active');
+                }
+            }
+            
+            // 設定當前活躍步驟
+            document.querySelectorAll('.step-circle')[step].classList.remove('step-pending');
+            document.querySelectorAll('.step-circle')[step].classList.add('step-active');
+        }
 
         // 步驟 1: 動態載入影城地點 (使用 Mock Data)
         async function loadCinemas() {
             try {
                 loadingStatus.textContent = '正在載入影城地點...';
                 
-                // --- 修正處：使用模擬資料取代 fetch API 呼叫 ---
+                // 模擬資料
                 const mockResponse = {
                     cinemas: [
-                        { id: 'taipei_xinyi', name: '台北信義' },
-                        { id: 'taoyuan_tzyyuan', name: '桃園統領' },
-                        { id: 'taichung_wenxin', name: '台中文心' }
+                        { id: 'taipei_xinyi', name: '台北信義影城', region: '台北' },
+                        { id: 'taoyuan_tzyyuan', name: '桃園統領影城', region: '桃園' },
+                        { id: 'taichung_wenxin', name: '台中文心影城', region: '台中' },
+                        { id: 'kaohsiung_lingya', name: '高雄苓雅影城', region: '高雄' }
                     ]
                 };
                 
                 // 模擬網路延遲
-                await new Promise(resolve => setTimeout(resolve, 300));
+                await new Promise(resolve => setTimeout(resolve, 500));
                 const data = mockResponse; 
-                // --------------------------------------------------
                 
                 // 清空並填充影城下拉式選單
                 cinemaSelect.innerHTML = '<option value="" disabled selected>請選擇影城地點</option>';
                 data.cinemas.forEach(cinema => {
                     const option = document.createElement('option');
                     option.value = cinema.id;
-                    option.textContent = cinema.name;
+                    option.textContent = `${cinema.name} (${cinema.region})`;
                     cinemaSelect.appendChild(option);
                 });
 
@@ -156,138 +386,404 @@
             } catch (error) {
                 console.error('載入影城失敗:', error);
                 loadingStatus.textContent = '載入影城資料失敗，請檢查網路。';
+                showRetryButton('載入影城失敗，請重試', 'loadCinemas()');
             }
         }
 
         // 步驟 2: 根據選擇的影城，動態載入電影清單 (使用 Mock Data)
         async function loadMovies(cinemaId) {
-            movieSelect.innerHTML = '<option value="" disabled selected>正在載入電影...</option>';
-            movieSelect.disabled = true;
-            showtimeSelect.innerHTML = '<option value="" disabled selected>請先選擇電影</option>';
-            showtimeSelect.disabled = true;
+            movieSelection.innerHTML = '<div class="col-span-full text-center py-8 text-gray-500">載入電影中...</div>';
+            showtimeSelection.innerHTML = '<div class="text-center py-8 text-gray-500">請先選擇電影以顯示場次資訊</div>';
             nextButton.disabled = true;
+            currentSelections.movie = null;
+            currentSelections.showtime = null;
 
             try {
-                // --- 修正處：使用模擬資料取代 fetch API 呼叫 ---
-                await new Promise(resolve => setTimeout(resolve, 300));
+                // 模擬網路延遲
+                await new Promise(resolve => setTimeout(resolve, 600));
                 
                 let movies = [];
                 if (cinemaId === 'taipei_xinyi') {
                     movies = [
-                        { id: 1, title: '阿凡達 3: 最終戰役' },
-                        { id: 2, title: '不可能的任務 8' }
+                        { 
+                            id: 1, 
+                            title: '阿凡達 3: 最終戰役', 
+                            duration: '180分鐘',
+                            rating: '保護級',
+                            genre: '科幻/動作',
+                            image: 'https://via.placeholder.com/300x450/4A5568/FFFFFF?text=Avatar+3',
+                            description: '延續前作劇情，納美人與人類的戰爭進入最終章',
+                            availableForGroup: true
+                        },
+                        { 
+                            id: 2, 
+                            title: '不可能的任務 8', 
+                            duration: '158分鐘',
+                            rating: '輔12級',
+                            genre: '動作/冒險',
+                            image: 'https://via.placeholder.com/300x450/2D3748/FFFFFF?text=Mission+Impossible',
+                            description: '伊森韓特再次挑戰不可能的任務',
+                            availableForGroup: true
+                        }
                     ];
                 } else if (cinemaId === 'taoyuan_tzyyuan') {
                     movies = [
-                        { id: 1, title: '阿凡達 3: 最終戰役' },
-                        { id: 3, title: '駭客任務 5' }
+                        { 
+                            id: 1, 
+                            title: '阿凡達 3: 最終戰役', 
+                            duration: '180分鐘',
+                            rating: '保護級',
+                            genre: '科幻/動作',
+                            image: 'https://via.placeholder.com/300x450/4A5568/FFFFFF?text=Avatar+3',
+                            description: '延續前作劇情，納美人與人類的戰爭進入最終章',
+                            availableForGroup: true
+                        },
+                        { 
+                            id: 3, 
+                            title: '駭客任務 5', 
+                            duration: '148分鐘',
+                            rating: '輔15級',
+                            genre: '科幻/動作',
+                            image: 'https://via.placeholder.com/300x450/1A202C/FFFFFF?text=Matrix+5',
+                            description: '尼歐重返母體，展開全新冒險',
+                            availableForGroup: false
+                        }
                     ];
                 } else {
-                    movies = [{ id: 4, title: '神秘電影' }];
+                    movies = [
+                        { 
+                            id: 4, 
+                            title: '神秘電影', 
+                            duration: '120分鐘',
+                            rating: '普遍級',
+                            genre: '劇情',
+                            image: 'https://via.placeholder.com/300x450/718096/FFFFFF?text=Mystery+Movie',
+                            description: '一部充滿驚喜的神秘電影',
+                            availableForGroup: true
+                        }
+                    ];
                 }
                 
-                const data = { movies: movies };
-                // --------------------------------------------------
+                // 如果是團體票，過濾出可團體預訂的電影
+                if (currentSelections.ticketType === 'group') {
+                    movies = movies.filter(movie => movie.availableForGroup);
+                }
                 
-                // 清空並填充電影下拉式選單
-                movieSelect.innerHTML = '<option value="" disabled selected>請選擇電影</option>';
-                data.movies.forEach(movie => {
-                    const option = document.createElement('option');
-                    option.value = movie.id;
-                    option.textContent = movie.title;
-                    movieSelect.appendChild(option);
+                // 清空並填充電影選擇區域
+                movieSelection.innerHTML = '';
+                
+                if (movies.length === 0) {
+                    movieSelection.innerHTML = '<div class="col-span-full text-center py-8 text-gray-500">此影城暫無上映電影</div>';
+                    return;
+                }
+                
+                movies.forEach(movie => {
+                    const movieCard = document.createElement('div');
+                    movieCard.className = 'movie-card cursor-pointer';
+                    movieCard.dataset.movieId = movie.id;
+                    
+                    // 團體票標記
+                    const groupBadge = movie.availableForGroup ? 
+                        '<span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded absolute top-2 right-2">可團體預訂</span>' : '';
+                    
+                    movieCard.innerHTML = `
+                        <div class="relative">
+                            ${groupBadge}
+                            <div class="flex flex-col md:flex-row">
+                                <div class="md:w-1/3">
+                                    <img src="${movie.image}" alt="${movie.title}" class="w-full h-48 md:h-full object-cover">
+                                </div>
+                                <div class="p-4 md:w-2/3">
+                                    <h3 class="text-xl font-bold text-gray-900">${movie.title}</h3>
+                                    <div class="flex flex-wrap gap-2 mt-2">
+                                        <span class="bg-vieshow-red text-white text-xs px-2 py-1 rounded">${movie.rating}</span>
+                                        <span class="bg-gray-200 text-gray-700 text-xs px-2 py-1 rounded">${movie.genre}</span>
+                                        <span class="bg-gray-200 text-gray-700 text-xs px-2 py-1 rounded">${movie.duration}</span>
+                                    </div>
+                                    <p class="text-gray-600 mt-2 text-sm">${movie.description}</p>
+                                    ${currentSelections.ticketType === 'group' && !movie.availableForGroup ? 
+                                        '<p class="text-red-500 text-xs mt-2">⚠️ 此電影不適用團體票預訂</p>' : ''}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // 只有可預訂的電影才能點選
+                    if (currentSelections.ticketType !== 'group' || movie.availableForGroup) {
+                        movieCard.addEventListener('click', () => selectMovie(movie));
+                    } else {
+                        movieCard.classList.add('opacity-50', 'cursor-not-allowed');
+                    }
+                    
+                    movieSelection.appendChild(movieCard);
                 });
-
-                movieSelect.disabled = false;
+                
+                // 顯示電影選擇區塊
+                movieSelectionSection.classList.remove('hidden');
+                updateStepIndicator(2);
+                
             } catch (error) {
                 console.error('載入電影失敗:', error);
-                movieSelect.innerHTML = '<option value="" disabled selected>載入電影清單失敗</option>';
+                movieSelection.innerHTML = '<div class="col-span-full text-center py-8 text-gray-500">載入電影清單失敗</div>';
+                showRetryButton('載入電影失敗，請重試', `loadMovies('${cinemaId}')`);
             }
+        }
+
+        // 選擇電影
+        function selectMovie(movie) {
+            // 移除之前選擇的樣式
+            document.querySelectorAll('.movie-card').forEach(card => {
+                card.classList.remove('border-vieshow-red', 'ring-2', 'ring-vieshow-red');
+            });
+            
+            // 添加當前選擇樣式
+            const selectedCard = document.querySelector(`[data-movie-id="${movie.id}"]`);
+            if (selectedCard) {
+                selectedCard.classList.add('border-vieshow-red', 'ring-2', 'ring-vieshow-red');
+            }
+            
+            currentSelections.movie = movie;
+            loadShowtimes(currentSelections.cinema.id, movie.id);
         }
 
         // 步驟 3: 根據選擇的影城和電影，動態載入場次清單 (使用 Mock Data)
         async function loadShowtimes(cinemaId, movieId) {
-            showtimeSelect.innerHTML = '<option value="" disabled selected>正在載入場次...</option>';
-            showtimeSelect.disabled = true;
+            showtimeSelection.innerHTML = '<div class="text-center py-8 text-gray-500">載入場次中...</div>';
             nextButton.disabled = true;
+            currentSelections.showtime = null;
 
             try {
-                // --- 修正處：使用模擬資料取代 fetch API 呼叫 ---
-                await new Promise(resolve => setTimeout(resolve, 300));
+                // 模擬網路延遲
+                await new Promise(resolve => setTimeout(resolve, 500));
                 
                 let showtimes = [];
                 if (movieId == 1) { // 阿凡達 3
                     showtimes = [
-                        { id: 101, date: '2025/12/24(三)', time: '19:30' },
-                        { id: 102, date: '2025/12/24(三)', time: '22:00'}
+                        { 
+                            id: 101, 
+                            date: '2025/12/24(三)', 
+                            time: '19:30',
+                            theater: '1廳',
+                            type: '數位版',
+                            language: '英語',
+                            subtitle: '中文字幕',
+                            seats: 45,
+                            availableForGroup: true
+                        },
+                        { 
+                            id: 102, 
+                            date: '2025/12/24(三)', 
+                            time: '22:00',
+                            theater: 'IMAX廳',
+                            type: 'IMAX 3D',
+                            language: '英語',
+                            subtitle: '中文字幕',
+                            seats: 32,
+                            availableForGroup: true
+                        },
+                        { 
+                            id: 103, 
+                            date: '2025/12/25(四)', 
+                            time: '14:20',
+                            theater: '3廳',
+                            type: '數位版',
+                            language: '英語',
+                            subtitle: '中文字幕',
+                            seats: 58,
+                            availableForGroup: false
+                        }
                     ];
                 } else if (movieId == 2) { // 不可能的任務 8
                     showtimes = [
-                        { id: 201, date: '2025/12/25(四)', time: '14:00'}
+                        { 
+                            id: 201, 
+                            date: '2025/12/25(四)', 
+                            time: '14:00',
+                            theater: '2廳',
+                            type: '數位版',
+                            language: '英語',
+                            subtitle: '中文字幕',
+                            seats: 42,
+                            availableForGroup: true
+                        },
+                        { 
+                            id: 202, 
+                            date: '2025/12/25(四)', 
+                            time: '20:30',
+                            theater: '4廳',
+                            type: '4DX',
+                            language: '英語',
+                            subtitle: '中文字幕',
+                            seats: 28,
+                            availableForGroup: true
+                        }
                     ];
                 } else {
                     showtimes = [];
                 }
                 
-                const data = { showtimes: showtimes };
-                // --------------------------------------------------
-
-                // 清空並填充場次下拉式選單
-                showtimeSelect.innerHTML = '<option value="" disabled selected>請選擇場次 (日期/時間/影廳)</option>';
-                if (data.showtimes.length === 0) {
-                    showtimeSelect.innerHTML = '<option value="" disabled selected>此時段無場次</option>';
-                } else {
-                    data.showtimes.forEach(showtime => {
-                        const option = document.createElement('option');
-                        option.value = showtime.id;
-                        option.textContent = `${showtime.date} ${showtime.time}`;
-                        showtimeSelect.appendChild(option);
-                    });
+                // 如果是團體票，過濾出可團體預訂的場次
+                if (currentSelections.ticketType === 'group') {
+                    showtimes = showtimes.filter(showtime => showtime.availableForGroup);
                 }
                 
-                showtimeSelect.disabled = false;
+                // 清空並填充場次選擇區域
+                showtimeSelection.innerHTML = '';
+                
+                if (showtimes.length === 0) {
+                    showtimeSelection.innerHTML = '<div class="text-center py-8 text-gray-500">此時段無可用場次</div>';
+                    loadingStatus.textContent = "該電影在選擇的影城暫無場次";
+                    return;
+                }
+                
+                // 按日期分組場次
+                const groupedByDate = {};
+                showtimes.forEach(showtime => {
+                    if (!groupedByDate[showtime.date]) {
+                        groupedByDate[showtime.date] = [];
+                    }
+                    groupedByDate[showtime.date].push(showtime);
+                });
+                
+                // 生成場次選擇介面
+                Object.keys(groupedByDate).forEach(date => {
+                    const dateSection = document.createElement('div');
+                    dateSection.className = 'mb-6';
+                    
+                    const dateHeader = document.createElement('h4');
+                    dateHeader.className = 'text-lg font-bold text-gray-800 mb-3';
+                    dateHeader.textContent = date;
+                    dateSection.appendChild(dateHeader);
+                    
+                    const showtimesGrid = document.createElement('div');
+                    showtimesGrid.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3';
+                    
+                    groupedByDate[date].forEach(showtime => {
+                        const showtimeCard = document.createElement('div');
+                        showtimeCard.className = 'showtime-card';
+                        showtimeCard.dataset.showtimeId = showtime.id;
+                        
+                        // 團體票標記
+                        const groupBadge = showtime.availableForGroup ? 
+                            '<span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded mb-2 inline-block">團體場</span>' : '';
+                        
+                        showtimeCard.innerHTML = `
+                            ${groupBadge}
+                            <div class="font-bold text-lg text-center mb-2">${showtime.time}</div>
+                            <div class="text-sm text-gray-600">
+                                <div class="flex justify-between mb-1">
+                                    <span>影廳:</span>
+                                    <span class="font-medium">${showtime.theater}</span>
+                                </div>
+                                <div class="flex justify-between mb-1">
+                                    <span>版本:</span>
+                                    <span class="font-medium">${showtime.type}</span>
+                                </div>
+                                <div class="flex justify-between mb-1">
+                                    <span>語言/字幕:</span>
+                                    <span class="font-medium">${showtime.language}/${showtime.subtitle}</span>
+                                </div>
+                                <div class="flex justify-between mt-2 pt-2 border-t border-gray-200">
+                                    <span>剩餘座位:</span>
+                                    <span class="font-medium ${showtime.seats < 10 ? 'text-red-600' : 'text-green-600'}">${showtime.seats}</span>
+                                </div>
+                            </div>
+                        `;
+                        
+                        // 只有可預訂的場次才能點選
+                        if (currentSelections.ticketType !== 'group' || showtime.availableForGroup) {
+                            showtimeCard.addEventListener('click', () => selectShowtime(showtime));
+                        } else {
+                            showtimeCard.classList.add('opacity-50', 'cursor-not-allowed');
+                        }
+                        
+                        showtimesGrid.appendChild(showtimeCard);
+                    });
+                    
+                    dateSection.appendChild(showtimesGrid);
+                    showtimeSelection.appendChild(dateSection);
+                });
+                
+                // 顯示場次選擇區塊
+                showtimeSelectionSection.classList.remove('hidden');
+                updateStepIndicator(3);
+                
+                loadingStatus.textContent = "";
             } catch (error) {
                 console.error('載入場次失敗:', error);
-                showtimeSelect.innerHTML = '<option value="" disabled selected>載入場次清單失敗</option>';
+                showtimeSelection.innerHTML = '<div class="text-center py-8 text-gray-500">載入場次清單失敗</div>';
+                showRetryButton('載入場次失敗，請重試', `loadShowtimes('${cinemaId}', '${movieId}')`);
             }
+        }
+
+        // 選擇場次
+        function selectShowtime(showtime) {
+            // 移除之前選擇的樣式
+            document.querySelectorAll('.showtime-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            // 添加當前選擇樣式
+            const selectedCard = document.querySelector(`[data-showtime-id="${showtime.id}"]`);
+            if (selectedCard) {
+                selectedCard.classList.add('selected');
+            }
+            
+            currentSelections.showtime = showtime;
+            nextButton.disabled = false;
+            
+            // 顯示選擇摘要
+            loadingStatus.innerHTML = `
+                <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <p class="text-green-800 font-medium">已選擇: 
+                        <span class="font-bold">${currentSelections.ticketType === 'general' ? '一般購票' : '團體票'}</span> | 
+                        <span class="font-bold">${currentSelections.cinema.name}</span> | 
+                        <span class="font-bold">${currentSelections.movie.title}</span> | 
+                        <span class="font-bold">${showtime.date} ${showtime.time} ${showtime.theater}</span>
+                    </p>
+                </div>
+            `;
+        }
+
+        // 顯示重試按鈕
+        function showRetryButton(message, retryFunction) {
+            loadingStatus.innerHTML = `
+                ${message}
+                <button onclick="${retryFunction}" class="ml-2 text-vieshow-red underline font-medium">
+                    點此重試
+                </button>
+            `;
         }
         
         // 監聽器：影城選擇改變時
         cinemaSelect.addEventListener('change', function() {
             const cinemaId = this.value;
             if (cinemaId) {
+                // 更新當前選擇
+                currentSelections.cinema = {
+                    id: cinemaId,
+                    name: this.options[this.selectedIndex].textContent
+                };
+                
                 loadMovies(cinemaId);
             }
         });
 
-        // 監聽器：電影選擇改變時
-        movieSelect.addEventListener('change', function() {
-            const cinemaId = cinemaSelect.value;
-            const movieId = this.value;
-            if (cinemaId && movieId) {
-                loadShowtimes(cinemaId, movieId);
-            }
-        });
-
-        // 監聽器：場次選擇改變時
-        showtimeSelect.addEventListener('change', function() {
-            // 只要選定了場次，就啟用下一步按鈕
-            nextButton.disabled = !this.value;
-        });
-        
         // 監聽器：表單提交 (下一步)
         form.addEventListener('submit', function(event) {
             event.preventDefault();
 
-            // 儲存使用者選擇的資訊，以便在步驟 2/7 中使用
+            if (!currentSelections.ticketType || !currentSelections.cinema || !currentSelections.movie || !currentSelections.showtime) {
+                alert('請完成所有選擇後再繼續');
+                return;
+            }
+
+            // 儲存使用者選擇的資訊，以便在步驟 2/5 中使用
             const bookingData = {
-                cinemaId: cinemaSelect.value,
-                movieId: movieSelect.value,
-                showtimeId: showtimeSelect.value,
-                // 儲存顯示名稱
-                cinemaName: cinemaSelect.options[cinemaSelect.selectedIndex].textContent,
-                movieTitle: movieSelect.options[movieSelect.selectedIndex].textContent,
-                showtimeDetail: showtimeSelect.options[showtimeSelect.selectedIndex].textContent,
+                ticketType: currentSelections.ticketType,
+                cinema: currentSelections.cinema,
+                movie: currentSelections.movie,
+                showtime: currentSelections.showtime
             };
             
             // 由於這是純前端，我們將資料存在 localStorage (實際專案應存在 Session 或 Context)
@@ -299,14 +795,15 @@
             window.location.href = 'booking_flow_2.html';
         });
 
-        // 頁面載入時，執行第一次影城資料載入
-        window.onload = loadCinemas;
+        // 頁面載入時，執行初始化
+        window.onload = function() {
+            setupTicketTypeSelection();
+        };
     </script>
 
-
     <!-- Footer 內容 (模擬共用 footer) -->
-    <footer class="bg-gray-800 text-white text-center py-4 mt-8 shadow-inner">
-        <p>&copy; 2025 Vieshow Ticketing System</p>
+    <footer class="bg-vieshow-dark text-white text-center py-4 mt-8 shadow-inner">
+        <p>&copy; 2025 Vieshow Ticketing System - 訂票步驟 1</p>
     </footer>
     
 </body>
