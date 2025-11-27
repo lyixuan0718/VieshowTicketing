@@ -1,227 +1,702 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>歷史訂票紀錄 - Vieshow Ticketing</title>
-    
-    <!-- 引入 Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <script>
-        // Tailwind 配置，確保顏色和字體與 member_profile.html 一致
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        'vieshow-red': '#e50914',
-                        'vieshow-gold': '#f7a83d',
-                    },
-                    fontFamily: {
-                        sans: ['Inter', 'Noto Sans TC', 'sans-serif'],
-                    },
-                }
-            }
-        }
-    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>歷史訂票紀錄 - Vieshow Ticketing</title>
+    
+    <!-- 引入 Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script>
+        // Tailwind 配置，確保顏色和字體與專案一致
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'vieshow-red': '#e50914',
+                        'vieshow-gold': '#f7a83d',
+                        'vieshow-dark': '#1a1a1a',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'Noto Sans TC', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        /* 動畫效果 */
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translate(-50%, -20px); }
+            to { opacity: 1; transform: translate(-50%, 0); }
+        }
+        @keyframes fadeOutUp {
+            from { opacity: 1; transform: translate(-50%, 0); }
+            to { opacity: 0; transform: translate(-50%, -20px); }
+        }
+        .animate-fade-in-down { animation: fadeInDown 0.5s ease-out forwards; }
+        .animate-fade-out-up { animation: fadeOutUp 0.5s ease-in forwards; }
+        
+        /* 載入動畫 */
+        .loading-spinner {
+            @apply w-8 h-8 border-4 border-vieshow-gold border-t-transparent rounded-full animate-spin;
+        }
+        
+        /* 卡片懸停效果 */
+        .order-card {
+            @apply transition-all duration-300 hover:shadow-lg hover:scale-[1.02];
+        }
+    </style>
 </head>
 <body class="bg-gray-50 font-sans min-h-screen flex flex-col">
     
-    <!-- Header 導航 (保持一致) -->
-    <header class="bg-gray-800 text-white shadow-md">
+    <!-- Header 導航 -->
+    <header class="bg-vieshow-dark text-white shadow-md sticky top-0 z-50">
         <nav class="container mx-auto px-4 py-4 flex justify-between items-center">
-            <a href="../../index.html" class="text-xl font-bold hover:text-vieshow-red transition duration-300">Vieshow 影城</a>
+            <a href="../../index.html" class="text-xl font-bold hover:text-vieshow-gold transition duration-300 flex items-center">
+                <span class="mr-2">🎬</span> Vieshow 影城
+            </a>
             <div class="space-x-4 flex items-center">
-                <!-- 假設已登入，可導航回會員中心 -->
-                <a href="../member/member_home.html" class="text-sm font-medium hover:text-vieshow-gold transition duration-300">👤 會員中心</a>
-                <button id="signOutButton" class="bg-vieshow-red px-3 py-1 rounded-full text-white text-sm font-semibold hover:bg-red-700 transition duration-300">
+                <a href="../member/member_home.html" class="text-sm font-medium hover:text-vieshow-gold transition duration-300 flex items-center">
+                    <span class="mr-1">👤</span> 會員中心
+                </a>
+                <button id="signOutButton" class="bg-vieshow-red px-4 py-2 rounded-lg text-white text-sm font-semibold hover:bg-red-700 transition duration-300">
                     登出
                 </button>
             </div>
         </nav>
     </header>
 
-    <!-- 主要內容區塊 -->
-    <div class="container mx-auto px-4 py-10 flex-grow max-w-5xl">
-        
-        <div class="bg-white p-6 sm:p-8 rounded-xl shadow-xl border-t-4 border-vieshow-red">
-            <h2 class="text-3xl font-extrabold text-vieshow-red mb-2 flex items-center justify-center">
-                🧾 歷史訂票紀錄
-            </h2>
-            <p class="text-center text-gray-500 mb-8">您在 Vieshow 系統上的所有訂票紀錄。</p>
+    <!-- 主要內容區塊 -->
+    <div class="container mx-auto px-4 py-10 flex-grow max-w-6xl">
+        
+        <!-- 頁面標題和篩選器 -->
+        <div class="mb-8">
+            <h1 class="text-4xl font-extrabold text-vieshow-red mb-2 flex items-center justify-center">
+                🧾 歷史訂票紀錄
+            </h1>
+            <p class="text-center text-gray-500 mb-6">您在 Vieshow 系統上的所有訂票紀錄</p>
+            
+            <!-- 篩選和搜尋區塊 -->
+            <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 mb-6">
+                <div class="flex flex-col md:flex-row gap-4 items-center justify-between">
+                    <!-- 狀態篩選 -->
+                    <div class="flex flex-wrap gap-2">
+                        <button class="filter-btn active px-4 py-2 rounded-lg bg-vieshow-red text-white text-sm font-medium transition duration-300" data-status="all">
+                            全部訂單
+                        </button>
+                        <button class="filter-btn px-4 py-2 rounded-lg bg-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-300 transition duration-300" data-status="completed">
+                            已完成
+                        </button>
+                        <button class="filter-btn px-4 py-2 rounded-lg bg-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-300 transition duration-300" data-status="upcoming">
+                            即將上映
+                        </button>
+                        <button class="filter-btn px-4 py-2 rounded-lg bg-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-300 transition duration-300" data-status="cancelled">
+                            已取消
+                        </button>
+                    </div>
+                    
+                    <!-- 搜尋框 -->
+                    <div class="relative flex-1 max-w-md">
+                        <input type="text" id="searchInput" placeholder="搜尋電影名稱或訂單編號..." 
+                               class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-vieshow-gold focus:border-vieshow-gold">
+                        <div class="absolute right-3 top-3 text-gray-400">
+                            🔍
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-            <div id="historyTableContainer" class="responsive-table-wrapper">
-                <!-- 訂單表格將由 JavaScript 載入 -->
-                <p class="text-center text-gray-500">載入中...
-                </p>
-            </div>
-            
-        </div>
-    </div>
+        <!-- 載入狀態 -->
+        <div id="loadingState" class="text-center py-8">
+            <div class="loading-spinner mx-auto mb-4"></div>
+            <p class="text-gray-500">載入訂單紀錄中...</p>
+        </div>
 
-    <!-- Footer 內容 (與 member_profile.html 樣式一致) -->
-    <footer class="bg-gray-800 text-white text-center py-4 mt-8 shadow-inner">
-        <p>&copy; 2025 Vieshow Ticketing System</p>
-    </footer>
+        <!-- 訂單卡片容器 -->
+        <div id="ordersContainer" class="space-y-4 hidden">
+            <!-- 訂單卡片將由 JavaScript 動態生成 -->
+        </div>
 
-    <!-- JavaScript 邏輯 -->
-    <script>
-        // 模擬歷史訂單資料
-        const historyData = [
-            { id: '20251101A01', movie: '阿凡達 3', date: '2025/11/01 19:30', total: 600, status: '已完成', can_modify: true },
-            { id: '20251015B02', movie: '不可能的任務 8', date: '2025/10/15 14:00', total: 300, status: '已完成', can_modify: false },
-            { id: '20251205C03', movie: '貓與老鼠 2', date: '2025/12/05 10:00', total: 900, status: '已取票', can_modify: true },
-            { id: '20251210D04', movie: '星際大戰：新希望', date: '2025/12/10 22:00', total: 400, status: '已取消', can_modify: false },
-        ];
+        <!-- 空狀態 -->
+        <div id="emptyState" class="text-center py-12 hidden">
+            <div class="text-6xl mb-4">🎭</div>
+            <h3 class="text-xl font-semibold text-gray-700 mb-2">尚未有任何訂票紀錄</h3>
+            <p class="text-gray-500 mb-6">開始您的第一場電影體驗吧！</p>
+            <a href="../booking/booking_flow_1.html" class="inline-block bg-vieshow-red hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg transition duration-300">
+                立即訂票
+            </a>
+        </div>
 
-        /**
-         * 根據狀態設定 Tailwind 樣式類別
-         * @param {string} status - 訂單狀態
-         * @returns {string} Tailwind 樣式類別
-         */
-        function getStatusClass(status) {
-            switch(status) {
-                case '已完成':
-                    return 'text-green-600 font-semibold';
-                case '已取票':
-                    return 'text-blue-600 font-semibold';
-                case '已取消':
-                    return 'text-gray-500 font-medium';
-                default:
-                    return '';
-            }
-        }
+        <!-- 分頁控制 -->
+        <div id="paginationContainer" class="flex justify-center items-center space-x-2 mt-8 hidden">
+            <!-- 分頁按鈕將由 JavaScript 動態生成 -->
+        </div>
+    </div>
 
-        /**
-         * 渲染歷史訂單表格
-         */
-        function renderHistory() {
-            const container = document.getElementById('historyTableContainer');
+    <!-- 訂單詳情 Modal -->
+    <div id="orderDetailModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-xl shadow-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-2xl font-bold text-gray-900">訂單詳情</h3>
+                    <button id="closeModal" class="text-gray-400 hover:text-gray-600 text-2xl">
+                        &times;
+                    </button>
+                </div>
+                <div id="modalContent">
+                    <!-- 詳情內容將由 JavaScript 動態生成 -->
+                </div>
+            </div>
+        </div>
+    </div>
 
-            if (historyData.length === 0) {
-                container.innerHTML = '<p class="text-center text-gray-500 p-4">您目前沒有任何訂票紀錄。</p>';
-                return;
-            }
+    <!-- Footer 內容 -->
+    <footer class="bg-vieshow-dark text-white text-center py-4 mt-8 shadow-inner">
+        <p>&copy; 2025 Vieshow Ticketing System - 歷史訂票紀錄</p>
+    </footer>
 
-            // 使用 w-full table-auto 確保表格在滾動容器內正常顯示
-            let html = `
-                <table class="min-w-full divide-y divide-gray-200 border border-gray-100">
-                    <thead>
-                        <tr class="bg-vieshow-red text-white">
-                            <th scope="col" class="px-3 py-3 text-sm font-semibold uppercase tracking-wider text-center w-[150px]">訂單編號</th>
-                            <th scope="col" class="px-3 py-3 text-sm font-semibold uppercase tracking-wider text-center w-[200px]">電影名稱</th>
-                            <th scope="col" class="px-3 py-3 text-sm font-semibold uppercase tracking-wider text-center w-[180px]">場次日期</th>
-                            <th scope="col" class="px-3 py-3 text-sm font-semibold uppercase tracking-wider text-center w-[100px]">總金額</th>
-                            <th scope="col" class="px-3 py-3 text-sm font-semibold uppercase tracking-wider text-center w-[100px]">狀態</th>
-                            <th scope="col" class="px-3 py-3 text-sm font-semibold uppercase tracking-wider text-center w-[200px]">操作</th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200 text-gray-700">
-            `;
+    <!-- JavaScript 邏輯 -->
+    <script>
+        // 模擬歷史訂單資料 - 更真實的資料結構
+        const mockHistoryData = [
+            {
+                id: 'VS20251101A01',
+                movie: {
+                    title: '阿凡達 3: 最終戰役',
+                    poster: 'https://via.placeholder.com/100x150/4A5568/FFFFFF?text=Avatar+3',
+                    duration: '180分鐘',
+                    rating: '保護級'
+                },
+                cinema: '台北信義影城',
+                showtime: '2025/11/01 19:30',
+                theater: 'IMAX 3廳',
+                seats: ['A5', 'A6', 'A7'],
+                tickets: [
+                    { type: '全票', quantity: 2, price: 320 },
+                    { type: '學生票', quantity: 1, price: 280 }
+                ],
+                combos: [
+                    { name: '經典爆米花套餐', quantity: 1, price: 150 }
+                ],
+                total: 1070,
+                status: 'completed',
+                statusText: '已完成',
+                payment_method: 'credit_card',
+                created_at: '2025/10/28 14:30',
+                qr_code: 'https://via.placeholder.com/150x150/374151/FFFFFF?text=QR+Code'
+            },
+            {
+                id: 'VS20251205C03',
+                movie: {
+                    title: '貓與老鼠 2',
+                    poster: 'https://via.placeholder.com/100x150/065F46/FFFFFF?text=Tom+Jerry',
+                    duration: '120分鐘',
+                    rating: '普遍級'
+                },
+                cinema: '台中文心影城',
+                showtime: '2025/12/05 10:00',
+                theater: '5廳',
+                seats: ['B3', 'B4'],
+                tickets: [
+                    { type: '兒童票', quantity: 2, price: 240 }
+                ],
+                combos: [],
+                total: 480,
+                status: 'upcoming',
+                statusText: '即將上映',
+                payment_method: 'line_pay',
+                created_at: '2025/11/20 09:15'
+            },
+            {
+                id: 'VS20251015B02',
+                movie: {
+                    title: '不可能的任務 8',
+                    poster: 'https://via.placeholder.com/100x150/1E40AF/FFFFFF?text=MI8',
+                    duration: '158分鐘',
+                    rating: '輔12級'
+                },
+                cinema: '桃園統領影城',
+                showtime: '2025/10/15 14:00',
+                theater: '2廳',
+                seats: ['C8'],
+                tickets: [
+                    { type: '全票', quantity: 1, price: 320 }
+                ],
+                combos: [
+                    { name: '單人飲品加購', quantity: 1, price: 80 }
+                ],
+                total: 400,
+                status: 'completed',
+                statusText: '已完成',
+                payment_method: 'jkopay',
+                created_at: '2025/10/10 16:45'
+            },
+            {
+                id: 'VS20251210D04',
+                movie: {
+                    title: '星際大戰：新希望',
+                    poster: 'https://via.placeholder.com/100x150/7C2D12/FFFFFF?text=Star+Wars',
+                    duration: '135分鐘',
+                    rating: '保護級'
+                },
+                cinema: '高雄苓雅影城',
+                showtime: '2025/12/10 22:00',
+                theater: '4廳',
+                seats: ['D2', 'D3'],
+                tickets: [
+                    { type: '全票', quantity: 2, price: 320 }
+                ],
+                combos: [],
+                total: 640,
+                status: 'cancelled',
+                statusText: '已取消',
+                payment_method: 'credit_card',
+                created_at: '2025/11/25 20:20',
+                cancelled_at: '2025/11/26 10:30'
+            }
+        ];
 
-            historyData.forEach(order => {
-                const totalFormatted = 'NT$' + order.total.toLocaleString('zh-TW');
-                const statusClass = getStatusClass(order.status);
-                
-                let actions = '<span class="text-gray-400">-</span>';
-                if (order.can_modify) {
-                    actions = `
-                        <button 
-                            class="inline-block px-2 py-1 text-sm flex flex-col space-y-1 items-center font-medium rounded-md shadow-sm transition duration-150 bg-vieshow-red hover:bg-red-700 text-white" 
-                            onclick="handleCancel('${order.id}');"
-                        >
-                            取消(退票)
-                        </button>
-                        <a href="#" class="inline-block px-2 py-1 text-sm flex flex-col space-y-1 items-center font-medium rounded-md shadow-sm transition duration-150 bg-blue-600 hover:bg-blue-700 text-white" onclick="showNotification('模擬進入訂單詳情頁面: ${order.id}')">
-                            修改/詳情
-                        </a>
-                    `;
-                }
+        // 狀態管理
+        let currentFilter = 'all';
+        let currentSearch = '';
+        let currentPage = 1;
+        const itemsPerPage = 5;
 
-                html += `
-                    <tr class="hover:bg-red-50 transition duration-150">
-                        <td class="px-3 py-3 whitespace-nowrap text-center font-mono text-sm">${order.id}</td>
-                        <td class="px-3 py-3 whitespace-nowrap text-center">${order.movie}</td>
-                        <td class="px-3 py-3 whitespace-nowrap text-center">${order.date}</td>
-                        <td class="px-3 py-3 whitespace-nowrap text-center font-bold">${totalFormatted}</td>
-                        <td class="px-3 py-3 whitespace-nowrap text-center ${statusClass}">${order.status}</td>
-                        <td class="px-3 py-3 text-center">${actions}</td>
-                    </tr>
-                `;
-            });
+        /**
+         * 根據狀態獲取樣式類別
+         */
+        function getStatusClass(status) {
+            switch(status) {
+                case 'completed':
+                    return 'bg-green-100 text-green-800 border-green-200';
+                case 'upcoming':
+                    return 'bg-blue-100 text-blue-800 border-blue-200';
+                case 'cancelled':
+                    return 'bg-gray-100 text-gray-600 border-gray-200';
+                default:
+                    return 'bg-gray-100 text-gray-600 border-gray-200';
+            }
+        }
 
-            html += `
-                    </tbody>
-                </table>
-            `;
-            
-            container.innerHTML = html;
-        }
+        /**
+         * 獲取付款方式圖示
+         */
+        function getPaymentIcon(method) {
+            switch(method) {
+                case 'credit_card':
+                    return '💳';
+                case 'line_pay':
+                    return '💚';
+                case 'jkopay':
+                    return '🟣';
+                case 'cash':
+                    return '💵';
+                default:
+                    return '💳';
+            }
+        }
 
-        /**
-         * 顯示模擬通知
-         */
-        function showNotification(message, isError = false) {
-            const notification = document.createElement('div');
-            notification.textContent = message;
-            notification.className = `fixed top-0 left-1/2 -translate-x-1/2 mt-4 px-6 py-3 rounded-lg shadow-xl z-50 transition duration-300 transform ${isError ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'} animate-fade-in-down`;
-            
-            document.body.appendChild(notification);
-            
-            setTimeout(() => {
-                notification.classList.replace('animate-fade-in-down', 'animate-fade-out-up');
-                setTimeout(() => notification.remove(), 500); // 讓淡出動畫完成
-            }, 3000);
-        }
+        /**
+         * 篩選和搜尋訂單
+         */
+        function getFilteredOrders() {
+            return mockHistoryData.filter(order => {
+                // 狀態篩選
+                if (currentFilter !== 'all' && order.status !== currentFilter) {
+                    return false;
+                }
+                
+                // 搜尋篩選
+                if (currentSearch) {
+                    const searchTerm = currentSearch.toLowerCase();
+                    const matchesMovie = order.movie.title.toLowerCase().includes(searchTerm);
+                    const matchesOrderId = order.id.toLowerCase().includes(searchTerm);
+                    return matchesMovie || matchesOrderId;
+                }
+                
+                return true;
+            });
+        }
 
-        /**
-         * 模擬取消(退票)操作
-         * @param {string} orderId - 訂單編號
-         */
-        window.handleCancel = function(orderId) {
-            console.log(`模擬取消訂單: ${orderId}`);
-            showNotification(`[模擬操作] 嘗試取消訂單: ${orderId}。請前往詳情頁面執行退票。`);
-        }
-        
-        document.addEventListener('DOMContentLoaded', () => {
-            // *** FIX: 在 DOM 載入後立即呼叫 renderHistory 渲染表格 ***
-            renderHistory(); 
-            
-            // 模擬登出事件
-            document.getElementById('signOutButton').addEventListener('click', function(e) {
-                e.preventDefault(); 
-                const header = document.querySelector('header');
-                const messageDiv = document.createElement('div');
-                
-                messageDiv.textContent = '您已成功登出。即將導向首頁...';
-                messageDiv.className = 'fixed top-0 left-0 right-0 bg-green-500 text-white text-center py-2 shadow-lg z-50';
-                document.body.prepend(messageDiv);
-                
-                // 延遲 2 秒後導向首頁
-                setTimeout(() => {
-                    // 移除訊息並模擬頁面跳轉 (此處僅為模擬，因為沒有實際首頁)
-                    messageDiv.remove();
-                    // window.location.href = '../../index.html'; 
-                }, 2000);
-            });
-        
-            // 為了讓通知效果更平滑，新增 CSS 動畫類別
-            const style = document.createElement('style');
-            style.textContent = `
-                @keyframes fadeInDown {
-                    from { opacity: 0; transform: translate(-50%, -20px); }
-                    to { opacity: 1; transform: translate(-50%, 0); }
-                }
-                @keyframes fadeOutUp {
-                    from { opacity: 1; transform: translate(-50%, 0); }
-                    to { opacity: 0; transform: translate(-50%, -20px); }
-                }
-                .animate-fade-in-down { animation: fadeInDown 0.5s ease-out forwards; }
-                .animate-fade-out-up { animation: fadeOutUp 0.5s ease-in forwards; }
-            `;
-            document.head.appendChild(style);
-        });
-    </script>
-    
+        /**
+         * 渲染訂單卡片
+         */
+        function renderOrders() {
+            const container = document.getElementById('ordersContainer');
+            const loadingState = document.getElementById('loadingState');
+            const emptyState = document.getElementById('emptyState');
+            const pagination = document.getElementById('paginationContainer');
+            
+            // 顯示載入狀態
+            loadingState.classList.remove('hidden');
+            container.classList.add('hidden');
+            emptyState.classList.add('hidden');
+            pagination.classList.add('hidden');
+            
+            // 模擬載入延遲
+            setTimeout(() => {
+                const filteredOrders = getFilteredOrders();
+                const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
+                const startIndex = (currentPage - 1) * itemsPerPage;
+                const paginatedOrders = filteredOrders.slice(startIndex, startIndex + itemsPerPage);
+                
+                if (paginatedOrders.length === 0) {
+                    loadingState.classList.add('hidden');
+                    emptyState.classList.remove('hidden');
+                    return;
+                }
+                
+                let html = '';
+                
+                paginatedOrders.forEach(order => {
+                    const statusClass = getStatusClass(order.status);
+                    const paymentIcon = getPaymentIcon(order.payment_method);
+                    
+                    html += `
+                        <div class="order-card bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
+                            <div class="p-6">
+                                <div class="flex flex-col lg:flex-row gap-6">
+                                    <!-- 電影海報 -->
+                                    <div class="flex-shrink-0">
+                                        <img src="${order.movie.poster}" alt="${order.movie.title}" 
+                                             class="w-20 h-28 object-cover rounded-lg shadow-sm">
+                                    </div>
+                                    
+                                    <!-- 訂單資訊 -->
+                                    <div class="flex-1">
+                                        <div class="flex flex-col md:flex-row md:items-start md:justify-between mb-4">
+                                            <div>
+                                                <h3 class="text-xl font-bold text-gray-900 mb-1">${order.movie.title}</h3>
+                                                <div class="flex items-center space-x-4 text-sm text-gray-600 mb-2">
+                                                    <span>${order.cinema}</span>
+                                                    <span>•</span>
+                                                    <span>${order.theater}</span>
+                                                    <span>•</span>
+                                                    <span>${order.movie.duration}</span>
+                                                </div>
+                                            </div>
+                                            <div class="flex items-center space-x-2">
+                                                <span class="px-3 py-1 rounded-full text-sm font-medium border ${statusClass}">
+                                                    ${order.statusText}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+                                            <div>
+                                                <span class="text-gray-500">場次時間</span>
+                                                <p class="font-semibold">${order.showtime}</p>
+                                            </div>
+                                            <div>
+                                                <span class="text-gray-500">座位</span>
+                                                <p class="font-semibold">${order.seats.join('、')}</p>
+                                            </div>
+                                            <div>
+                                                <span class="text-gray-500">付款方式</span>
+                                                <p class="font-semibold flex items-center">
+                                                    <span class="mr-1">${paymentIcon}</span>
+                                                    ${order.payment_method === 'credit_card' ? '信用卡' : 
+                                                      order.payment_method === 'line_pay' ? 'Line Pay' :
+                                                      order.payment_method === 'jkopay' ? '街口支付' : '現金'}
+                                                </p>
+                                            </div>
+                                            <div>
+                                                <span class="text-gray-500">總金額</span>
+                                                <p class="text-xl font-bold text-vieshow-red">NT$ ${order.total.toLocaleString('en-US')}</p>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- 操作按鈕 -->
+                                        <div class="flex flex-wrap gap-2 mt-4 pt-4 border-t border-gray-200">
+                                            <button onclick="showOrderDetail('${order.id}')" 
+                                                    class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition duration-300">
+                                                查看詳情
+                                            </button>
+                                            ${order.status === 'upcoming' ? `
+                                                <button onclick="cancelOrder('${order.id}')" 
+                                                        class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition duration-300">
+                                                    取消訂票
+                                                </button>
+                                                <button onclick="shareOrder('${order.id}')" 
+                                                        class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium transition duration-300">
+                                                    分享訂單
+                                                </button>
+                                            ` : ''}
+                                            ${order.status === 'completed' ? `
+                                                <button onclick="downloadTicket('${order.id}')" 
+                                                        class="px-4 py-2 bg-vieshow-gold hover:bg-yellow-600 text-white rounded-lg text-sm font-medium transition duration-300">
+                                                    下載票券
+                                                </button>
+                                            ` : ''}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                container.innerHTML = html;
+                loadingState.classList.add('hidden');
+                container.classList.remove('hidden');
+                
+                // 渲染分頁
+                renderPagination(totalPages);
+            }, 800);
+        }
+
+        /**
+         * 渲染分頁控制
+         */
+        function renderPagination(totalPages) {
+            const container = document.getElementById('paginationContainer');
+            
+            if (totalPages <= 1) {
+                container.classList.add('hidden');
+                return;
+            }
+            
+            container.classList.remove('hidden');
+            
+            let html = '';
+            
+            // 上一頁按鈕
+            html += `
+                <button onclick="changePage(${currentPage - 1})" 
+                        ${currentPage === 1 ? 'disabled' : ''}
+                        class="px-3 py-2 rounded-lg border border-gray-300 ${currentPage === 1 ? 'bg-gray-100 text-gray-400' : 'bg-white text-gray-700 hover:bg-gray-50'}">
+                    ← 上一頁
+                </button>
+            `;
+            
+            // 頁碼按鈕
+            for (let i = 1; i <= totalPages; i++) {
+                html += `
+                    <button onclick="changePage(${i})" 
+                            class="px-3 py-2 rounded-lg border ${currentPage === i ? 'bg-vieshow-red text-white border-vieshow-red' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'}">
+                        ${i}
+                    </button>
+                `;
+            }
+            
+            // 下一頁按鈕
+            html += `
+                <button onclick="changePage(${currentPage + 1})" 
+                        ${currentPage === totalPages ? 'disabled' : ''}
+                        class="px-3 py-2 rounded-lg border border-gray-300 ${currentPage === totalPages ? 'bg-gray-100 text-gray-400' : 'bg-white text-gray-700 hover:bg-gray-50'}">
+                    下一頁 →
+                </button>
+            `;
+            
+            container.innerHTML = html;
+        }
+
+        /**
+         * 變更頁面
+         */
+        window.changePage = function(page) {
+            const totalPages = Math.ceil(getFilteredOrders().length / itemsPerPage);
+            if (page < 1 || page > totalPages) return;
+            
+            currentPage = page;
+            renderOrders();
+        }
+
+        /**
+         * 顯示訂單詳情
+         */
+        window.showOrderDetail = function(orderId) {
+            const order = mockHistoryData.find(o => o.id === orderId);
+            if (!order) return;
+            
+            const modal = document.getElementById('orderDetailModal');
+            const content = document.getElementById('modalContent');
+            
+            let detailHtml = `
+                <div class="space-y-6">
+                    <!-- 基本資訊 -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <h4 class="font-semibold text-gray-700 mb-2">訂單資訊</h4>
+                            <div class="space-y-2 text-sm">
+                                <div class="flex justify-between">
+                                    <span>訂單編號：</span>
+                                    <span class="font-mono">${order.id}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>建立時間：</span>
+                                    <span>${order.created_at}</span>
+                                </div>
+                                ${order.cancelled_at ? `
+                                <div class="flex justify-between">
+                                    <span>取消時間：</span>
+                                    <span>${order.cancelled_at}</span>
+                                </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-gray-700 mb-2">電影資訊</h4>
+                            <div class="space-y-2 text-sm">
+                                <div class="flex justify-between">
+                                    <span>電影分級：</span>
+                                    <span>${order.movie.rating}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>片長時間：</span>
+                                    <span>${order.movie.duration}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 票種明細 -->
+                    <div>
+                        <h4 class="font-semibold text-gray-700 mb-3">票種明細</h4>
+                        <div class="bg-gray-50 rounded-lg p-4 space-y-2">
+                            ${order.tickets.map(ticket => `
+                                <div class="flex justify-between text-sm">
+                                    <span>${ticket.type} x ${ticket.quantity}</span>
+                                    <span>NT$ ${(ticket.price * ticket.quantity).toLocaleString('en-US')}</span>
+                                </div>
+                            `).join('')}
+                            ${order.combos.map(combo => `
+                                <div class="flex justify-between text-sm">
+                                    <span>${combo.name} x ${combo.quantity}</span>
+                                    <span>NT$ ${(combo.price * combo.quantity).toLocaleString('en-US')}</span>
+                                </div>
+                            `).join('')}
+                            <div class="border-t pt-2 mt-2">
+                                <div class="flex justify-between font-semibold">
+                                    <span>總計：</span>
+                                    <span class="text-vieshow-red">NT$ ${order.total.toLocaleString('en-US')}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- QR Code (如果是即將上映的訂單) -->
+                    ${order.status === 'upcoming' && order.qr_code ? `
+                    <div class="text-center">
+                        <h4 class="font-semibold text-gray-700 mb-3">入場 QR Code</h4>
+                        <img src="${order.qr_code}" alt="QR Code" class="mx-auto w-32 h-32 border rounded-lg">
+                        <p class="text-sm text-gray-500 mt-2">請於電影開演前出示此 QR Code</p>
+                    </div>
+                    ` : ''}
+                </div>
+            `;
+            
+            content.innerHTML = detailHtml;
+            modal.classList.remove('hidden');
+        }
+
+        /**
+         * 取消訂單
+         */
+        window.cancelOrder = function(orderId) {
+            if (confirm('確定要取消此訂單嗎？取消後將無法恢復。')) {
+                showNotification(`訂單 ${orderId} 已取消`, true);
+                // 實際應用中這裡會呼叫 API 取消訂單
+                setTimeout(() => {
+                    renderOrders();
+                }, 1000);
+            }
+        }
+
+        /**
+         * 分享訂單
+         */
+        window.shareOrder = function(orderId) {
+            showNotification('複製分享連結成功！');
+            // 實際應用中這裡會生成分享連結
+        }
+
+        /**
+         * 下載票券
+         */
+        window.downloadTicket = function(orderId) {
+            showNotification('開始下載電子票券...');
+            // 實際應用中這裡會生成 PDF 票券
+        }
+
+        /**
+         * 顯示通知
+         */
+        function showNotification(message, isError = false) {
+            const notification = document.createElement('div');
+            notification.textContent = message;
+            notification.className = `fixed top-4 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-lg shadow-xl z-50 transition duration-300 ${
+                isError ? 'bg-red-100 text-red-800 border border-red-200' : 'bg-green-100 text-green-800 border border-green-200'
+            } animate-fade-in-down`;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.classList.replace('animate-fade-in-down', 'animate-fade-out-up');
+                setTimeout(() => notification.remove(), 500);
+            }, 3000);
+        }
+
+        /**
+         * 初始化事件監聽器
+         */
+        function initEventListeners() {
+            // 篩選按鈕
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active', 'bg-vieshow-red', 'text-white'));
+                    document.querySelectorAll('.filter-btn').forEach(b => b.classList.add('bg-gray-200', 'text-gray-700'));
+                    
+                    this.classList.remove('bg-gray-200', 'text-gray-700');
+                    this.classList.add('active', 'bg-vieshow-red', 'text-white');
+                    
+                    currentFilter = this.dataset.status;
+                    currentPage = 1;
+                    renderOrders();
+                });
+            });
+            
+            // 搜尋輸入
+            document.getElementById('searchInput').addEventListener('input', function() {
+                currentSearch = this.value;
+                currentPage = 1;
+                renderOrders();
+            });
+            
+            // 關閉 Modal
+            document.getElementById('closeModal').addEventListener('click', function() {
+                document.getElementById('orderDetailModal').classList.add('hidden');
+            });
+            
+            // 點擊 Modal 背景關閉
+            document.getElementById('orderDetailModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.add('hidden');
+                }
+            });
+            
+            // 登出按鈕
+            document.getElementById('signOutButton').addEventListener('click', function() {
+                if (confirm('確定要登出嗎？')) {
+                    showNotification('已成功登出，正在導向首頁...');
+                    setTimeout(() => {
+                        window.location.href = '../../index.html';
+                    }, 1500);
+                }
+            });
+        }
+
+        /**
+         * 頁面載入完成後初始化
+         */
+        document.addEventListener('DOMContentLoaded', function() {
+            initEventListeners();
+            renderOrders();
+        });
+    </script>
 </body>
 </html>
