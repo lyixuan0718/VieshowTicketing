@@ -7,113 +7,245 @@
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script>
+        // Tailwind 配置，確保顏色和字體與專案一致
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'vieshow-red': '#e50914',
+                        'vieshow-gold': '#f7a83d',
+                        'vieshow-dark': '#1a1a1a',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'Noto Sans TC', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
 
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6;
-        }
         .seat {
-            width: 32px;
-            height: 32px;
+            width: 36px;
+            height: 36px;
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 6px;
+            border-radius: 8px;
             cursor: pointer;
             font-weight: bold;
             color: white;
-            transition: 0.15s;
+            transition: all 0.2s ease;
+            font-size: 12px;
         }
-        .available { background-color: #22c55e; } /* 綠色 */
-        .available:hover { background-color: #16a34a; } 
-        .occupied { background-color: #9ca3af; cursor: not-allowed; }
-        .selected { background-color: #dc2626; transform: scale(1.07); }
+        .available { 
+            background-color: #22c55e;
+            border: 2px solid #16a34a;
+        }
+        .available:hover { 
+            background-color: #16a34a;
+            transform: scale(1.1);
+        }
+        .occupied { 
+            background-color: #9ca3af; 
+            border: 2px solid #6b7280;
+            cursor: not-allowed;
+        }
+        .selected { 
+            background-color: #dc2626; 
+            border: 2px solid #b91c1c;
+            transform: scale(1.1);
+            box-shadow: 0 4px 8px rgba(220, 38, 38, 0.3);
+        }
+        .wheelchair { 
+            background-color: #3b82f6;
+            border: 2px solid #1d4ed8;
+        }
+        .wheelchair:hover {
+            background-color: #1d4ed8;
+            transform: scale(1.1);
+        }
+        /* 步驟指示器 */
+        .step-indicator {
+            @apply flex items-center justify-center mb-8;
+        }
+        .step-circle {
+            @apply w-10 h-10 rounded-full flex items-center justify-center text-white font-bold
+                   transition duration-300;
+        }
+        .step-line {
+            @apply h-1 w-16 bg-gray-300 transition duration-300;
+        }
+        .step-active {
+            @apply bg-vieshow-red;
+        }
+        .step-completed {
+            @apply bg-vieshow-gold;
+        }
+        .step-pending {
+            @apply bg-gray-300;
+        }
     </style>
-
 </head>
-<body class="antialiased">
+<body class="antialiased bg-gray-100 font-sans min-h-screen flex flex-col">
 
 <!-- Header -->
-<header class="bg-gray-800 text-white shadow-md">
-        <nav class="container mx-auto px-4 py-4 flex justify-between items-center">
-            <a href="../../index.html" class="text-xl font-bold hover:text-vieshow-red transition duration-300">Vieshow 影城</a>
-            <div class="space-x-4">
-                <a href="../auth/login.html" class="hover:text-vieshow-gold transition duration-300">登入</a>
-                <a href="../member/member_home.html" class="hover:text-vieshow-gold transition duration-300">會員中心</a>
-            </div>
-        </nav>
-    </header>
+<header class="bg-vieshow-dark text-white shadow-md sticky top-0 z-10">
+    <nav class="container mx-auto px-4 py-4 flex justify-between items-center">
+        <a href="../../index.html" class="text-xl font-bold hover:text-vieshow-gold transition duration-300 flex items-center">
+            <span class="mr-2">🎬</span> Vieshow 影城
+        </a>
+        <div class="space-x-4">
+            <a href="../auth/login.html" class="hover:text-vieshow-gold transition duration-300">登入</a>
+            <a href="../member/member_home.html" class="hover:text-vieshow-gold transition duration-300">會員中心</a>
+        </div>
+    </nav>
+</header>
 
 <!-- 主容器 -->
-<div class="w-11/12 md:max-w-2xl mx-auto my-8 p-6 bg-white border border-gray-200 rounded-xl shadow-2xl">
-
-    <h2 class="text-2xl font-extrabold text-gray-900 mb-6 flex items-center">
-        🎫 訂票選位 - 步驟 3/7 (選擇座位)
-    </h2>
-
-    <!-- 電影資訊 -->
-    <div class="bg-gray-50 p-4 rounded-lg mb-6 text-sm md:text-base border border-gray-100">
-        <p>影城：<strong id="cinemaName">載入中...</strong></p>
-        <p>電影：<strong id="movieTitle">載入中...</strong></p>
-        <p>場次：<strong id="showtimeDetails">載入中...</strong></p>
+<div class="container mx-auto px-4 py-8 flex-grow max-w-6xl">
+    
+    <!-- 步驟指示器 -->
+    <div class="step-indicator">
+        <div class="step-circle step-completed">1</div>
+        <div class="step-line step-completed"></div>
+        <div class="step-circle step-completed">2</div>
+        <div class="step-line step-active"></div>
+        <div class="step-circle step-active">3</div>
+        <div class="step-line step-pending"></div>
+        <div class="step-circle step-pending">4</div>
+        <div class="step-line step-pending"></div>
+        <div class="step-circle step-pending">5</div>
     </div>
 
-    <!-- 座位選擇標題 -->
-    <h3 class="text-xl font-semibold border-b-2 border-red-600 pb-2 text-red-700">
-        請選擇座位（<span id="requiredTickets">0</span> 張）
-    </h3>
-
-    <!-- 圖例 -->
-    <div class="flex space-x-6 mt-4 mb-4 text-sm text-gray-700">
-        <div class="flex items-center"><div class="w-4 h-4 bg-green-400 mr-2 rounded"></div>可選</div>
-        <div class="flex items-center"><div class="w-4 h-4 bg-gray-400 mr-2 rounded"></div>已售</div>
-        <div class="flex items-center"><div class="w-4 h-4 bg-red-600 mr-2 rounded"></div>已選</div>
-    </div>
-
-    <!-- 座位地圖 -->
-    <div class="bg-gray-100 p-4 rounded-lg border">
-        <div class="bg-gray-800 text-white text-center py-2 mb-4 rounded font-bold">
-            --- 影廳螢幕 ---
+    <div class="bg-white p-6 md:p-10 rounded-xl shadow-2xl border-t-4 border-vieshow-red">
+        
+        <!-- 標題區塊 -->
+        <div class="mb-8 pb-4 border-b border-gray-200">
+            <h1 class="text-3xl font-extrabold text-gray-900 mb-2">🎟️ 訂票流程</h1>
+            <p class="text-xl font-semibold text-vieshow-red">步驟 3/5: 選擇座位</p>
+            <p class="text-sm text-gray-500 mt-1">請在下方影廳地圖中選擇您喜歡的座位。</p>
         </div>
-        <div id="seatMap" class="flex flex-col space-y-2"></div>
-    </div>
 
-    <!-- 已選座位 -->
-    <div class="mt-6">
-        <h4 class="font-semibold">已選座位：</h4>
-        <p id="selectedSeatsDisplay" class="text-xl text-red-600 font-bold">無</p>
-    </div>
-
-    <div id="errorMessage" class="font-bold mt-4 text-center text-red-600"></div>
-
-    <!-- 訂單摘要 -->
-    <h3 class="text-xl font-semibold border-b-2 border-red-600 pb-2 mt-8 mb-4 text-red-700">
-        您的訂單摘要
-    </h3>
-
-    <div class="bg-gray-50 p-4 rounded-lg mb-6 text-sm md:text-base border border-gray-100">
-        <p>應選張數：<strong id="totalTicketsRequired" class="text-red-700">0</strong> 張</p>
-        <p>已選座位：<strong id="selectedSeatsSummary" class="text-red-700">無</strong></p>
-
-        <div class="border-t mt-2 pt-2">
-            <p id="ticketsSummary">票種與數量：載入中...</p>
-            <p id="foodSummary">餐點：載入中...</p>
+        <!-- 電影資訊 -->
+        <div class="bg-vieshow-gold/10 p-4 rounded-lg mb-6 border-l-4 border-vieshow-gold">
+            <h2 class="font-bold text-lg mb-2 text-gray-800 flex items-center">
+                <svg class="w-5 h-5 mr-2 text-vieshow-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                場次確認
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                <div><span class="font-semibold">影城：</span><span id="cinemaName">載入中...</span></div>
+                <div><span class="font-semibold">電影：</span><span id="movieTitle">載入中...</span></div>
+                <div><span class="font-semibold">場次：</span><span id="showtimeDetails">載入中...</span></div>
+            </div>
         </div>
+
+        <!-- 座位選擇標題 -->
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+            <h3 class="text-xl font-semibold text-gray-800 mb-2 md:mb-0">
+                請選擇座位 <span class="text-vieshow-red">（需選 <span id="requiredTickets">0</span> 張）</span>
+            </h3>
+            <div class="flex space-x-4 text-sm text-gray-700">
+                <div class="flex items-center">
+                    <div class="w-4 h-4 bg-green-500 mr-2 rounded border border-green-600"></div>
+                    <span>可選</span>
+                </div>
+                <div class="flex items-center">
+                    <div class="w-4 h-4 bg-gray-400 mr-2 rounded border border-gray-500"></div>
+                    <span>已售</span>
+                </div>
+                <div class="flex items-center">
+                    <div class="w-4 h-4 bg-red-600 mr-2 rounded border border-red-700"></div>
+                    <span>已選</span>
+                </div>
+                <div class="flex items-center">
+                    <div class="w-4 h-4 bg-blue-500 mr-2 rounded border border-blue-600"></div>
+                    <span>愛心座</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 座位地圖 -->
+        <div class="bg-gray-100 p-6 rounded-xl border border-gray-300 mb-6">
+            <div class="bg-vieshow-dark text-white text-center py-3 mb-6 rounded-lg font-bold text-lg shadow-lg">
+                🎬 影廳螢幕 🎬
+            </div>
+            <div id="seatMap" class="flex flex-col space-y-3 items-center"></div>
+        </div>
+
+        <!-- 已選座位顯示 -->
+        <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+            <h4 class="font-semibold text-green-800 mb-2 flex items-center">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                已選座位：
+            </h4>
+            <p id="selectedSeatsDisplay" class="text-xl text-green-800 font-bold">尚未選擇座位</p>
+        </div>
+
+        <div id="errorMessage" class="font-bold text-center text-red-600 mb-4"></div>
+
+        <!-- 訂單摘要 -->
+        <div class="bg-gray-50 p-6 rounded-xl border border-gray-200 mb-8">
+            <h3 class="text-xl font-semibold border-b-2 border-vieshow-red pb-2 mb-4 text-gray-800">
+                訂單摘要
+            </h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <h4 class="font-semibold text-gray-700 mb-2">📊 票務資訊</h4>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between">
+                            <span>應選張數：</span>
+                            <span class="font-bold text-vieshow-red" id="totalTicketsRequired">0</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>已選座位：</span>
+                            <span class="font-bold text-vieshow-red" id="selectedSeatsSummary">無</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div>
+                    <h4 class="font-semibold text-gray-700 mb-2">🎫 票種明細</h4>
+                    <div class="space-y-1 text-sm">
+                        <p id="ticketsSummary">載入中...</p>
+                        <p id="foodSummary" class="mt-2">載入中...</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 總金額顯示 -->
+            <div class="border-t mt-4 pt-4">
+                <div class="flex justify-between items-center text-lg font-bold">
+                    <span>總計金額：</span>
+                    <span id="totalPriceDisplay" class="text-vieshow-red text-xl">$0 TWD</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 表單 -->
+        <form id="bookingFlow3Form" class="space-y-4">
+            <input type="hidden" name="selected_seats" id="submitSeats" value="">
+
+            <div class="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4">
+                <a href="booking_flow_2.html" class="flex-1 text-center bg-gray-500 hover:bg-gray-700 text-white font-bold py-3 px-4 rounded-xl transition duration-300 shadow-lg text-base transform hover:scale-[1.02] active:scale-[0.98]">
+                    <svg class="w-5 h-5 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                    </svg> 
+                    返回上一步
+                </a>
+                <button type="submit" class="next-step-button flex-1 bg-vieshow-red hover:bg-red-700 text-white font-bold py-3 px-4 rounded-xl transition duration-300 shadow-lg text-lg disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.02] active:scale-[0.98]" disabled>
+                    下一步: 訂單確認 (步驟 4)
+                </button>
+            </div>
+        </form>
     </div>
-
-    <!-- 表單 -->
-    <form id="bookingFlow3Form">
-        <input type="hidden" name="selected_seats" id="submitSeats" value="">
-
-        <button type="submit" class="w-full py-3 bg-red-700 text-white rounded-lg font-bold text-lg hover:bg-red-800 transition disabled:bg-gray-400 disabled:cursor-not-allowed" disabled>
-            下一步：訂單確認 (步驟 4)
-        </button>
-    </form>
-
-    <p class="mt-4 text-center">
-        <a href="booking_flow_2.html" class="text-red-600 hover:text-red-800">← 返回上一步</a>
-    </p>
 </div>
 
 <!-- JS：整合後唯一版本 -->
@@ -125,70 +257,82 @@
     const cinemaNameDisplay = document.getElementById("cinemaName");
     const movieTitleDisplay = document.getElementById("movieTitle");
     const showtimeDetailDisplay = document.getElementById("showtimeDetails");
-
     const requiredTicketsSpan = document.getElementById("requiredTickets");
     const totalTicketsRequiredSpan = document.getElementById("totalTicketsRequired");
-
     const selectedSeatsDisplay = document.getElementById("selectedSeatsDisplay");
     const selectedSeatsSummary = document.getElementById("selectedSeatsSummary");
-
     const ticketsSummary = document.getElementById("ticketsSummary");
     const foodSummary = document.getElementById("foodSummary");
-
+    const totalPriceDisplay = document.getElementById("totalPriceDisplay");
     const submitSeatsInput = document.getElementById("submitSeats");
     const nextButton = document.querySelector("button[type='submit']");
     const errorMessage = document.getElementById("errorMessage");
 
-    // Mock 座位（A=可選 / O=已售）
+    // 更真實的座位資料（A=可選 / O=已售 / W=輪椅席）
     const seatData = [
-        ["A","A","A","O","A","A","A","A","A","A"],
-        ["O","A","A","A","A","A","O","A","A","A"],
-        ["A","A","A","A","A","A","A","O","A","A"],
-        ["A","A","O","A","A","A","A","A","A","A"],
-        ["A","A","A","A","A","A","A","A","A","A"],
+        ["A","A","A","O","A","A","A","A","A","A","A","A"],
+        ["O","A","A","A","A","A","O","A","A","A","A","A"],
+        ["A","A","A","A","A","A","A","O","A","A","A","A"],
+        ["A","A","O","A","A","A","A","A","A","A","A","A"],
+        ["A","A","A","A","A","A","A","A","A","A","A","A"],
+        ["A","A","A","A","A","A","A","A","A","A","A","A"],
+        ["A","A","A","A","A","A","A","A","A","A","A","A"],
+        ["W","W","A","A","A","A","A","A","A","A","W","W"],
     ];
-    const rows = ["A","B","C","D","E"];
+    const rows = ["A","B","C","D","E","F","G","H"];
 
     function loadBookingData() {
-    // 讀 Step1/Step2 的資料
-    const stored = localStorage.getItem("currentBooking");
-    if (stored) {
-        currentBooking = JSON.parse(stored);
-    } else {
-        currentBooking = {
-            tickets: {},
-            combos: {}
-        };
+        // 讀取 Step1/Step2 的資料
+        const stored = localStorage.getItem("currentBooking");
+        if (stored) {
+            currentBooking = JSON.parse(stored);
+        } else {
+            currentBooking = {
+                tickets: {},
+                combos: {}
+            };
+            // 如果沒有資料，跳回第一步
+            window.location.href = "booking_flow_1.html";
+            return;
+        }
+        
+        // 使用統一的資料結構
+        cinemaNameDisplay.textContent = currentBooking.cinema?.name || currentBooking.cinemaName || "未選擇";
+        movieTitleDisplay.textContent = currentBooking.movie?.title || currentBooking.movieTitle || "未選擇";
+        
+        // 顯示詳細的場次資訊
+        if (currentBooking.showtime) {
+            const showtime = currentBooking.showtime;
+            showtimeDetailDisplay.textContent = `${showtime.date} ${showtime.time} ${showtime.theater} (${showtime.type})`;
+        } else {
+            showtimeDetailDisplay.textContent = currentBooking.showtimeDetail || "未選擇";
+        }
+
+        // 總票數
+        totalTickets = currentBooking.totalTicketQty || 0;
+        requiredTicketsSpan.textContent = totalTickets;
+        totalTicketsRequiredSpan.textContent = totalTickets;
+
+        // 票種摘要
+        const tickets = currentBooking.tickets || {};
+        const ticketEntries = Object.values(tickets);
+        ticketsSummary.textContent = ticketEntries.length
+            ? ticketEntries.map(t => `${t.name} x ${t.qty}`).join(" + ")
+            : "無票種選擇";
+
+        // 餐點摘要
+        const combos = currentBooking.combos || {};
+        const comboEntries = Object.values(combos);
+        foodSummary.textContent = comboEntries.length && comboEntries.some(c => c.qty > 0)
+            ? comboEntries.filter(c => c.qty > 0).map(c => `${c.name} x ${c.qty}`).join(" + ")
+            : "無餐點加購";
+
+        // 總金額
+        const totalPrice = currentBooking.totalPrice || 0;
+        totalPriceDisplay.textContent = `$${totalPrice.toLocaleString('en-US')} TWD`;
+
+        renderSeatMap();
     }
-    
-    // 使用 Step1 選的電影資訊
-    cinemaNameDisplay.textContent = currentBooking.cinemaName || "載入中...";
-    movieTitleDisplay.textContent = currentBooking.movieTitle || "載入中...";
-    showtimeDetailDisplay.textContent = currentBooking.showtimeDetail || "載入中...";
-
-    // 總票數
-    totalTickets = currentBooking.totalTicketQty || 0;
-    requiredTicketsSpan.textContent = totalTickets;
-    totalTicketsRequiredSpan.textContent = totalTickets;
-
-    // 票種摘要
-    const tickets = currentBooking.tickets || {};
-    const ticketEntries = Object.values(tickets);
-    ticketsSummary.textContent = ticketEntries.length
-        ? "票種與數量：" + ticketEntries.map(t => `${t.name} x ${t.qty}`).join(" + ")
-        : "票種與數量：無";
-
-    // 餐點摘要
-    const combos = currentBooking.combos || {};
-    const comboEntries = Object.values(combos);
-    foodSummary.textContent = comboEntries.length && comboEntries.some(c => c.qty > 0)
-        ? "餐點：" + comboEntries.filter(c => c.qty > 0).map(c => `${c.name} x ${c.qty}`).join(" + ")
-        : "餐點：無";
-
-    renderSeatMap();
-}
-
-
 
     function renderSeatMap() {
         const seatMap = document.getElementById("seatMap");
@@ -200,7 +344,7 @@
 
             const label = document.createElement("span");
             label.textContent = rows[rIndex];
-            label.className = "font-bold w-4";
+            label.className = "font-bold w-6 text-center text-gray-700";
             rowDiv.appendChild(label);
 
             row.forEach((seat, cIndex) => {
@@ -211,8 +355,14 @@
 
                 if (seat === "O") {
                     seatDiv.classList.add("occupied");
+                    seatDiv.title = "座位已售出";
+                } else if (seat === "W") {
+                    seatDiv.classList.add("wheelchair");
+                    seatDiv.title = "愛心座位（輪椅席）";
+                    seatDiv.addEventListener("click", () => toggleSeat(seatId, seatDiv));
                 } else {
                     seatDiv.classList.add("available");
+                    seatDiv.title = "可選座位";
                     seatDiv.addEventListener("click", () => toggleSeat(seatId, seatDiv));
                 }
 
@@ -227,15 +377,24 @@
         if (element.classList.contains("occupied")) return;
 
         if (element.classList.contains("selected")) {
+            // 取消選擇
             element.classList.remove("selected");
-            element.classList.add("available");
+            if (element.classList.contains("wheelchair")) {
+                element.classList.add("wheelchair");
+            } else {
+                element.classList.add("available");
+            }
             selectedSeats = selectedSeats.filter(s => s !== seatId);
         } else {
-            if (selectedSeats.length === totalTickets) {
-                errorMessage.textContent = `最多只能選 ${totalTickets} 個座位`;
+            // 選擇座位
+            if (selectedSeats.length >= totalTickets) {
+                errorMessage.textContent = `最多只能選擇 ${totalTickets} 個座位`;
+                setTimeout(() => {
+                    errorMessage.textContent = "";
+                }, 3000);
                 return;
             }
-            element.classList.remove("available");
+            element.classList.remove("available", "wheelchair");
             element.classList.add("selected");
             selectedSeats.push(seatId);
         }
@@ -246,7 +405,7 @@
 
     function updateSelectedDisplay() {
         if (selectedSeats.length === 0) {
-            selectedSeatsDisplay.textContent = "無";
+            selectedSeatsDisplay.textContent = "尚未選擇座位";
             selectedSeatsSummary.textContent = "無";
         } else {
             selectedSeatsDisplay.textContent = selectedSeats.join("、");
@@ -255,45 +414,50 @@
 
         submitSeatsInput.value = selectedSeats.join(",");
 
+        // 啟用/禁用下一步按鈕
         nextButton.disabled = selectedSeats.length !== totalTickets;
+        
+        // 顯示選擇進度
+        if (selectedSeats.length > 0 && selectedSeats.length < totalTickets) {
+            errorMessage.textContent = `還需選擇 ${totalTickets - selectedSeats.length} 個座位`;
+            errorMessage.className = "font-bold text-center text-blue-600 mb-4";
+        } else if (selectedSeats.length === totalTickets) {
+            errorMessage.textContent = "✓ 座位選擇完成！";
+            errorMessage.className = "font-bold text-center text-green-600 mb-4";
+        } else {
+            errorMessage.textContent = "";
+        }
     }
 
-    // 提交
+    // 提交表單
     document.getElementById("bookingFlow3Form").addEventListener("submit", function(e){
         e.preventDefault();
 
         if (selectedSeats.length !== totalTickets) {
             errorMessage.textContent = "請先選滿座位數量";
+            errorMessage.className = "font-bold text-center text-red-600 mb-4";
             return;
         }
 
+        // 更新訂票資料
         currentBooking.selectedSeats = selectedSeats;
+        currentBooking.seatCount = selectedSeats.length;
 
-        currentBooking.ticket_general = currentBooking.ticket_general || 0;
-        currentBooking.ticket_student = currentBooking.ticket_student || 0;
-
-        currentBooking.food_popcorn = currentBooking.food_popcorn || 0;
-        currentBooking.food_drink = currentBooking.food_drink || 0;
-
-        // 來源資料如果來自 Step1~2，可不改
-        currentBooking.cinemaId = currentBooking.cinemaId || 1;
-        currentBooking.movieId = currentBooking.movieId || 1;
-        currentBooking.showtimeId = currentBooking.showtimeId || 1;
-
-        /** 🔥 最終儲存 */
+        // 儲存到 localStorage
         localStorage.setItem("currentBooking", JSON.stringify(currentBooking));
 
-        /** 前往 Step4 */
+        console.log("🎯 Step3 已儲存座位選擇：", currentBooking);
+
+        // 前往 Step4
         window.location.href = "booking_flow_4.html";
     });
 
     window.onload = loadBookingData;
 </script>
 
-    <footer class="bg-gray-800 text-white text-center py-4 mt-8 shadow-inner">
-        <p>&copy; 2025 Vieshow Ticketing System</p>
-    </footer>
-    
+<footer class="bg-vieshow-dark text-white text-center py-4 mt-8 shadow-inner">
+    <p>&copy; 2025 Vieshow Ticketing System - 訂票步驟 3</p>
+</footer>
 
 </body>
 </html>
