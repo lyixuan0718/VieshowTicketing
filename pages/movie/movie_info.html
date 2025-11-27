@@ -54,9 +54,7 @@
     <header class="bg-gray-800 text-white shadow-md">
         <nav class="container mx-auto px-4 py-4 flex justify-between items-center">
             <a href="../../index.html" class="text-xl font-bold hover:text-vieshow-red transition duration-300">Vieshow 影城</a>
-            <div class="space-x-4">
-                <a href="../auth/login.html" class="hover:text-vieshow-gold transition duration-300">登入</a>
-                <a href="../member/member_home.html" class="hover:text-vieshow-gold transition duration-300">會員中心</a>
+            <div id="headerNavRight" class="space-x-4">
             </div>
         </nav>
     </header>
@@ -85,14 +83,14 @@
                 <p id="synopsis" class="leading-relaxed whitespace-pre-wrap"></p>
             </div>
 
-            <div class="mb-8 border border-dashed border-gray-300 p-6 rounded-lg bg-yellow-50">
+            <div id="ratingWrapper" class="mb-8 border border-dashed border-gray-300 p-6 rounded-lg bg-yellow-50">
                 <h4 class="text-xl font-semibold mb-4 text-gray-800">您的評分 (需登入才能參與)</h4>
                 
                 <div id="ratingSection">
                     </div>
             </div>
             
-            <div class="text-center pt-4"> 
+            <div id="bookingButtonWrapper" class="text-center pt-4"> 
                 <a href="../booking/booking_flow_1.html" 
                     class="inline-block px-8 py-3 bg-vieshow-red text-white font-bold rounded-full shadow-lg hover:bg-red-700 transition duration-300 transform hover:scale-[1.02]">
                     🎟️ 前往訂票
@@ -128,14 +126,22 @@
         }
 
         const movieID = getQueryParam('movie_id') || 'G001'; // 預設值
+        
+        // ----------------------------------------------------
+        // 導覽列相關的路徑定義 (新增)
+        // ----------------------------------------------------
+        const LOGIN_PAGE_URL_INFO = '../auth/login.html'; // 從 movie 目錄回到 pages/auth/login.html
+        const MEMBER_HOME_URL_INFO = '../member/member_home.html'; // 從 movie 目錄回到 pages/member/member_home.html
+
 
         // ----------------------------------------------------
         // 模擬電影完整資料 (包含平均評分)
         // ----------------------------------------------------
+        // 注意：releaseTime 設為未來日期 "2099-12-01" 模擬未上映
         const mockMovieData = {
             id: movieID,
             name: "星際特攻隊：無限戰爭",
-            releaseTime: "2025-12-01",
+            releaseTime: "2024-12-01", 
             director: "艾瑞克·陳 (Eric Chen)",
             cast: "克里斯·潘, 潔西卡·華森, 湯姆·李",
             genre: "科幻 / 動作 / 冒險",
@@ -148,40 +154,110 @@
         };
 
         // ----------------------------------------------------
-        // 渲染函式
+        // 輔助函式：檢查電影是否已上映
+        // ----------------------------------------------------
+        /**
+         * 檢查電影是否已上映（上映日 <= 今天）
+         * @param {string} releaseDateString - 電影上映日期 (YYYY-MM-DD)
+         * @returns {boolean} - true: 已上映, false: 未上映
+         */
+        function isMovieReleased(releaseDateString) {
+            const today = new Date();
+            // 將時間部分歸零，只比較日期
+            today.setHours(0, 0, 0, 0); 
+                    
+            const releaseDate = new Date(releaseDateString);
+            releaseDate.setHours(0, 0, 0, 0); 
+                    
+            // 如果上映日期在今天或今天之前，則視為已上映
+            return releaseDate <= today;
+        }
+        
+        // ----------------------------------------------------
+        // 導覽列動態渲染函式 (新增)
         // ----------------------------------------------------
 
-        document.addEventListener('DOMContentLoaded', () => {
-            const IS_LOGGED_IN_DYNAMIC = checkSimulatedLoginStatus(); // *** 動態檢查登入狀態 ***
-            renderMovieInfo(mockMovieData);
-            renderRatingSection(IS_LOGGED_IN_DYNAMIC, mockMovieData.id); // 使用動態狀態
-        });
+        /**
+         * 渲染未登入狀態的導覽列。
+         */
+        function renderLoggedOutStateNav() {
+            const headerNavRight = document.getElementById('headerNavRight');
+            if (!headerNavRight) return;
+
+            // 渲染導覽列：登入 + 會員中心
+            headerNavRight.innerHTML = `
+                <a href="${LOGIN_PAGE_URL_INFO}" class="hover:text-vieshow-gold transition duration-300">登入</a>
+                <a href="${MEMBER_HOME_URL_INFO}" class="hover:text-vieshow-gold transition duration-300">會員中心</a>
+            `;
+        }
+
+        /**
+         * 渲染已登入狀態的導覽列。
+         */
+        function renderLoggedInStateNav() {
+            const headerNavRight = document.getElementById('headerNavRight');
+            if (!headerNavRight) return;
+
+            // 渲染導覽列：登出 + 會員中心
+            headerNavRight.innerHTML = `
+                <a href="#" id="signOutLink" class="hover:text-vieshow-gold transition duration-300">登出</a>
+                <a href="${MEMBER_HOME_URL_INFO}" class="hover:text-vieshow-gold transition duration-300">會員中心</a>
+            `;
+            
+            // 綁定登出事件
+            const signOutLink = document.getElementById('signOutLink');
+            if (signOutLink) {
+                signOutLink.addEventListener('click', handleSignOut);
+            }
+        }
+
+        /**
+         * 處理登出邏輯
+         */
+        function handleSignOut(e) {
+            e.preventDefault();
+
+            // 1. 清除登入狀態
+            localStorage.removeItem('auth_token');
+
+            // 2. 顯示登出訊息
+            alertMessage('您已成功登出。', 'info'); 
+
+            // 3. 重新渲染導覽列至未登入狀態
+            renderNavUI();
+            
+            // 4. 重新渲染評分區塊，因為評分功能需要登入
+            const IS_RELEASED = isMovieReleased(mockMovieData.releaseTime); 
+            renderRatingSection(false, mockMovieData.id, IS_RELEASED);
+        }
+
+        /**
+         * 檢查登入狀態並渲染導覽列 UI
+         */
+        function renderNavUI() {
+            // 檢查模擬登入狀態
+            const token = localStorage.getItem('auth_token');
+            if (token) {
+                renderLoggedInStateNav(); 
+            } else {
+                renderLoggedOutStateNav();
+            }
+        }
+        
+        // ----------------------------------------------------
+        // 渲染主要頁面內容函式
+        // ----------------------------------------------------
 
         /**
          * 渲染電影基本資訊、劇情簡介和平均評分
          * @param {object} movie - 電影資料物件
          */
-        function renderMovieInfo(movie) {
+        function renderMovieInfo(movie, isReleased) {
             // 設置頁面標題和主標題
             const fullTitle = `《${movie.name}》電影資訊`;
             document.getElementById('pageTitle').textContent = fullTitle;
             document.getElementById('movieTitle').textContent = `《${movie.name}》電影介紹`;
 
-            // 渲染平均評分 (所有人可見)
-            const ratingDisplay = document.getElementById('averageRatingDisplay');
-            ratingDisplay.innerHTML = `
-                <p class="text-xl font-semibold text-gray-800 flex items-center justify-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-vieshow-gold mr-2" viewBox="0 0 20 20" fill="currentColor">
-                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.817 2.045a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.817-2.045a1 1 0 00-1.175 0l-2.817 2.045c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.02 8.729c-.783-.57-.381-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                    </svg>
-                    平均觀眾評分：
-                    <span class="text-vieshow-red text-4xl font-extrabold ml-2">${movie.averageRating.toFixed(1)}</span> / 5.0
-                </p>
-                <p class="text-sm text-gray-500 mt-1">
-                    (來自 ${movie.totalVotes.toLocaleString()} 位觀眾)
-                </p>
-            `;
-            
             // 填充詳細資訊
             document.getElementById('releaseTime').textContent = movie.releaseTime;
             document.getElementById('director').textContent = movie.director;
@@ -189,6 +265,43 @@
             document.getElementById('genre').textContent = movie.genre;
             document.getElementById('duration').textContent = movie.duration;
             document.getElementById('synopsis').textContent = movie.synopsis;
+
+            // 渲染平均評分 (公開資訊)
+            const ratingDisplay = document.getElementById('averageRatingDisplay');
+            const bookingButtonWrapper = document.getElementById('bookingButtonWrapper'); 
+
+            if (isReleased) {
+                ratingDisplay.innerHTML = `
+                    <p class="text-xl font-semibold text-gray-800 flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-vieshow-gold mr-2" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.817 2.045a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.817-2.045a1 1 0 00-1.175 0l-2.817 2.045c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.02 8.729c-.783-.57-.381-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                        平均觀眾評分：
+                        <span class="text-vieshow-red text-4xl font-extrabold ml-2">${movie.averageRating.toFixed(1)}</span> / 5.0
+                    </p>
+                    <p class="text-sm text-gray-500 mt-1">
+                        (來自 ${movie.totalVotes.toLocaleString()} 位觀眾)
+                    </p>
+                `;
+                // 確保訂票按鈕是可用的連結
+                if (bookingButtonWrapper) {
+                    bookingButtonWrapper.innerHTML = `
+                        <a href="../booking/booking_flow_1.html" 
+                            class="inline-block px-8 py-3 bg-vieshow-red text-white font-bold rounded-full shadow-lg hover:bg-red-700 transition duration-300 transform hover:scale-[1.02]">
+                            🎟️ 前往訂票
+                        </a>`;
+                }
+            } else {
+                ratingDisplay.textContent = "此電影尚未上映，暫無評分資料。";
+                // 替換訂票按鈕為禁用狀態
+                if (bookingButtonWrapper) {
+                    bookingButtonWrapper.innerHTML = `
+                        <button disabled class="inline-block px-8 py-3 bg-gray-400 text-white font-bold rounded-full shadow-lg cursor-not-allowed">
+                            🎟️ 尚未開放訂票
+                        </button>
+                    `;
+                }
+            }
         }
 
         /**
@@ -196,10 +309,24 @@
          * @param {boolean} isLoggedIn - 使用者是否登入
          * @param {string} movieId - 當前電影 ID
          */
-        function renderRatingSection(isLoggedIn, movieId) {
+        function renderRatingSection(isLoggedIn, movieId, isReleased) {
+            const ratingWrapper = document.getElementById('ratingWrapper'); 
             const ratingSection = document.getElementById('ratingSection');
             let content = '';
-
+            
+            if (!isReleased) {
+                // 未上映：隱藏整個黃色評分區塊
+                if (ratingWrapper) {
+                    ratingWrapper.classList.add('hidden');
+                }
+                return; // 直接結束函式
+            } else {
+                // 已上映：確保區塊顯示
+                if (ratingWrapper) {
+                    ratingWrapper.classList.remove('hidden');
+                }
+            }
+            
             if (isLoggedIn) {
                 // 已登入：顯示評分表單
                 content = `
@@ -223,53 +350,53 @@
                 
                 // 處理表單提交（模擬）
                 setTimeout(() => {
-    const form = document.getElementById('ratingForm');
-    if (form) {
-        form.addEventListener('submit', (e) => {
-            e.preventDefault();
-            
-            // 1. 取得用戶評分
-            const newRating = parseInt(e.target.rating.value); // 取得用戶選擇的星星數 (1-5)
-            const submitButton = e.target.querySelector('.submit-rating-button');
+                    const form = document.getElementById('ratingForm');
+                    if (form) {
+                        form.addEventListener('submit', (e) => {
+                            e.preventDefault();
+                            
+                            // 1. 取得用戶評分
+                            const newRating = parseInt(e.target.rating.value); // 取得用戶選擇的星星數 (1-5)
+                            const submitButton = e.target.querySelector('.submit-rating-button');
 
-            // 模擬提交中的狀態
-            submitButton.textContent = '提交中...';
-            submitButton.disabled = true;
+                            // 模擬提交中的狀態
+                            submitButton.textContent = '提交中...';
+                            submitButton.disabled = true;
 
-            // 模擬網路延遲和後端處理
-            setTimeout(() => {
-                
-                // 2. 計算新的平均評分和總投票數
-                const currentTotalVotes = mockMovieData.totalVotes;
-                const currentAverageRating = mockMovieData.averageRating;
-                
-                // 計算總分數 (舊總分 = 舊平均 * 舊票數)
-                const oldTotalScore = currentAverageRating * currentTotalVotes;
-                
-                // 計算新的總分數和總票數
-                const newTotalVotes = currentTotalVotes + 1;
-                const newTotalScore = oldTotalScore + newRating;
-                const newAverageRating = newTotalScore / newTotalVotes;
+                            // 模擬網路延遲和後端處理
+                            setTimeout(() => {
+                                
+                                // 2. 計算新的平均評分和總投票數
+                                const currentTotalVotes = mockMovieData.totalVotes;
+                                const currentAverageRating = mockMovieData.averageRating;
+                                
+                                // 計算總分數 (舊總分 = 舊平均 * 舊票數)
+                                const oldTotalScore = currentAverageRating * currentTotalVotes;
+                                
+                                // 計算新的總分數和總票數
+                                const newTotalVotes = currentTotalVotes + 1;
+                                const newTotalScore = oldTotalScore + newRating;
+                                const newAverageRating = newTotalScore / newTotalVotes;
 
-                // 更新模擬資料物件
-                mockMovieData.averageRating = newAverageRating;
-                mockMovieData.totalVotes = newTotalVotes;
+                                // 更新模擬資料物件
+                                mockMovieData.averageRating = newAverageRating;
+                                mockMovieData.totalVotes = newTotalVotes;
 
-                // 3. 呼叫 renderMovieInfo 重新渲染畫面
-                renderMovieInfo(mockMovieData);
-
-                // 提示成功
-                alertMessage(`評分成功！您給了 ${newRating} 顆星。平均分已更新為 ${newAverageRating.toFixed(1)}。`, 'success');
-                
-                // 恢復按鈕狀態 (並模擬用戶不能重複評分，所以直接禁用)
-                submitButton.textContent = '已評分';
-                submitButton.classList.remove('bg-vieshow-gold', 'hover:bg-yellow-500');
-                submitButton.classList.add('bg-gray-400', 'cursor-not-allowed');
-                
-            }, 1000); // 模擬 1 秒後端處理時間
-        });
-    }
-}, 0);
+                                // 3. 呼叫 renderMovieInfo 重新渲染畫面
+                                // 重新渲染電影資訊 (更新平均分數)
+                                renderMovieInfo(mockMovieData, isReleased);
+                                // 提示成功
+                                alertMessage(`評分成功！您給了 ${newRating} 顆星。平均分已更新為 ${newAverageRating.toFixed(1)}。`, 'success');
+                                
+                                // 恢復按鈕狀態 (並模擬用戶不能重複評分，所以直接禁用)
+                                submitButton.textContent = '已評分';
+                                submitButton.classList.remove('bg-vieshow-gold', 'hover:bg-yellow-500');
+                                submitButton.classList.add('bg-gray-400', 'cursor-not-allowed');
+                                
+                            }, 1000); // 模擬 1 秒後端處理時間
+                        });
+                    }
+                }, 0);
 
             } else {
                 // 未登入：顯示登入提示 (只有在未登入時才顯示)
@@ -280,7 +407,7 @@
                         </svg>
                         您尚未登入，請先登入後才能為電影評分。
                     </p>
-                    <a href="../auth/login.html" 
+                    <a href="${LOGIN_PAGE_URL_INFO}" 
                         class="btn-action bg-vieshow-gold text-gray-900 font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-yellow-500 transition duration-300 inline-flex items-center space-x-2">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                             <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
@@ -312,6 +439,19 @@
                 setTimeout(() => alertDiv.remove(), 300);
             }, 3000);
         }
+
+        // 頁面載入時執行初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            // *** 修正後新增：先渲染導覽列 UI ***
+            renderNavUI(); 
+            
+            // 接著執行電影資訊和評分區塊的渲染
+            const IS_LOGGED_IN_DYNAMIC = checkSimulatedLoginStatus(); 
+            const IS_RELEASED = isMovieReleased(mockMovieData.releaseTime); 
+                    
+            renderMovieInfo(mockMovieData, IS_RELEASED); 
+            renderRatingSection(IS_LOGGED_IN_DYNAMIC, mockMovieData.id, IS_RELEASED); 
+        });
 
     </script>
     

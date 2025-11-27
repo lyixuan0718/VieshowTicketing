@@ -102,10 +102,10 @@
                     <div class="p-4 sm:p-6">
                         <h4 class="text-xl font-bold text-gray-800 mb-2">🏷️ 50元電影抵用券</h4>
                         <p class="text-gray-500 text-sm mb-4">單筆購票折抵 50 元，使用期限三個月。</p>
-                        <div class="text-center bg-gray-500 text-white py-2 rounded-lg font-extrabold text-2xl mb-4">
+                        <div class="text-center bg-vieshow-red text-white py-2 rounded-lg font-extrabold text-2xl mb-">
                             1,500 點
                         </div>
-                        <button class="exchange-button w-full bg-gray-400 text-white py-2 rounded-lg font-bold cursor-not-allowed" disabled>
+                        <button class="exchange-button w-full bg-gray-400 text-gray-900 py-2 rounded-lg font-bold cursor-not-allowed" disabled>
                             點數不足
                         </button>
                         <p class="text-xs text-center text-gray-400 mt-2">需 1,500 點，目前不足</p>
@@ -169,6 +169,48 @@
             modalMessage.classList.remove('hidden');
         }
 
+        /**
+         * 重設 Modal 內的按鈕狀態回初始值（確認兌換/取消）
+         */
+        function resetModalButtons() {
+            // 確保只有在非處理中狀態才重設
+            if (confirmButton.textContent === '處理中...') return; 
+            
+            // 重設確認按鈕樣式和文字
+            confirmButton.textContent = '確認兌換';
+            confirmButton.disabled = false;
+            confirmButton.classList.remove('bg-gray-400', 'cursor-not-allowed');
+            confirmButton.classList.add('bg-vieshow-red', 'hover:bg-red-700');
+            
+            // 重設取消按鈕樣式和文字
+            cancelButton.textContent = '取消';
+            cancelButton.classList.add('bg-gray-200', 'hover:bg-gray-300', 'text-gray-700');
+            cancelButton.classList.remove('bg-vieshow-gold', 'hover:bg-yellow-600', 'text-gray-900');
+            cancelButton.removeEventListener('click', closeSuccessModal); // 移除臨時的成功關閉事件
+            cancelButton.addEventListener('click', closeCancelModal); // 綁回初始取消事件
+        }
+
+        /**
+         * 關閉 Modal 並重設按鈕狀態 (用於取消或背景點擊)
+         */
+        function closeCancelModal() {
+            exchangeModal.classList.add('hidden');
+            exchangeModal.classList.remove('flex');
+            selectedItem = null;
+            resetModalButtons(); 
+        }
+
+        /**
+         * 關閉 Modal 並重設按鈕狀態 (用於成功後點擊「完成」)
+         */
+        function closeSuccessModal() {
+            exchangeModal.classList.add('hidden');
+            exchangeModal.classList.remove('flex');
+            selectedItem = null;
+            resetModalButtons(); 
+        }
+
+
         // --- 開啟彈窗 ---
         function openModal(productName, cost, id) {
             selectedItem = { productName, cost, id };
@@ -177,25 +219,23 @@
             modalCost.textContent = cost.toLocaleString();
             modalMessage.classList.add('hidden'); // 清除舊訊息
             
-            confirmButton.disabled = false;
-            confirmButton.classList.remove('bg-gray-400', 'cursor-not-allowed');
-            confirmButton.textContent = '確認兌換';
+            // 確保打開時是初始狀態
+            resetModalButtons(); 
 
             exchangeModal.classList.add('flex');
             exchangeModal.classList.remove('hidden');
         }
 
-        // --- 關閉彈窗 ---
+        // --- 關閉彈窗 (給外層點擊用) ---
         function closeModal(event) {
-            if (event.target === exchangeModal || event.target === cancelButton) {
-                exchangeModal.classList.add('hidden');
-                exchangeModal.classList.remove('flex');
-                selectedItem = null;
+            // 確保只有點擊背景才關閉，點擊內容不關閉
+            if (event.target === exchangeModal) { 
+                closeCancelModal();
             }
         }
         
-        // 將關閉事件綁定到取消按鈕
-        cancelButton.addEventListener('click', closeModal);
+        // 將關閉事件綁定到取消按鈕 (初始綁定)
+        cancelButton.addEventListener('click', closeCancelModal);
 
         // --- 處理兌換按鈕點擊事件 ---
         exchangeButtons.forEach(button => {
@@ -205,7 +245,6 @@
             const productName = card.querySelector('h4').textContent.trim();
             
             if (cost > currentPoints) {
-                // 如果點數不足，按鈕已經在 HTML 中被禁用，這裡不需要額外處理
                 return; 
             }
 
@@ -229,6 +268,7 @@
             confirmButton.disabled = true;
             confirmButton.textContent = '處理中...';
             confirmButton.classList.add('bg-gray-400', 'cursor-not-allowed');
+            confirmButton.classList.remove('bg-vieshow-red', 'hover:bg-red-700');
 
             setTimeout(() => {
                 // 假設兌換成功
@@ -240,9 +280,21 @@
                 // 顯示成功訊息
                 showModalMessage(`✅ 成功兌換 ${productName}！已扣除 ${cost} 點。`, 'success');
                 
-                // 禁用兌換按鈕，防止重複提交
-                confirmButton.textContent = '兌換完成';
+                // *** 修正點 1：將確認按鈕鎖定為已兌換 ***
+                confirmButton.textContent = '已兌換';
+                confirmButton.disabled = true;
+                confirmButton.classList.remove('bg-gray-400');
+                confirmButton.classList.add('bg-green-600');
                 
+                // *** 修正點 2：將取消按鈕變為「完成」按鈕 ***
+                cancelButton.textContent = '完成';
+                cancelButton.classList.remove('bg-gray-200', 'hover:bg-gray-300', 'text-gray-700');
+                cancelButton.classList.add('bg-vieshow-gold', 'hover:bg-yellow-600', 'text-gray-900');
+                
+                // 移除原有的 closeCancelModal 監聽器，並新增 closeSuccessModal 監聽器
+                cancelButton.removeEventListener('click', closeCancelModal); 
+                cancelButton.addEventListener('click', closeSuccessModal); 
+
                 // 更新商品清單中的按鈕狀態
                 updateExchangeButtonsState();
 
@@ -260,16 +312,18 @@
                     card.classList.add('opacity-60');
                     button.disabled = true;
                     button.textContent = '點數不足';
-                    button.classList.add('bg-gray-400', 'cursor-not-allowed');
-                    button.classList.remove('bg-vieshow-gold', 'hover:bg-yellow-600');
+                    // 確保點數不足時，按鈕是灰色背景、黑色文字
+                    button.classList.add('bg-gray-400', 'cursor-not-allowed', 'text-gray-900'); 
+                    button.classList.remove('bg-vieshow-gold', 'hover:bg-yellow-600', 'text-white');
                     card.querySelector('.text-xs').textContent = `需 ${cost.toLocaleString()} 點，目前不足`;
                 } else {
                     // 點數足夠
                     card.classList.remove('opacity-60');
                     button.disabled = false;
                     button.textContent = '立即兌換';
-                    button.classList.remove('bg-gray-400', 'cursor-not-allowed');
-                    button.classList.add('bg-vieshow-gold', 'hover:bg-yellow-600');
+                    // 確保點數足夠時，按鈕是金色背景、黑色文字
+                    button.classList.remove('bg-gray-400', 'cursor-not-allowed', 'text-white'); 
+                    button.classList.add('bg-vieshow-gold', 'hover:bg-yellow-600', 'text-gray-900');
                     card.querySelector('.text-xs').textContent = '點擊兌換將生成兌換條碼';
                 }
             });

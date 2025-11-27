@@ -218,12 +218,12 @@
                 let showtimes = [];
                 if (movieId == 1) { // 阿凡達 3
                     showtimes = [
-                        { id: 101, date: '2025/12/24(三)', time: '19:30', hall: '巨幕廳' },
-                        { id: 102, date: '2025/12/24(三)', time: '22:00', hall: '標準廳' }
+                        { id: 101, date: '2025/12/24(三)', time: '19:30' },
+                        { id: 102, date: '2025/12/24(三)', time: '22:00'}
                     ];
                 } else if (movieId == 2) { // 不可能的任務 8
                     showtimes = [
-                        { id: 201, date: '2025/12/25(四)', time: '14:00', hall: '標準廳' }
+                        { id: 201, date: '2025/12/25(四)', time: '14:00'}
                     ];
                 } else {
                     showtimes = [];
@@ -240,7 +240,7 @@
                     data.showtimes.forEach(showtime => {
                         const option = document.createElement('option');
                         option.value = showtime.id;
-                        option.textContent = `${showtime.date} ${showtime.time} - ${showtime.hall}`;
+                        option.textContent = `${showtime.date} ${showtime.time}`;
                         showtimeSelect.appendChild(option);
                     });
                 }

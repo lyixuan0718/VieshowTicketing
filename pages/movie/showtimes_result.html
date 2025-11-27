@@ -230,16 +230,40 @@
         }
 
         /**
-         * 模擬選定場次並跳轉到選位頁面
+         * 選定場次並跳轉到選票與餐點頁面 (跳過 booking_flow_1.html)
          */
         function selectShowtime(movieId, movieName, time, locationCode, date) {
             
-            // 實際應導航至選位頁面
-            // 例如：window.location.href = `../booking/seat_selection.html?movie_id=${movieId}&time=${time}&date=${date}&loc=${locationCode}`;
+            // 由於跳過 Step 1，我們需要構造 Step 1 所需的所有資料
+            const locationName = locationMap[locationCode] || '未知影城';
             
-            // 這裡先使用模擬提示
-            console.log(`您選擇了: ${movieName}, 時間: ${time}, 影城: ${locationMap[locationCode]}, 日期: ${date}`);
-            alert(`已選擇 ${movieName} (${locationMap[locationCode]} - ${date} ${time})。接下來將進入選位頁面。`);
+            // 模擬 showtime ID
+            // 這裡使用一個組合 ID (LocationCode-MovieId-Date-Time) 作為 showtimeId，
+            // 以確保唯一性，這與 booking_flow_1.html 中的邏輯稍有不同，但在 Step 2 中是可用的。
+            const showtimeId = `${locationCode}-${movieId}-${date}-${time.replace(':', '')}`;
+            
+            const bookingData = {
+                // 模擬 Step 1 儲存的 ID
+                cinemaId: locationCode, // 使用 locationCode 作為 cinemaId
+                movieId: movieId,
+                showtimeId: showtimeId,
+
+                // 儲存顯示名稱
+                cinemaName: locationName,
+                movieTitle: movieName,
+                // 為了與 booking_flow_1.html 保持格式一致，模擬一個場次詳情字串
+                showtimeDetail: `${date} ${time}`, // 這裡可以根據需要調整格式
+            };
+            
+            // 儲存使用者選擇的資訊，以便在步驟 2/7 中使用
+            // 🚨 這是跳轉的關鍵步驟
+            localStorage.setItem('currentBooking', JSON.stringify(bookingData));
+            
+            console.log('快搜已儲存訂票資料並跳轉:', bookingData);
+            
+            // 移除原本的 alert/console.log，直接導航到 booking_flow_2.html
+            // 實際應導航至選票與餐點頁面
+            window.location.href = '../booking/booking_flow_2.html';
         }
         
         // 模擬 alert() 函數 (與 index.html 保持一致)
