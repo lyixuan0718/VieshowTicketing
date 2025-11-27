@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- 標題更新為步驟 2 -->
     <title>訂票步驟 2: 選擇票種與餐點 - Vieshow Ticketing</title> 
     
     <!-- 引入 Tailwind CSS CDN -->
@@ -17,6 +16,7 @@
                     colors: {
                         'vieshow-red': '#e50914',
                         'vieshow-gold': '#f7a83d',
+                        'vieshow-dark': '#1a1a1a',
                     },
                     fontFamily: {
                         sans: ['Inter', 'Noto Sans TC', 'sans-serif'],
@@ -35,11 +35,15 @@
         /* 下一步按鈕的 Vieshow 紅色風格 */
         .next-step-button {
             @apply w-full bg-vieshow-red hover:bg-red-700 text-white font-bold py-3 px-4 rounded-xl 
-                   transition duration-300 shadow-lg text-lg disabled:opacity-50 disabled:cursor-not-allowed;
+                   transition duration-300 shadow-lg text-lg disabled:opacity-50 disabled:cursor-not-allowed
+                   transform hover:scale-[1.02] active:scale-[0.98];
         }
         /* 選項卡片的風格 */
         .selection-card {
-            @apply border p-4 rounded-xl bg-white shadow-md transition duration-300 hover:shadow-lg;
+            @apply border border-gray-200 p-4 rounded-xl bg-white shadow-md transition duration-300 hover:shadow-lg;
+        }
+        .selection-card.selected {
+            @apply border-vieshow-red ring-2 ring-vieshow-red ring-opacity-50;
         }
         /* 價格標籤的風格 */
         .price-tag {
@@ -49,24 +53,42 @@
         .quantity-input {
             @apply w-16 text-center border border-gray-300 rounded-lg p-2 focus:ring-vieshow-gold focus:border-vieshow-gold;
         }
-        /* 為了讓總計區塊固定在底部，需要確保容器可滾動 */
-        #bookingCard {
-            position: relative;
-            padding-bottom: 7rem; /* 留給 sticky footer 的空間 */
+        /* 步驟指示器 */
+        .step-indicator {
+            @apply flex items-center justify-center mb-8;
         }
-        #totalSummaryFooter {
-            position: sticky;
-            bottom: 0;
-            z-index: 10;
+        .step-circle {
+            @apply w-10 h-10 rounded-full flex items-center justify-center text-white font-bold
+                   transition duration-300;
+        }
+        .step-line {
+            @apply h-1 w-16 bg-gray-300 transition duration-300;
+        }
+        .step-active {
+            @apply bg-vieshow-red;
+        }
+        .step-completed {
+            @apply bg-vieshow-gold;
+        }
+        .step-pending {
+            @apply bg-gray-300;
+        }
+        /* 響應式調整 */
+        @media (max-width: 640px) {
+            .step-line {
+                @apply w-8;
+            }
         }
     </style>
 </head>
 <body class="bg-gray-100 font-sans min-h-screen flex flex-col">
     
     <!-- Header 導航 (沿用 Step 1) -->
-    <header class="bg-gray-800 text-white shadow-md">
+    <header class="bg-vieshow-dark text-white shadow-md sticky top-0 z-10">
         <nav class="container mx-auto px-4 py-4 flex justify-between items-center">
-            <a href="../../index.html" class="text-xl font-bold hover:text-vieshow-red transition duration-300">Vieshow 影城</a>
+            <a href="../../index.html" class="text-xl font-bold hover:text-vieshow-gold transition duration-300 flex items-center">
+                <span class="mr-2">🎬</span> Vieshow 影城
+            </a>
             <div class="space-x-4">
                 <a href="../auth/login.html" class="hover:text-vieshow-gold transition duration-300">登入</a>
                 <a href="../member/member_home.html" class="hover:text-vieshow-gold transition duration-300">會員中心</a>
@@ -74,22 +96,34 @@
         </nav>
     </header>
 
-    <div class="container mx-auto px-4 py-8 flex-grow max-w-2xl">
+    <div class="container mx-auto px-4 py-8 flex-grow max-w-4xl">
+        
+        <!-- 步驟指示器 -->
+        <div class="step-indicator">
+            <div class="step-circle step-completed">1</div>
+            <div class="step-line step-active"></div>
+            <div class="step-circle step-active">2</div>
+            <div class="step-line step-pending"></div>
+            <div class="step-circle step-pending">3</div>
+            <div class="step-line step-pending"></div>
+            <div class="step-circle step-pending">4</div>
+            <div class="step-line step-pending"></div>
+            <div class="step-circle step-pending">5</div>
+        </div>
         
         <!-- 主要訂票卡片 -->
         <div id="bookingCard" class="bg-white p-6 md:p-10 rounded-xl shadow-2xl border-t-4 border-vieshow-red">
             
-            <!-- 步驟指示器 (更新為步驟 2) -->
+            <!-- 標題區塊 -->
             <div class="mb-8 pb-4 border-b border-gray-200">
                 <h1 class="text-3xl font-extrabold text-gray-900 mb-2">🎟️ 訂票流程</h1>
-                <p class="text-xl font-semibold text-vieshow-red">步驟 2/7: 選擇票種與餐點</p>
+                <p class="text-xl font-semibold text-vieshow-red">步驟 2/5: 選擇票種與餐點</p>
                 <p class="text-sm text-gray-500 mt-1">請選擇您需要的票種數量與加購餐點。</p>
             </div>
 
             <!-- 1. 已選擇場次摘要 (從 Step 1 載入) -->
             <div id="summarySection" class="p-4 rounded-xl bg-vieshow-gold/10 border-l-4 border-vieshow-gold text-sm text-gray-700 mb-6 shadow-inner">
                 <h2 class="font-bold text-lg mb-2 text-gray-800 flex items-center">
-                    <!-- Icon: Information Circle -->
                     <svg class="w-5 h-5 mr-2 text-vieshow-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                     場次確認
                 </h2>
@@ -104,30 +138,33 @@
                 
                 <!-- 2. 選擇票種數量 (Select Ticket Quantity) -->
                 <div id="ticketSelectionSection" class="space-y-4">
-                    <label class="block text-2xl font-bold text-gray-800 mb-4 border-b pb-2">選擇票種數量 <span class="text-base font-normal text-red-500">(最多 8 張)</span></label>
+                    <label class="block text-2xl font-bold text-gray-800 mb-4 border-b pb-2 flex items-center">
+                        <span class="mr-2">🎫</span> 選擇票種數量 <span class="text-base font-normal text-red-500 ml-2">(最多 8 張)</span>
+                    </label>
                     <!-- Ticket options will be dynamically inserted here by JavaScript -->
                 </div>
                 
                 <!-- 3. 選擇餐點加購 (Combo Add-ons) -->
                 <div id="comboSelectionSection" class="space-y-4">
-                    <label class="block text-2xl font-bold text-gray-800 mb-4 border-b pb-2">餐點加購 (可選)</label>
+                    <label class="block text-2xl font-bold text-gray-800 mb-4 border-b pb-2 flex items-center">
+                        <span class="mr-2">🍿</span> 餐點加購 (可選)
+                    </label>
                     <!-- Combo options will be dynamically inserted here by JavaScript -->
                 </div>
                 
-                <!-- 總計區塊 + 導航按鈕 (固定在底部) -->
-                <div id="totalSummaryFooter" class="bg-white pt-4 -mx-10 px-10 border-t border-gray-200 shadow-2xl">
-                    <div class="bg-gray-800 text-white p-4 rounded-xl shadow-2xl font-extrabold text-center text-base mb-4">
+                <!-- 總計區塊 + 導航按鈕 -->
+                <div class="bg-white pt-6 border-t border-gray-200">
+                    <div class="bg-vieshow-dark text-white p-4 rounded-xl shadow-2xl font-extrabold text-center text-lg mb-4">
                         總計金額: <span id="totalPrice">$0 TWD</span>
                     </div>
 
                     <!-- 導航按鈕 -->
-                    <div class="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4 mb-4">
-                        <a href="booking_flow_1.html" class="flex-1 text-center bg-gray-500 hover:bg-gray-700 text-white font-bold py-3 px-4 rounded-xl transition duration-300 shadow-lg text-base">
-                            <!-- Icon: Arrow Left -->
+                    <div class="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4">
+                        <a href="booking_flow_1.html" class="flex-1 text-center bg-gray-500 hover:bg-gray-700 text-white font-bold py-3 px-4 rounded-xl transition duration-300 shadow-lg text-base transform hover:scale-[1.02] active:scale-[0.98]">
                             <svg class="w-5 h-5 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg> 
                             重新選擇場次 (步驟 1)
                         </a>
-                        <button type="submit" id="nextStepButton" class="next-step-button flex-1" disabled style="border: 2px solid #333; border-radius: 6px;">
+                        <button type="submit" id="nextStepButton" class="next-step-button flex-1" disabled>
                             下一步: 選擇座位 (步驟 3)
                         </button>
                     </div>
@@ -141,15 +178,17 @@
     <script>
         // Mock Data for Step 2
         const MOCK_TICKETS = [
-            { id: 'full', name: '全票', price: 320, limit: 8, description: '一般成人票' },
-            { id: 'student', name: '學生票', price: 280, limit: 4, description: '憑有效學生證入場' },
-            { id: 'elder', name: '愛心敬老票', price: 160, limit: 2, description: '65歲以上長者或身心障礙者' },
+            { id: 'full', name: '全票', price: 320, limit: 8, description: '一般成人票', icon: '👤' },
+            { id: 'student', name: '學生票', price: 280, limit: 4, description: '憑有效學生證入場', icon: '🎓' },
+            { id: 'elder', name: '愛心敬老票', price: 160, limit: 2, description: '65歲以上長者或身心障礙者', icon: '👵' },
+            { id: 'child', name: '兒童票', price: 240, limit: 4, description: '12歲以下兒童', icon: '👶' }
         ];
 
         const MOCK_COMBOS = [
-            { id: 'combo_a', name: '經典爆米花套餐', price: 150, description: 'M爆米花 + 中可樂 x1' },
-            { id: 'combo_b', name: '雙人豪華套餐', price: 300, description: 'L爆米花 + 大可樂 x2 + 熱狗 x1' },
-            { id: 'combo_c', name: '單人飲品加購', price: 80, description: '大杯可樂 x1' },
+            { id: 'combo_a', name: '經典爆米花套餐', price: 150, description: 'M爆米花 + 中可樂 x1', icon: '🍿' },
+            { id: 'combo_b', name: '雙人豪華套餐', price: 300, description: 'L爆米花 + 大可樂 x2 + 熱狗 x1', icon: '🎉' },
+            { id: 'combo_c', name: '單人飲品加購', price: 80, description: '大杯可樂 x1', icon: '🥤' },
+            { id: 'combo_d', name: '甜心組合', price: 200, description: '爆米花(甜) + 吉拿棒 x2', icon: '🍬' }
         ];
         
         // 最大總票數限制
@@ -174,16 +213,22 @@
 
         let currentBookingData = null; // 儲存步驟 1 的資料
 
-
         // 1. 載入步驟 1 的資料並顯示
         function loadBookingData() {
             const data = localStorage.getItem('currentBooking');
             if (data) {
                 try {
                     currentBookingData = JSON.parse(data);
-                    cinemaNameDisplay.textContent = `影城: ${currentBookingData.cinemaName || '未選擇'}`;
-                    movieTitleDisplay.textContent = `電影: ${currentBookingData.movieTitle || '未選擇'}`;
-                    showtimeDetailDisplay.textContent = `場次: ${currentBookingData.showtimeDetail || '未選擇'}`;
+                    cinemaNameDisplay.textContent = `影城: ${currentBookingData.cinema?.name || currentBookingData.cinemaName || '未選擇'}`;
+                    movieTitleDisplay.textContent = `電影: ${currentBookingData.movie?.title || currentBookingData.movieTitle || '未選擇'}`;
+                    
+                    // 顯示詳細的場次資訊
+                    if (currentBookingData.showtime) {
+                        const showtime = currentBookingData.showtime;
+                        showtimeDetailDisplay.textContent = `場次: ${showtime.date} ${showtime.time} ${showtime.theater} (${showtime.type})`;
+                    } else {
+                        showtimeDetailDisplay.textContent = `場次: ${currentBookingData.showtimeDetail || '未選擇'}`;
+                    }
                 } catch (e) {
                     console.error('解析步驟 1 資料失敗:', e);
                     loadError.classList.remove('hidden');
@@ -194,9 +239,14 @@
                 movieTitleDisplay.textContent = `電影: 沙丘：第二部`;
                 showtimeDetailDisplay.textContent = `場次: 2025/11/17 (一) 19:30 - 數位 3 廳`;
                 currentBookingData = {
-                    cinemaName: '威秀影城 (模擬)',
-                    movieTitle: '沙丘：第二部',
-                    showtimeDetail: '2025/11/17 (一) 19:30 - 數位 3 廳'
+                    cinema: { name: '威秀影城 (模擬)' },
+                    movie: { title: '沙丘：第二部' },
+                    showtime: { 
+                        date: '2025/11/17 (一)', 
+                        time: '19:30', 
+                        theater: '數位 3 廳',
+                        type: '數位版'
+                    }
                 };
             }
         }
@@ -204,18 +254,26 @@
         // 2. 渲染票種選擇 UI
         function renderTicketOptions() {
             // 清空並重新加入標題
-            let html = `<label class="block text-2xl font-bold text-gray-800 mb-4 border-b pb-2">選擇票種數量 <span class="text-base font-normal text-red-500">(最多 ${MAX_TICKETS} 張)</span></label>`;
+            let html = `<label class="block text-2xl font-bold text-gray-800 mb-4 border-b pb-2 flex items-center">
+                <span class="mr-2">🎫</span> 選擇票種數量 <span class="text-base font-normal text-red-500 ml-2">(最多 ${MAX_TICKETS} 張)</span>
+            </label>`;
             
             html += MOCK_TICKETS.map(ticket => `
                 <div class="selection-card flex justify-between items-center mb-4">
                     <div class="flex-1">
-                        <div class="text-base font-semibold text-gray-900">${ticket.name}</div>
-                        <p class="text-base text-gray-500">${ticket.description} (${ticket.limit ? `單種上限: ${ticket.limit} 張` : '無上限'})</p>
-                        <span class="price-tag mt-1">TWD ${ticket.price.toLocaleString('en-US')}</span>
+                        <div class="text-lg font-semibold text-gray-900 flex items-center">
+                            <span class="mr-2 text-xl">${ticket.icon}</span>
+                            ${ticket.name}
+                        </div>
+                        <p class="text-sm text-gray-500 mt-1">${ticket.description}</p>
+                        <div class="flex justify-between items-center mt-2">
+                            <span class="price-tag">TWD ${ticket.price.toLocaleString('en-US')}</span>
+                            <span class="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">單種上限: ${ticket.limit} 張</span>
+                        </div>
                     </div>
-                    <div class="flex items-center space-x-2">
+                    <div class="flex items-center space-x-2 ml-4">
                         <!-- 減號按鈕 -->
-                        <button type="button" class="btn-minus bg-gray-200 p-2 rounded-full hover:bg-gray-300 transition duration-150 active:scale-95" data-id="${ticket.id}" data-type="ticket">
+                        <button type="button" class="btn-minus bg-gray-200 hover:bg-gray-300 p-2 rounded-full transition duration-150 active:scale-95" data-id="${ticket.id}" data-type="ticket">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path></svg>
                         </button>
                         <!-- 數量輸入框 (只讀) -->
@@ -223,7 +281,7 @@
                                class="quantity-input" value="0" min="0" max="${ticket.limit}" readonly 
                                data-id="${ticket.id}" data-type="ticket">
                         <!-- 加號按鈕 -->
-                        <button type="button" class="btn-plus bg-vieshow-red text-white p-2 rounded-full hover:bg-red-700 transition duration-150 active:scale-95" data-id="${ticket.id}" data-type="ticket">
+                        <button type="button" class="btn-plus bg-vieshow-red hover:bg-red-700 text-white p-2 rounded-full transition duration-150 active:scale-95" data-id="${ticket.id}" data-type="ticket">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
                         </button>
                     </div>
@@ -242,18 +300,23 @@
         // 3. 渲染餐點選擇 UI
         function renderComboOptions() {
             // 清空並重新加入標題
-            let html = `<label class="block text-2xl font-bold text-gray-800 mb-4 border-b pb-2">餐點加購 (可選)</label>`;
+            let html = `<label class="block text-2xl font-bold text-gray-800 mb-4 border-b pb-2 flex items-center">
+                <span class="mr-2">🍿</span> 餐點加購 (可選)
+            </label>`;
 
             html += MOCK_COMBOS.map(combo => `
                 <div class="selection-card flex justify-between items-center mb-4">
                     <div class="flex-1">
-                        <div class="text-base font-semibold text-gray-900">${combo.name}</div>
-                        <p class="text-base text-gray-500">${combo.description}</p>
+                        <div class="text-lg font-semibold text-gray-900 flex items-center">
+                            <span class="mr-2 text-xl">${combo.icon}</span>
+                            ${combo.name}
+                        </div>
+                        <p class="text-sm text-gray-500 mt-1">${combo.description}</p>
                         <span class="price-tag mt-1">TWD ${combo.price.toLocaleString('en-US')}</span>
                     </div>
-                    <div class="flex items-center space-x-2">
+                    <div class="flex items-center space-x-2 ml-4">
                         <!-- 減號按鈕 -->
-                        <button type="button" class="btn-minus bg-gray-200 p-2 rounded-full hover:bg-gray-300 transition duration-150 active:scale-95" data-id="${combo.id}" data-type="combo">
+                        <button type="button" class="btn-minus bg-gray-200 hover:bg-gray-300 p-2 rounded-full transition duration-150 active:scale-95" data-id="${combo.id}" data-type="combo">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path></svg>
                         </button>
                         <!-- 數量輸入框 (只讀) -->
@@ -261,7 +324,7 @@
                                class="quantity-input" value="0" min="0" max="99" readonly
                                data-id="${combo.id}" data-type="combo">
                         <!-- 加號按鈕 -->
-                        <button type="button" class="btn-plus bg-vieshow-red text-white p-2 rounded-full hover:bg-red-700 transition duration-150 active:scale-95" data-id="${combo.id}" data-type="combo">
+                        <button type="button" class="btn-plus bg-vieshow-red hover:bg-red-700 text-white p-2 rounded-full transition duration-150 active:scale-95" data-id="${combo.id}" data-type="combo">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
                         </button>
                     </div>
@@ -303,11 +366,13 @@
 
                 if (isPlus) {
                     // 檢查單一票種上限
-                    if (currentValue >= ticketInfo.limit) return; 
+                    if (currentValue >= ticketInfo.limit) {
+                        showToast(`單一票種最多只能購買 ${ticketInfo.limit} 張`, 'warning');
+                        return;
+                    } 
                     // 檢查總票數上限
                     if ((ticketTotal + 1) > MAX_TICKETS) {
-                         // 這裡可以加上一個 Modal 提示，但避免使用 alert
-                         console.error(`總票數已達上限 ${MAX_TICKETS} 張!`);
+                         showToast(`總票數已達上限 ${MAX_TICKETS} 張!`, 'warning');
                          return;
                     } 
                     newValue++;
@@ -364,75 +429,101 @@
             }
         }
 
-        // 7. 監聽器：表單提交 (下一步)
+        // 7. 顯示提示訊息
+        function showToast(message, type = 'info') {
+            // 移除現有的提示
+            const existingToast = document.getElementById('custom-toast');
+            if (existingToast) {
+                existingToast.remove();
+            }
+            
+            const toast = document.createElement('div');
+            toast.id = 'custom-toast';
+            toast.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg text-white font-medium z-50 transform transition-transform duration-300 ${
+                type === 'warning' ? 'bg-orange-500' : 'bg-blue-500'
+            }`;
+            toast.textContent = message;
+            
+            document.body.appendChild(toast);
+            
+            // 3秒後自動消失
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
+
+        // 8. 監聽器：表單提交 (下一步)
         form.addEventListener('submit', function(event) {
-    event.preventDefault();
+            event.preventDefault();
 
-    const totalTickets = Object.values(currentSelections.tickets).reduce((s, c) => s + c, 0);
-    if (totalTickets === 0) {
-        console.error("請至少選擇一張票！");
-        return;
-    }
+            const totalTickets = Object.values(currentSelections.tickets).reduce((s, c) => s + c, 0);
+            if (totalTickets === 0) {
+                showToast("請至少選擇一張票！", "warning");
+                return;
+            }
 
-    // 整理票種
-    const ticketData = {};
-    let ticketPriceTotal = 0;
+            // 整理票種
+            const ticketData = {};
+            let ticketPriceTotal = 0;
 
-    MOCK_TICKETS.forEach(t => {
-        const qty = currentSelections.tickets[t.id];
-        if (qty > 0) {
-            ticketData[t.id] = {
-                name: t.name,
-                price: t.price,
-                qty: qty,
-                subtotal: qty * t.price
+            MOCK_TICKETS.forEach(t => {
+                const qty = currentSelections.tickets[t.id];
+                if (qty > 0) {
+                    ticketData[t.id] = {
+                        name: t.name,
+                        price: t.price,
+                        qty: qty,
+                        subtotal: qty * t.price,
+                        icon: t.icon
+                    };
+                    ticketPriceTotal += qty * t.price;
+                }
+            });
+
+            // 整理餐點
+            const comboData = {};
+            let comboPriceTotal = 0;
+
+            MOCK_COMBOS.forEach(c => {
+                const qty = currentSelections.combos[c.id];
+                if (qty > 0) {
+                    comboData[c.id] = {
+                        name: c.name,
+                        price: c.price,
+                        qty: qty,
+                        subtotal: qty * c.price,
+                        icon: c.icon
+                    };
+                    comboPriceTotal += qty * c.price;
+                }
+            });
+
+            const finalPrice = ticketPriceTotal + comboPriceTotal;
+
+            // 讀取現有 Step1 資料
+            const base = currentBookingData || {};
+
+            // 儲存 Step2 資料（全統一格式）
+            const step2Data = {
+                ...base,
+
+                tickets: ticketData,
+                combos: comboData,
+
+                totalTicketQty: totalTickets,
+                totalTicketPrice: ticketPriceTotal,
+
+                totalComboPrice: comboPriceTotal,
+                totalPrice: finalPrice
             };
-            ticketPriceTotal += qty * t.price;
-        }
-    });
 
-    // 整理餐點
-    const comboData = {};
-    let comboPriceTotal = 0;
+            localStorage.setItem('currentBooking', JSON.stringify(step2Data));
 
-    MOCK_COMBOS.forEach(c => {
-        const qty = currentSelections.combos[c.id];
-        if (qty > 0) {
-            comboData[c.id] = {
-                name: c.name,
-                price: c.price,
-                qty: qty,
-                subtotal: qty * c.price
-            };
-            comboPriceTotal += qty * c.price;
-        }
-    });
+            console.log("🎫 Step2 已儲存：", step2Data);
 
-    const finalPrice = ticketPriceTotal + comboPriceTotal;
-
-    // 讀取現有 Step1 資料
-    const base = currentBookingData || {};
-
-    // 儲存 Step2 資料（全統一格式）
-    const step2Data = {
-        ...base,
-
-        tickets: ticketData,
-        combos: comboData,
-
-        totalTicketQty: totalTickets,
-        totalTicketPrice: ticketPriceTotal,
-
-        totalComboPrice: comboPriceTotal,
-        totalPrice: finalPrice
-    };
-
-    localStorage.setItem('currentBooking', JSON.stringify(step2Data));
-
-    console.log("🔥 Step2 已儲存：", step2Data);
-
-    window.location.href = "booking_flow_3.html";
-});
+            // 跳轉到步驟 3
+            window.location.href = "booking_flow_3.html";
+        });
 
         // 頁面載入時，執行初始化
         window.onload = function() {
@@ -443,10 +534,9 @@
         };
     </script>
 
-
-    <!-- Footer 內容 (沿用 Step 1) -->
-    <footer class="bg-gray-800 text-white text-center py-4 mt-8 shadow-inner">
-        <p>&copy; 2025 Vieshow Ticketing System</p>
+    <!-- Footer 內容 -->
+    <footer class="bg-vieshow-dark text-white text-center py-4 mt-8 shadow-inner">
+        <p>&copy; 2025 Vieshow Ticketing System - 訂票步驟 2</p>
     </footer>
     
 </body>
