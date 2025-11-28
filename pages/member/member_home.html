@@ -25,6 +25,18 @@
             transform: translateY(-2px);
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
         }
+
+        /* 新增通知動畫 */
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translate(-50%, -20px); }
+            to { opacity: 1; transform: translate(-50%, 0); }
+        }
+        @keyframes fadeOutUp {
+            from { opacity: 1; transform: translate(-50%, 0); }
+            to { opacity: 0; transform: translate(-50%, -20px); }
+        }
+        .animate-fade-in-down { animation: fadeInDown 0.5s ease-out forwards; }
+        .animate-fade-out-up { animation: fadeOutUp 0.5s ease-in forwards; }
     </style>
     
     <script>
@@ -52,8 +64,7 @@
         <nav class="container mx-auto px-4 py-4 flex justify-between items-center">
             <a href="../../index.html" class="text-xl font-bold hover:text-vieshow-red transition duration-300">Vieshow 影城</a>
             <div id="headerNavRight" class="space-x-4 flex items-center">
-                <span class="text-sm font-medium">歡迎，<span id="memberName">王小明</span></span>
-                </div>
+            </div>
         </nav>
     </header>
 
@@ -115,33 +126,53 @@
         const INDEX_PAGE_URL = '../../index.html';
 
         /**
+         * 統一的通知顯示函數 (從登入頁複製)
+         * @param {string} message - 顯示的訊息 (允許簡單 HTML 如 <b>)。
+         * @param {boolean} isError - 是否為錯誤/失敗訊息 (影響顏色)。
+         */
+        function showNotification(message, isError = false) {
+            const notification = document.createElement('div');
+            notification.innerHTML = message;
+            // 成功用 Green (登出成功)，失敗/警告用 Red
+            const bgColor = isError ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800';
+            
+            // 使用 fixed 定位和動畫 class
+            notification.className = `fixed top-0 left-1/2 -translate-x-1/2 mt-4 px-6 py-3 rounded-lg shadow-xl z-50 transition duration-300 transform ${bgColor} animate-fade-in-down`;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.classList.replace('animate-fade-in-down', 'animate-fade-out-up');
+                setTimeout(() => notification.remove(), 500); // 讓淡出動畫完成
+            }, 3000); // 顯示 3 秒
+        }
+
+        /**
          * 檢查登入狀態：如果沒有 Token 則跳轉到登入頁。
          */
         function checkLoginStatus() {
             const token = localStorage.getItem('auth_token');
             if (!token) {
-                // 如果沒有 Token，表示未登入，強制跳轉到登入頁
-                window.location.href = LOGIN_PAGE_URL; 
-                // 阻止頁面繼續載入
+                window.location.href = LOGIN_PAGE_URL;
                 document.body.innerHTML = '<p class="text-center text-xl p-10">您尚未登入，正在導向登入頁面...</p>';
                 return false;
             }
             return true;
         }
 
-        // --- 登出處理 ---
+        // --- 登出處理 (使用 showNotification) ---
         document.getElementById('signOutButton').addEventListener('click', function(e) {
             e.preventDefault(); 
+
+            // 禁用按鈕以防止重複點擊
+            this.disabled = true; 
+            this.textContent = '登出中...';
 
             // 1. 清除登入狀態的關鍵步驟
             localStorage.removeItem('auth_token'); 
             
-            // 2. 顯示登出訊息
-            const header = document.querySelector('header');
-            const messageDiv = document.createElement('div');
-            
-            messageDiv.textContent = '您已成功登出。即將導向首頁...';
-            messageDiv.className = 'absolute top-0 left-0 right-0 bg-green-500 text-white text-center py-2 transition-opacity duration-500 ease-in-out z-50';
+            // 2. 顯示登出訊息 (使用彈跳框)
+            showNotification('✅ 登出成功！即將導向首頁...', false);
             
             // 3. 替換 Header 導航為未登入狀態 (視覺更新)
             const headerNavRight = document.getElementById('headerNavRight');
@@ -152,9 +183,6 @@
                 `;
             }
 
-            // 確保訊息放在 Header 前面
-            header.parentNode.insertBefore(messageDiv, header);
-
             // 4. 延遲 2 秒後導向首頁
             setTimeout(() => {
                 window.location.href = INDEX_PAGE_URL; 
@@ -164,10 +192,8 @@
         // 頁面載入時執行檢查
         window.onload = function() {
             if (!checkLoginStatus()) {
-                // 如果檢查失敗（未登入），則不再執行其他初始化
                 return; 
             }
-            // 模擬載入會員資料
             console.log("會員中心頁面初始化完成。");
         };
     </script>

@@ -130,8 +130,8 @@
         // ----------------------------------------------------
         // 導覽列相關的路徑定義 (新增)
         // ----------------------------------------------------
-        const LOGIN_PAGE_URL_INFO = '../auth/login.html'; // 從 movie 目錄回到 pages/auth/login.html
-        const MEMBER_HOME_URL_INFO = '../member/member_home.html'; // 從 movie 目錄回到 pages/member/member_home.html
+        const LOGIN_PAGE_URL = '../auth/login.html'; // 從 movie 目錄回到 pages/auth/login.html
+        const MEMBER_HOME_URL = '../member/member_home.html'; // 從 movie 目錄回到 pages/member/member_home.html
 
 
         // ----------------------------------------------------
@@ -141,7 +141,7 @@
         const mockMovieData = {
             id: movieID,
             name: "星際特攻隊：無限戰爭",
-            releaseTime: "2024-12-01", 
+            releaseTime: "2025-12-01", 
             director: "艾瑞克·陳 (Eric Chen)",
             cast: "克里斯·潘, 潔西卡·華森, 湯姆·李",
             genre: "科幻 / 動作 / 冒險",
@@ -180,35 +180,38 @@
         /**
          * 渲染未登入狀態的導覽列。
          */
-        function renderLoggedOutStateNav() {
+        function renderLoggedOutState() {
             const headerNavRight = document.getElementById('headerNavRight');
             if (!headerNavRight) return;
+            
+            // 獲取當前頁面的完整 URL，並進行 URL 編碼
+            const currentUrl = encodeURIComponent(window.location.href);
 
+            // 構造帶有回調網址的登入連結
+            const loginRedirectUrl = `${LOGIN_PAGE_URL}?redirect=${currentUrl}`;
+            
             // 渲染導覽列：登入 + 會員中心
             headerNavRight.innerHTML = `
-                <a href="${LOGIN_PAGE_URL_INFO}" class="hover:text-vieshow-gold transition duration-300">登入</a>
-                <a href="${MEMBER_HOME_URL_INFO}" class="hover:text-vieshow-gold transition duration-300">會員中心</a>
+                <a href="${loginRedirectUrl}" class="hover:text-vieshow-gold transition duration-300">登入</a>
+                <a href="${MEMBER_HOME_URL}" class="hover:text-vieshow-gold transition duration-300">會員中心</a>
             `;
         }
 
         /**
          * 渲染已登入狀態的導覽列。
          */
-        function renderLoggedInStateNav() {
+        function renderLoggedInState() {
             const headerNavRight = document.getElementById('headerNavRight');
             if (!headerNavRight) return;
 
             // 渲染導覽列：登出 + 會員中心
             headerNavRight.innerHTML = `
                 <a href="#" id="signOutLink" class="hover:text-vieshow-gold transition duration-300">登出</a>
-                <a href="${MEMBER_HOME_URL_INFO}" class="hover:text-vieshow-gold transition duration-300">會員中心</a>
+                <a href="${MEMBER_HOME_URL}" class="hover:text-vieshow-gold transition duration-300">會員中心</a>
             `;
             
             // 綁定登出事件
-            const signOutLink = document.getElementById('signOutLink');
-            if (signOutLink) {
-                signOutLink.addEventListener('click', handleSignOut);
-            }
+            document.getElementById('signOutLink')?.addEventListener('click', handleSignOut);
         }
 
         /**
@@ -217,30 +220,40 @@
         function handleSignOut(e) {
             e.preventDefault();
 
-            // 1. 清除登入狀態
+            // 1. 清除登入狀態的關鍵步驟
             localStorage.removeItem('auth_token');
 
-            // 2. 顯示登出訊息
-            alertMessage('您已成功登出。', 'info'); 
-
-            // 3. 重新渲染導覽列至未登入狀態
-            renderNavUI();
+            // 2. 顯示登出訊息 (使用自定義 alert)
+            // 將跳轉邏輯作為回呼函數傳入
+            // alert('您已成功登出。即將導向首頁...', () => {
+            //     // 3. 延遲導向首頁 (在用戶點擊 Modal 確認後 2 秒執行)
+            //     setTimeout(() => {
+            //         window.location.href = INDEX_PAGE_URL;
+            //     }, 2000);
+            // }); 
+            alert('您已成功登出。即將重新整理頁面...', () => {
+                // 3. 延遲導向當前頁面
+                setTimeout(() => {
+                    // *** 關鍵修正：重新載入當前頁面，而不是跳回首頁 ***
+                    window.location.href = window.location.href; 
+                }, 2000);
+            });
             
-            // 4. 重新渲染評分區塊，因為評分功能需要登入
-            const IS_RELEASED = isMovieReleased(mockMovieData.releaseTime); 
-            renderRatingSection(false, mockMovieData.id, IS_RELEASED);
+            // 4. 重新渲染導覽列至未登入狀態 (必須在跳轉前執行)
+            renderUI();
         }
 
         /**
          * 檢查登入狀態並渲染導覽列 UI
          */
-        function renderNavUI() {
-            // 檢查模擬登入狀態
+        function renderUI() {
+            // 模擬：如果 localStorage 中有 'auth_token' 則視為已登入
             const token = localStorage.getItem('auth_token');
             if (token) {
-                renderLoggedInStateNav(); 
+                // 由於這裡是快搜頁，我們模擬用戶名稱
+                renderLoggedInState(); 
             } else {
-                renderLoggedOutStateNav();
+                renderLoggedOutState();
             }
         }
         
@@ -443,7 +456,7 @@
         // 頁面載入時執行初始化
         document.addEventListener('DOMContentLoaded', () => {
             // *** 修正後新增：先渲染導覽列 UI ***
-            renderNavUI(); 
+            renderUI(); 
             
             // 接著執行電影資訊和評分區塊的渲染
             const IS_LOGGED_IN_DYNAMIC = checkSimulatedLoginStatus(); 
@@ -452,6 +465,44 @@
             renderMovieInfo(mockMovieData, IS_RELEASED); 
             renderRatingSection(IS_LOGGED_IN_DYNAMIC, mockMovieData.id, IS_RELEASED); 
         });
+
+        function alert(message, callback) {
+            const existingModal = document.getElementById('custom-alert-modal');
+            if (existingModal) existingModal.remove();
+
+            // 處理點擊「確認」的邏輯
+            const handleConfirm = () => {
+                document.getElementById('custom-alert-modal').remove();
+                if (callback && typeof callback === 'function') {
+                    // **只有在用戶點擊確認後，才執行傳入的 callback 函數 (例如登出後的跳轉)**
+                    callback(); 
+                }
+            };
+            
+            // 將 handleConfirm 函數註冊到全域，以便在 HTML onclick 中使用
+            window.customAlertConfirm = handleConfirm;
+
+            const modalHtml = `
+                <div id="custom-alert-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 z-50">
+                    <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm transform scale-100 transition-all duration-300">
+                        <div class="text-xl font-bold text-gray-900 mb-3 flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-vieshow-red mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                            </svg>
+                            系統提示
+                        </div>
+                        <p class="text-gray-700 mb-5">${message}</p>
+                        <div class="flex justify-end">
+                            <button onclick="window.customAlertConfirm()" 
+                                    class="bg-vieshow-red hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-200 focus:outline-none focus:ring-2 focus:ring-vieshow-red focus:ring-offset-2">
+                                確認
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+        }
 
     </script>
     

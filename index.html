@@ -270,7 +270,7 @@
         /**
          * 渲染已登入狀態的導覽列和英雄區。
          */
-        function renderLoggedInState(userName = "王小明") {
+        function renderLoggedInState() {
             const headerNavRight = document.getElementById('headerNavRight');
             const heroSection = document.getElementById('heroSection');
 
@@ -285,7 +285,7 @@
                 <h1 class="text-4xl sm:text-5xl font-extrabold text-gray-900 mb-2">
                     🎬 Vieshow 線上訂票系統
                 </h1>
-                <p class="text-lg text-gray-600 mb-6">您已登入，${userName}！最新的熱門電影正在熱映中，立即訂票享優惠。</p>
+                <p class="text-lg text-gray-600 mb-6">您已登入！最新的熱門電影正在熱映中，立即訂票享優惠。</p>
             `;
             
             // 3. 綁定登出事件
@@ -302,9 +302,11 @@
             localStorage.removeItem('auth_token');
 
             // 2. 顯示登出訊息
-            alert('您已成功登出。'); 
+            alert('您已成功登出。即將重新整理頁面...'); 
 
-            // 3. 重新渲染頁面至未登入狀態
+            // 3.由於登出是在首頁進行，不需要跳轉，直接切換 UI 狀態即可。
+
+            // 4. 重新渲染頁面至未登入狀態
             renderUI();
             
             // 由於登出是在首頁進行，不需要跳轉，直接切換 UI 狀態即可。
@@ -317,7 +319,7 @@
             // 模擬：如果 localStorage 中有 'auth_token' 則視為已登入
             const token = localStorage.getItem('auth_token');
             if (token) {
-                renderLoggedInState("王小明"); // 模擬用戶名稱
+                renderLoggedInState();
             } else {
                 renderLoggedOutState();
             }
@@ -422,6 +424,44 @@
             // 填充查詢選單
             populateMovieSelect(mockMovieList);
         });
+
+        function alert(message, callback) {
+            const existingModal = document.getElementById('custom-alert-modal');
+            if (existingModal) existingModal.remove();
+
+            // 處理點擊「確認」的邏輯
+            const handleConfirm = () => {
+                document.getElementById('custom-alert-modal').remove();
+                if (callback && typeof callback === 'function') {
+                    // **只有在用戶點擊確認後，才執行傳入的 callback 函數 (例如登出後的跳轉)**
+                    callback(); 
+                }
+            };
+            
+            // 將 handleConfirm 函數註冊到全域，以便在 HTML onclick 中使用
+            window.customAlertConfirm = handleConfirm;
+
+            const modalHtml = `
+                <div id="custom-alert-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 z-50">
+                    <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm transform scale-100 transition-all duration-300">
+                        <div class="text-xl font-bold text-gray-900 mb-3 flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-vieshow-red mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                            </svg>
+                            系統提示
+                        </div>
+                        <p class="text-gray-700 mb-5">${message}</p>
+                        <div class="flex justify-end">
+                            <button onclick="window.customAlertConfirm()" 
+                                    class="bg-vieshow-red hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-200 focus:outline-none focus:ring-2 focus:ring-vieshow-red focus:ring-offset-2">
+                                確認
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+        }
     </script>
 </body>
 </html>

@@ -137,6 +137,13 @@
     <script>
         const API_BASE_URL = 'https://your-fastapi-backend.com/api/v1'; 
         let currentCaptcha = ''; // 用於儲存當前模擬的驗證碼，用於前端比對
+        
+        // *** [新增/修正] 為了跳轉邏輯新增的常數 ***
+        // 預設跳轉頁面 (當沒有指定 redirect 時)
+        const DEFAULT_REDIRECT_URL = '../member/member_home.html';
+        // 會員中心路徑 (用於已登入訊息的按鈕和預設跳轉)
+        const MEMBER_HOME_URL = '../member/member_home.html';
+        // **********************************************
 
         // --- 1. 檢查是否已登入 (新增邏輯) ---
         function checkLoginStatus() {
@@ -191,6 +198,33 @@
             document.getElementById('captchaCode').value = '';
             console.log('當前模擬驗證碼:', currentCaptcha);
         }
+        
+        // *** [新增] 處理登入成功後的頁面跳轉邏輯 ***
+        function handleLoginSuccessRedirect() {
+            // 1. 取得 URL 中的 redirect 參數
+            const params = new URLSearchParams(window.location.search);
+            const redirectUrl = params.get('redirect');
+            
+            // 2. 決定目標網址
+            let targetUrl = DEFAULT_REDIRECT_URL; // 預設跳轉到會員中心
+
+            if (redirectUrl) {
+                // 如果有 redirect 參數，則使用該網址 (需要解碼)
+                targetUrl = decodeURIComponent(redirectUrl);
+                console.log("偵測到回調網址:", targetUrl);
+            } else {
+                console.log("未偵測到回調網址，使用預設目標:", targetUrl);
+            }
+
+            // 3. 執行跳轉
+            showNotification('✅ 登入成功！即將跳轉...', false);
+            
+            setTimeout(() => {
+                // 跳轉到目標網址
+                window.location.href = targetUrl;
+            }, 1500); // 延遲 1.5 秒
+        }
+        // **********************************************
 
         // --- 處理表單提交 (核心登入邏輯) ---
         document.getElementById('loginForm').addEventListener('submit', function(event) {
@@ -227,11 +261,9 @@
                 if (isSuccessful) {
                     // 模擬登入成功
                     localStorage.setItem('auth_token', 'mock_vieshow_token_xyz123'); // 儲存模擬 token
-                    showNotification('✅ 登入成功！即將跳轉至會員中心...', false);
                     
-                    setTimeout(() => {
-                        window.location.href = '../member/member_home.html';
-                    }, 1500);
+                    // *** [修正] 呼叫新的跳轉處理函數 ***
+                    handleLoginSuccessRedirect();
 
                 } else {
                     // 模擬登入失敗
@@ -266,9 +298,9 @@
             // 【修正處】：綁定重新整理驗證碼事件到 Button (圖標按鈕點擊)
             document.getElementById('refreshCaptcha').addEventListener('click', refreshCaptcha); 
             
-            // 綁定已登入時的按鈕
+            // 綁定已登入時的按鈕 (使用 MEMBER_HOME_URL)
             document.getElementById('goToMemberCenter').addEventListener('click', () => {
-                window.location.href = '../member/member_home.html';
+                window.location.href = MEMBER_HOME_URL;
             });
         };
     </script>
