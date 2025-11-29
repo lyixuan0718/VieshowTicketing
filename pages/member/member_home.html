@@ -3,43 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>會員中心 - Vieshow 影城</title>
+    <title>會員中心 - Vieshow Ticketing</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     
     <style>
-        /* 自定義樣式 */
+        /* 自定義樣式 (保留原有) */
         .btn-action {
             display: flex;
             align-items: center;
             justify-content: center;
-            /* 讓按鈕更大 */
-            padding: 1rem 1rem; 
-            border-radius: 0.25rem; /* 較銳利的邊角 */
-            font-weight: 700;
-            transition: background-color 0.2s;
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem; /* rounded-lg */
+            font-weight: 700; /* font-bold */
+            transition: all 0.2s ease-in-out;
             text-align: center;
-            box-shadow: none; /* 移除陰影 */
-            border: 1px solid #e5e7eb; /* 淺灰色邊框，用於白色按鈕 */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
+            border: 1px solid transparent;
         }
-        .btn-action.red-btn {
-            border-color: #e50914; /* 紅色按鈕有紅色邊框 */
-        }
-        /* 模擬圖片中功能區標題的紅色分隔線 */
-        .functional-title-line {
-            height: 100%;
-            width: 4px; /* 紅線寬度 */
-            background-color: #e50914; /* Vieshow 紅色 */
-            margin-right: 1rem;
+        .btn-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
         }
 
-        /* 模擬手繪邊框的樣式 (使用 Tailwind 實作，但這裡定義一個類名方便使用) */
-        .hand-drawn-border {
-            border: 2px solid #ffcc00; /* 黃色邊框 */
-            box-shadow: 0 0 0 4px rgba(255, 204, 0, 0.3); /* 模擬邊緣模糊/描邊 */
-        }
-
-        /* 新增通知動畫 (沿用原來的) */
+        /* 新增通知動畫 (保留原有) */
         @keyframes fadeInDown {
             from { opacity: 0; transform: translate(-50%, -20px); }
             to { opacity: 1; transform: translate(-50%, 0); }
@@ -50,6 +37,29 @@
         }
         .animate-fade-in-down { animation: fadeInDown 0.5s ease-out forwards; }
         .animate-fade-out-up { animation: fadeOutUp 0.5s ease-in forwards; }
+
+        /* --- 新增手繪區塊樣式 --- */
+        /* 模擬手繪的黃色邊框 */
+        .hand-drawn-frame {
+            border: 3px solid #f7a83d; /* 接近 Vieshow-gold 的黃色 */
+            /* 模擬一點手寫的粗糙感 */
+            padding: 1rem;
+            background-color: white;
+        }
+        /* 模擬圖片中功能區標題的紅色分隔線 (原程式碼沒有，為求還原圖片風格而新增) */
+        .functional-title-line {
+            height: 100%;
+            width: 4px;
+            background-color: #e50914; 
+            margin-right: 1rem;
+        }
+        /* 確保會員中心標題與手繪區塊在視覺上對齊 */
+        .member-header-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
     </style>
     
     <script>
@@ -58,7 +68,10 @@
                 extend: {
                     colors: {
                         'vieshow-red': '#e50914',
-                        'vieshow-gold': '#ffcc00', /* 接近圖片中手繪的黃色 */
+                        'vieshow-gold': '#f7a83d',
+                        'btn-primary': '#4f46e5', 
+                        'btn-hover': '#4338ca',
+                        'btn-danger': '#ef4444', 
                     },
                     fontFamily: {
                         sans: ['Inter', 'Noto Sans TC', 'sans-serif'],
@@ -68,94 +81,104 @@
         }
     </script>
 </head>
-<body class="bg-white font-sans min-h-screen">
+<body class="bg-gray-50 font-sans min-h-screen flex flex-col">
     
-    <header class="bg-white border-b border-gray-200">
-        <nav class="container mx-auto px-4 py-3 flex justify-between items-center max-w-4xl">
-            <a href="../../index.html" class="text-xl font-bold text-gray-800 hover:text-vieshow-red transition duration-300">Vieshow 影城</a>
-            <div id="headerNavRight" class="text-sm">
-                </div>
+    <header class="bg-gray-800 text-white shadow-md">
+        <nav class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <a href="../../index.html" class="text-xl font-bold hover:text-vieshow-red transition duration-300">Vieshow 影城</a>
+            <div id="headerNavRight" class="space-x-4 flex items-center">
+            </div>
         </nav>
     </header>
 
-    <div class="container mx-auto px-4 py-8 max-w-4xl">
+    <div class="container mx-auto px-4 py-10 flex-grow max-w-lg">
         
-        <div class="flex flex-col lg:flex-row gap-8">
-            
-            <div class="lg:w-1/2 p-6 bg-white border-4 border-vieshow-gold hand-drawn-border">
-                <h1 class="text-xl font-bold text-gray-800 mb-6 flex items-center">
-                    <span class="mr-2">👤</span> 會員中心首頁 
-                    <span id="memberGreeting" class="text-sm font-medium ml-3 text-gray-500"></span>
-                </h1>
-                
-                <h2 class="text-2xl font-extrabold text-gray-800 mb-4 border-b pb-2 border-gray-200">會員資料:</h2>
-                
-                <div id="memberInfoDisplay" class="space-y-4 text-gray-700">
-                    <p class="text-lg font-medium">姓名: <span id="memberName" class="font-bold text-xl ml-2">...</span></p>
-                    <p class="text-lg font-medium">gmail: <span id="memberEmail" class="font-normal ml-2">...</span></p>
-                    <p class="text-lg font-medium">電話: <span id="memberPhone" class="font-normal ml-2">...</span></p>
-                    <p class="text-lg font-medium">生日: <span id="memberBirthday" class="font-normal ml-2">...</span></p>
-                    <p class="text-lg font-medium">回饋點數: <span id="memberPoints" class="font-bold text-vieshow-red text-2xl ml-2">...</span></p>
-                    <p class="text-lg font-medium">會員編號: <span id="memberID" class="font-normal ml-2">...</span></p>
-
-                    <div class="pt-4">
-                        <p class="text-sm text-gray-500 mb-1">編碼</p>
-                        <div class="h-10 bg-gray-900 flex justify-between items-end px-1" style="border: 1px solid #000; font-size: 0;">
-                            <span class="inline-block h-full w-0.5 bg-gray-900"></span>
-                            <span class="inline-block h-4/5 w-0.5 bg-gray-900"></span>
-                            <span class="inline-block h-full w-1 bg-gray-900"></span>
-                            <span class="inline-block h-2/3 w-0.5 bg-gray-900"></span>
-                            <span class="inline-block h-full w-1.5 bg-gray-900"></span>
-                            <span class="inline-block h-4/5 w-0.5 bg-gray-900"></span>
-                            <span class="inline-block h-full w-0.5 bg-gray-900"></span>
-                            <span class="inline-block h-2/3 w-1 bg-gray-900"></span>
-                            <span class="inline-block h-full w-0.5 bg-gray-900"></span>
-                            <span class="inline-block h-4/5 w-1.5 bg-gray-900"></span>
-                            <span class="inline-block h-full w-0.5 bg-gray-900"></span>
-                            <span class="inline-block h-2/3 w-1 bg-gray-900"></span>
-                            <span class="inline-block h-full w-0.5 bg-gray-900"></span>
-                            <span class="inline-block h-4/5 w-0.5 bg-gray-900"></span>
-                            <span class="inline-block h-full w-1 bg-gray-900"></span>
-                            <span class="inline-block h-2/3 w-0.5 bg-gray-900"></span>
-                            <span class="inline-block h-full w-1.5 bg-gray-900"></span>
-                            </div>
-                    </div>
+        <div class="flex">
+            <div class="w-1/2 pr-4 mb-8">
+                <div class="member-header-container">
+                    <h1 class="text-3xl font-extrabold text-gray-800 flex items-center">
+                        <span class="mr-2 text-2xl">👤</span> 會員中心首頁 
+                    </h1>
+                    <span id="memberGreeting" class="text-base font-normal ml-3 text-gray-500">(Hi, 載入中...)</span>
                 </div>
             </div>
             
-            <div class="lg:w-1/2 flex flex-col">
-                <div class="flex items-center mb-6">
+            <div class="w-1/2 pl-4">
+                <div class="flex items-center mb-4 h-full">
                     <div class="functional-title-line"></div>
-                    <h2 class="text-xl font-bold text-gray-800">快速功能導覽</h2>
+                    <h2 class="text-2xl font-bold text-gray-700">快速功能導覽</h2>
                 </div>
-                
-                <div class="member-actions grid grid-cols-2 gap-4 flex-grow">
+            </div>
+        </div>
+
+        <div class="flex">
+
+            <div class="w-1/2 pr-4">
+                <div class="hand-drawn-frame shadow-xl">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4 border-b-2 pb-1 border-gray-100">會員資料:</h2>
                     
-                    <a href="../../index.html" class="btn-action bg-white text-gray-700 hover:bg-gray-100">
+                    <div id="memberInfoDisplay" class="space-y-3 text-gray-800">
+                        <p class="text-base">姓名: <span id="memberName" class="font-bold text-lg">...</span></p>
+                        <p class="text-base">gmail: <span id="memberEmail" class="font-normal">...</span></p>
+                        <p class="text-base">電話: <span id="memberPhone" class="font-normal">...</span></p>
+                        <p class="text-base">生日: <span id="memberBirthday" class="font-normal">...</span></p>
+                        <p class="text-base">回饋點數: <span id="memberPoints" class="font-bold text-vieshow-red text-xl">...</span></p>
+                        <p class="text-base">會員編號: <span id="memberID" class="font-normal">...</span></p>
+
+                        <div class="pt-2">
+                            <p class="text-sm text-gray-600 mb-1">編碼</p>
+                            <div class="h-10 bg-gray-900 flex justify-between items-end px-1 border-2 border-gray-400" style="font-size: 0;">
+                                <span class="inline-block h-full w-0.5 bg-gray-900"></span>
+                                <span class="inline-block h-4/5 w-1 bg-gray-900"></span>
+                                <span class="inline-block h-full w-0.5 bg-gray-900"></span>
+                                <span class="inline-block h-2/3 w-1.5 bg-gray-900"></span>
+                                <span class="inline-block h-full w-1 bg-gray-900"></span>
+                                <span class="inline-block h-4/5 w-0.5 bg-gray-900"></span>
+                                <span class="inline-block h-full w-1.5 bg-gray-900"></span>
+                                <span class="inline-block h-2/3 w-0.5 bg-gray-900"></span>
+                                <span class="inline-block h-full w-1 bg-gray-900"></span>
+                                <span class="inline-block h-4/5 w-0.5 bg-gray-900"></span>
+                                <span class="inline-block h-full w-1.5 bg-gray-900"></span>
+                                <span class="inline-block h-2/3 w-1 bg-gray-900"></span>
+                                <span class="inline-block h-full w-0.5 bg-gray-900"></span>
+                                <span class="inline-block h-4/5 w-1 bg-gray-900"></span>
+                                <span class="inline-block h-full w-1.5 bg-gray-900"></span>
+                                <span class="inline-block h-2/3 w-0.5 bg-gray-900"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="w-1/2 pl-4">
+                
+                <div class="member-actions grid grid-cols-2 gap-4">
+                    
+                    <a href="../../index.html" class="btn-action bg-white text-gray-700 border-gray-300 hover:bg-gray-100">
                         <span class="mr-2">🏠</span> 首頁
                     </a>
                     
-                    <a href="../booking/booking_flow_1.html" class="btn-action red-btn bg-vieshow-red text-white hover:bg-red-700">
+                    <a href="../booking/booking_flow_1.html" class="btn-action bg-vieshow-red text-white hover:bg-red-700">
                         <span class="mr-2">🎫</span> 立即訂票
                     </a>
                     
-                    <a href="../booking/booking_history.html" class="btn-action bg-white text-gray-700 hover:bg-gray-100">
+                    <a href="../booking/booking_history.html" class="btn-action bg-white text-gray-700 border-gray-300 hover:bg-gray-100">
                         <span class="mr-2">🧾</span> 訂票紀錄
                     </a>
                     
-                    <a href="../points/point_exchange.html" class="btn-action bg-white text-gray-700 hover:bg-gray-100">
+                    <a href="../points/point_exchange.html" class="btn-action bg-white text-gray-700 border-gray-300 hover:bg-gray-100">
                         <span class="mr-2">🪙</span> 點數兌換
                     </a>
                     
-                    <a href="./topup.html" class="btn-action bg-white text-gray-700 hover:bg-gray-100">
+                    <a href="./topup.html" class="btn-action bg-white text-gray-700 border-gray-300 hover:bg-gray-100">
                         <span class="mr-2">💳</span> 點數儲值
                     </a>
                     
-                    <a href="./member_profile.html" class="btn-action bg-white text-gray-700 hover:bg-gray-100">
+                    <a href="./member_profile.html" class="btn-action bg-white text-gray-700 border-gray-300 hover:bg-gray-100">
                         <span class="mr-2">⚙️</span> 會員資料修改
                     </a>
                     
-                    <button id="signOutButton" class="btn-action red-btn bg-vieshow-red text-white hover:bg-red-700 col-span-2 mt-4 self-end">
+                    <button id="signOutButton" class="btn-action bg-btn-danger text-white hover:bg-red-600 col-span-2 mt-4">
                         <span class="mr-2">➡️</span> 登出
                     </button>
                     
@@ -166,7 +189,7 @@
         
     </div>
 
-    <footer class="bg-white text-gray-500 text-center py-4 mt-8 border-t border-gray-200">
+    <footer class="bg-gray-800 text-white text-center py-4 mt-8 shadow-inner">
         <p>&copy; 2025 Vieshow Ticketing System</p>
     </footer>
 
@@ -174,21 +197,39 @@
         const LOGIN_PAGE_URL = '../auth/login.html';
         const INDEX_PAGE_URL = '../../index.html';
 
-        // --- 模擬資料庫 ---
+        // --- 模擬資料庫：新增會員資料 ---
         const MEMBER_DB = {
+            // 使用一個模擬的 Token 作為 key
             'valid_token_12345': {
-                id: 'XXXXXXX',
+                id: 'XXXXXXXX', // 模擬會員編號
                 name: '王大明',
                 email: 'xxx@gmail.com',
-                phone: '0912345678',
+                phone: '0123 456 789',
                 birthday: '2000/01/01',
-                points: 20000 
+                points: 20000 // 模擬回饋點數
             }
-            // 可以在這裡添加更多模擬會員
         };
 
         /**
-         * 統一的通知顯示函數
+         * 填充頁面上的會員資料。
+         * @param {object} memberData - 會員資料物件。
+         */
+        function populateMemberData(memberData) {
+            document.getElementById('memberGreeting').textContent = `(Hi, ${memberData.name})`;
+            document.getElementById('memberName').textContent = memberData.name;
+            document.getElementById('memberEmail').textContent = memberData.email;
+            document.getElementById('memberPhone').textContent = memberData.phone;
+            document.getElementById('memberBirthday').textContent = memberData.birthday;
+            // 點數格式化，方便閱讀
+            document.getElementById('memberPoints').textContent = memberData.points.toLocaleString('en-US'); 
+            document.getElementById('memberID').textContent = memberData.id;
+        }
+
+
+        /**
+         * 統一的通知顯示函數 (保留原有)
+         * @param {string} message - 顯示的訊息 (允許簡單 HTML 如 <b>)。
+         * @param {boolean} isError - 是否為錯誤/失敗訊息 (影響顏色)。
          */
         function showNotification(message, isError = false) {
             const notification = document.createElement('div');
@@ -206,66 +247,61 @@
         }
 
         /**
-         * 檢查登入狀態：如果沒有 Token 或 Token 無效則跳轉到登入頁。
+         * 檢查登入狀態：如果沒有 Token 則跳轉到登入頁。
+         * * [重要] 這裡將修改以檢查模擬 DB 的資料。
          */
         function checkLoginStatus() {
             const token = localStorage.getItem('auth_token');
+            // 檢查 token 是否存在，並模擬檢查 token 是否在資料庫中有效
             if (!token || !MEMBER_DB[token]) {
-                // 如果沒有 Token 或 Token 在模擬 DB 中找不到
                 window.location.href = LOGIN_PAGE_URL;
-                document.body.innerHTML = '<p class="text-center text-xl p-10">您尚未登入或登入狀態失效，正在導向登入頁面...</p>';
-                return null;
+                document.body.innerHTML = '<p class="text-center text-xl p-10">您尚未登入，正在導向登入頁面...</p>';
+                return null; // 登入失敗返回 null
             }
-            return MEMBER_DB[token]; // 返回有效的會員資料
+            return MEMBER_DB[token]; // 登入成功返回會員資料
         }
 
-        /**
-         * 填充頁面上的會員資料。
-         * @param {object} memberData - 會員資料物件。
-         */
-        function populateMemberData(memberData) {
-            document.getElementById('memberGreeting').textContent = `(Hi, ${memberData.name})`;
-            document.getElementById('memberName').textContent = memberData.name;
-            document.getElementById('memberEmail').textContent = memberData.email;
-            document.getElementById('memberPhone').textContent = memberData.phone;
-            document.getElementById('memberBirthday').textContent = memberData.birthday;
-            // 點數格式化，使用千分位逗號
-            document.getElementById('memberPoints').textContent = memberData.points.toLocaleString('en-US'); 
-            document.getElementById('memberID').textContent = memberData.id;
-        }
-
-        // --- 登出處理 ---
+        // --- 登出處理 (保留原有) ---
         document.getElementById('signOutButton').addEventListener('click', function(e) {
             e.preventDefault(); 
 
+            // 禁用按鈕以防止重複點擊
             this.disabled = true; 
             this.textContent = '登出中...';
 
-            // 1. 清除登入狀態
+            // 1. 清除登入狀態的關鍵步驟
             localStorage.removeItem('auth_token'); 
             
-            // 2. 顯示登出訊息
+            // 2. 顯示登出訊息 (使用彈跳框)
             showNotification('✅ 登出成功！即將導向首頁...', false);
+            
+            // 3. 替換 Header 導航為未登入狀態 (視覺更新 - 保留原有邏輯，但這裡沒有實際替換代碼)
+            const headerNavRight = document.getElementById('headerNavRight');
+            if (headerNavRight) {
+                headerNavRight.innerHTML = `
+                    <a href="${LOGIN_PAGE_URL}" class="hover:text-vieshow-gold transition duration-300">登入</a>
+                    <a href="../auth/register.html" class="hover:text-vieshow-gold transition duration-300">註冊</a>
+                `;
+            }
 
-            // 3. 延遲 2 秒後導向首頁
+            // 4. 延遲 2 秒後導向首頁
             setTimeout(() => {
                 window.location.href = INDEX_PAGE_URL; 
             }, 2000);
         });
 
-        // 頁面載入時執行檢查和資料填充
+        // 頁面載入時執行檢查
         window.onload = function() {
-            // 模擬登入成功後儲存一個有效的 Token
-            // 實際測試時請確保 localStorage.getItem('auth_token') 有 'valid_token_12345'
+            // 為了模擬成功登入，如果沒有 Token，先寫入一個有效的 Token
             if (!localStorage.getItem('auth_token')) {
                 localStorage.setItem('auth_token', 'valid_token_12345');
             }
 
-
             const memberData = checkLoginStatus();
             if (memberData) {
+                // 如果檢查登入成功，則填充會員資料
                 populateMemberData(memberData);
-                console.log("會員中心頁面初始化完成，資料已載入。");
+                console.log("會員中心頁面初始化完成。");
             }
         };
     </script>
