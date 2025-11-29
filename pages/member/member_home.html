@@ -17,10 +17,10 @@
             flex-direction: column; /* 讓圖標和文字上下排列 */
             align-items: center;
             justify-content: center;
-            padding: 1.5rem 1rem; /* 增加垂直 padding */
+            padding: 1.5rem 1rem;
             height: 100%; /* 確保網格中的每個項目等高 */
-            border-radius: 0.5rem; /* rounded-lg */
-            font-weight: 700; /* font-bold */
+            border-radius: 0.5rem;
+            font-weight: 700;
             transition: all 0.2s ease-in-out;
             text-align: center;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
@@ -35,12 +35,12 @@
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
         }
         
-        /* 調整登出按鈕，確保其高度與功能按鈕一致，並使用 flex-row 避免 icon/文字上下排列 */
+        /* 調整登出按鈕 */
         .btn-logout-action {
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 1.5rem 1rem; /* 保持與上方按鈕相同的垂直填充 */
+            padding: 1.5rem 1rem;
             border-radius: 0.5rem;
             font-weight: 700;
             transition: all 0.2s ease-in-out;
@@ -50,7 +50,6 @@
             transform: translateY(-2px);
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
         }
-
 
         /* 新增通知動畫 */
         @keyframes fadeInDown {
@@ -64,15 +63,27 @@
         .animate-fade-in-down { animation: fadeInDown 0.5s ease-out forwards; }
         .animate-fade-out-up { animation: fadeOutUp 0.5s ease-in forwards; }
 
-        /* 條碼顯示調整 (增大) */
+        /* 條碼容器和顯示調整 (確保與功能方塊視覺比例一致) */
+        .barcode-container {
+            /* 設置固定高度，使其看起來與功能按鈕的視覺高度相似 */
+            height: 10rem; 
+            display: flex;
+            align-items: center; /* 讓條碼垂直置中 */
+            justify-content: center;
+            border: 1px solid #ccc; /* 增加邊框讓其看起來更像一個獨立方塊 */
+            border-radius: 0.5rem;
+            padding: 10px;
+            background-color: white;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+        }
         .barcode-display {
             font-family: 'Libre Barcode 128', monospace;
-            font-size: 100px;
+            font-size: 80px; /* 增大條碼本身，填滿容器 */
             text-align: center;
             line-height: 1;
-            padding: 10px 0;
             display: block;
-            background-color: white;
+            margin: 0 auto;
+            max-width: 100%;
             overflow-x: hidden;
         }
     </style>
@@ -108,7 +119,9 @@
         </nav>
     </header>
 
-    <div class="container mx-auto px-4 py-10 flex-grow max-w-6xl"> <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+    <div class="container mx-auto px-4 py-10 flex-grow max-w-6xl">
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
             
             <div class="bg-white p-6 rounded-xl shadow-lg border-t-4 border-vieshow-gold member-details-container">
                 <h1 class="text-3xl font-extrabold text-gray-800 mb-4 flex items-center">
@@ -147,7 +160,7 @@
                     
                     <div class="pt-4">
                         <h3 class="font-semibold mb-1 text-gray-600">會員條碼:</h3>
-                        <div class="border border-gray-400 rounded-md shadow-inner bg-white">
+                        <div id="barcodeContainer" class="barcode-container">
                             <span id="barcodeValue" class="barcode-display"></span>
                         </div>
                     </div>
