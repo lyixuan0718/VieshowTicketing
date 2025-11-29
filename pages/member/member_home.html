@@ -38,7 +38,8 @@
         .animate-fade-in-down { animation: fadeInDown 0.5s ease-out forwards; }
         .animate-fade-out-up { animation: fadeOutUp 0.5s ease-in forwards; }
 
-        /* Code 128 條碼模擬樣式 (修正為靜態條碼) */
+        /* Code 128 條碼模擬樣式 */
+        /* 使用 flex 容器來模擬 Code 128 的條紋，並用 box-shadow 擴展邊界 */
         .barcode-128-container {
             /* 模擬條碼高度 */
             height: 50px; 
@@ -50,6 +51,7 @@
             display: flex;
             height: 100%;
             /* 模擬Code 128的條紋圖案，這裡使用一個簡單的、重複的黑白條紋組合 */
+            /* 真正的Code 128需要複雜的、準確的圖案，這裡僅為視覺效果 */
             background: repeating-linear-gradient(
                 to right,
                 #000 0%, #000 2%, /* 黑條 */
@@ -62,8 +64,13 @@
                 #fff 11%, #fff 12%
             );
             background-size: 1000% 100%; /* 擴展條紋讓其充滿 */
-            /* ⚠️ 已移除動畫程式碼，條碼現在是靜態的 ⚠️ */
+            animation: barcode-move 60s linear infinite; /* 只是為了好玩，讓條紋動起來 */
+            /* 停止動畫可以移除上面的 animation 行 */
         }
+        @keyframes barcode-move {
+            to { background-position: 100% 0; }
+        }
+
     </style>
 
     <script>
@@ -97,15 +104,12 @@
         </nav>
     </header>
 
-    <div class="container mx-auto px-4 py-10 flex-grow max-w-2xl">
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+    <div class="container mx-auto px-4 py-10 flex-grow max-w-2xl"> <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
             
             <div class="md:col-span-2 bg-white p-6 rounded-xl shadow-lg border-t-4 border-vieshow-gold">
                 <h1 class="text-3xl font-extrabold text-gray-800 mb-4 flex items-center">
                     <span class="mr-2">👤</span> 會員中心首頁 
-                    <span class="text-base font-normal ml-3 text-gray-500">(Hi, 王大明)</span>
-                </h1>
+                    <span class="text-base font-normal ml-3 text-gray-500">(Hi, 王大明)</span> </h1>
 
                 <div class="space-y-3 text-lg text-gray-700">
                     <h2 class="text-xl font-bold border-b pb-1 mb-2 text-vieshow-red">會員資料:</h2>
@@ -148,9 +152,7 @@
             <div class="md:col-span-1">
                 <h2 class="text-2xl font-bold text-gray-700 mb-4 border-l-4 border-vieshow-red pl-3">快速功能導覽</h2>
 
-                <div class="member-actions grid grid-cols-1 gap-4">
-
-                    <a href="../../index.html" class="btn-action bg-white text-gray-700 border-gray-300 hover:bg-gray-100">
+                <div class="member-actions grid grid-cols-1 gap-4"> <a href="../../index.html" class="btn-action bg-white text-gray-700 border-gray-300 hover:bg-gray-100">
                         <span class="mr-2">🏠</span> 首頁
                     </a>
 
