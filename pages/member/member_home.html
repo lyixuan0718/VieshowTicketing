@@ -3,30 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>會員中心 - Vieshow Ticketing</title>
-    
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <style>
-        /* 自定義樣式 (保留原有) */
-        .btn-action {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 1rem 1.5rem;
-            border-radius: 0.5rem; /* rounded-lg */
-            font-weight: 700; /* font-bold */
-            transition: all 0.2s ease-in-out;
-            text-align: center;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
-            border: 1px solid transparent;
-        }
-        .btn-action:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-        }
+    <title>會員登入 - Vieshow Ticketing</title> 
 
-        /* 新增通知動畫 (保留原有) */
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+        // Tailwind 配置，確保顏色和字體與專案一致
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'vieshow-red': '#e50914',
+                        'vieshow-gold': '#f7a83d',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'Noto Sans TC', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* 新增通知動畫 */
         @keyframes fadeInDown {
             from { opacity: 0; transform: translate(-50%, -20px); }
             to { opacity: 1; transform: translate(-50%, 0); }
@@ -38,381 +37,265 @@
         .animate-fade-in-down { animation: fadeInDown 0.5s ease-out forwards; }
         .animate-fade-out-up { animation: fadeOutUp 0.5s ease-in forwards; }
 
-        /* --- 樣式修正：恢復原始設計 + 條碼容器 --- */
-        
-        /* 恢復原先頂部方格的設計樣式，但現在作為左側的會員資料區塊 */
-        .member-info-panel {
-            background-color: white;
-            padding: 1.5rem;
-            border-radius: 0.75rem; /* rounded-xl */
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            /* 模擬原設計的頂部黃色邊框 */
-            border-top: 4px solid #f7a83d; 
-        }
-
-        /* 模擬圖片中功能區標題的紅色分隔線 */
-        .functional-title-line {
-            height: 100%;
-            width: 4px;
-            background-color: #e50914; 
-            margin-right: 1rem;
-        }
-        /* 條碼容器：使用 flex 佈局來實現佈滿整個寬度 */
-        .barcode-container {
+        /* 驗證碼文字樣式，模擬圖片效果 */
+        .captcha-text {
             display: flex;
-            align-items: stretch; 
-            height: 45px; /* 條碼高度 */
-            background-color: white;
-            border: 1px solid #000;
-            padding: 0; /* 移除 padding，讓條碼線直接貼滿邊緣 */
-            overflow: hidden;
-            flex-wrap: nowrap;
-            /* 讓條碼容器佔據全部可用空間 */
-            width: 100%; 
-        }
-        /* 條碼線和間隔：移除固定寬度，改用 flex-grow 屬性 */
-        .barcode-line, .barcode-space {
-            display: inline-block;
-            height: 100%; 
-            margin: 0;
-            padding: 0;
-            flex-shrink: 0;
-            /* 關鍵：設置 flex-grow，讓寬度根據其值佔據總空間的比例 */
-            flex-grow: 0; 
-        }
-        .barcode-line {
-            background-color: #000;
-        }
-        .barcode-space {
-            background-color: transparent;
+            align-items: center;
+            justify-content: center;
+            background-color: #f3f4f6; /* bg-gray-100 */
+            font-size: 24px;
+            font-weight: bold;
+            letter-spacing: 5px;
+            padding: 5px 10px;
+            border: 1px solid #d1d5db; /* border-gray-300 */
+            border-radius: 0.5rem;
+            cursor: pointer;
+            width: 120px; /* 模擬圖片寬度 */
+            height: 40px; /* 模擬圖片高度 */
+            color: #1f2937; /* text-gray-800 */
+            user-select: none; /* 防止選中文字 */
+            text-decoration: line-through; /* 模擬干擾線 */
+            font-family: monospace;
+            transform: rotate(-1deg); /* 輕微旋轉，更像 CAPTCHA */
         }
     </style>
-    
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        'vieshow-red': '#e50914',
-                        'vieshow-gold': '#f7a83d',
-                        'btn-primary': '#4f46e5', 
-                        'btn-hover': '#4338ca',
-                        'btn-danger': '#ef4444', 
-                    },
-                    fontFamily: {
-                        sans: ['Inter', 'Noto Sans TC', 'sans-serif'],
-                    },
-                }
-            }
-        }
-    </script>
 </head>
-<body class="bg-gray-50 font-sans min-h-screen flex flex-col">
-    
+<body class="bg-gray-100 font-sans min-h-screen flex flex-col">
+
     <header class="bg-gray-800 text-white shadow-md">
         <nav class="container mx-auto px-4 py-4 flex justify-between items-center">
             <a href="../../index.html" class="text-xl font-bold hover:text-vieshow-red transition duration-300">Vieshow 影城</a>
-            <div id="headerNavRight" class="space-x-4 flex items-center">
-                </div>
         </nav>
     </header>
 
-    <div class="container mx-auto px-4 py-10 flex-grow max-w-2xl"> 
-        
-        <div class="flex flex-col lg:flex-row gap-6 mb-8">
-            <div class="w-full lg:w-1/2 pr-3">
-                <div class="flex items-center">
-                    <h1 class="text-3xl font-extrabold text-gray-800 flex items-center">
-                        <span class="mr-2 text-2xl">👤</span> 會員中心首頁 
-                    </h1>
-                    <span id="memberGreeting" class="text-base font-normal ml-3 text-gray-500">(Hi, 載入中...)</span>
+    <div class="container mx-auto px-4 py-8 flex-grow">
+        <div id="loginCard" class="max-w-lg mx-auto bg-white p-8 sm:p-10 rounded-xl shadow-2xl border-t-8 border-vieshow-red">
+
+            <h2 class="text-3xl font-extrabold text-gray-800 mb-6 text-center">
+                會員登入
+            </h2>
+
+            <form id="loginForm" action="#" method="POST" class="space-y-5">
+
+                <div>
+                    <label for="loginAccount" class="block text-sm font-medium text-gray-700 mb-1">帳號/電子郵件:</label>
+                    <input type="text" id="loginAccount" name="loginAccount" required
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-vieshow-red focus:border-vieshow-red transition duration-150"
+                           placeholder="請輸入帳號或電子郵件">
                 </div>
-            </div>
-            
-            <div class="w-full lg:w-1/2 pl-3">
-                <div class="flex items-center mb-4">
-                    <div class="functional-title-line"></div>
-                    <h2 class="text-2xl font-bold text-gray-700">快速功能導覽</h2>
+
+                <div>
+                    <label for="loginPwd" class="block text-sm font-medium text-gray-700 mb-1">密碼:</label>
+                    <input type="password" id="loginPwd" name="loginPwd" required
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-vieshow-red focus:border-vieshow-red transition duration-150"
+                           placeholder="請輸入密碼">
                 </div>
-            </div>
-        </div>
 
+                <div class="text-right">
+                    <a href="forget_password.html" class="text-sm text-blue-600 hover:text-vieshow-red transition duration-150 font-medium">忘記密碼?</a>
+                </div>
 
-        <div class="flex flex-col lg:flex-row gap-6">
+                <div>
+                    <label for="captchaCode" class="block text-sm font-medium text-gray-700 mb-1">驗證碼:</label>
+                    <div class="flex items-center space-x-3">
+                        <input type="text" id="captchaCode" name="captchaCode" required maxlength="4"
+                               class="flex-grow px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-vieshow-red focus:border-vieshow-red transition duration-150 max-w-[150px]">
 
-            <div class="w-full lg:w-1/2">
-                <div class="member-info-panel">
-                    
-                    <h2 class="text-xl font-bold text-gray-700 mb-4 border-b pb-2">會員資料:</h2>
-                    
-                    <div id="memberInfoDisplay" class="space-y-3 text-gray-700">
-                        <p class="text-base">姓名: <span id="memberName" class="font-bold text-lg ml-2">...</span></p>
-                        <p class="text-base">gmail: <span id="memberEmail" class="font-normal ml-2">...</span></p>
-                        <p class="text-base">電話: <span id="memberPhone" class="font-normal ml-2">...</span></p>
-                        <p class="text-base">生日: <span id="memberBirthday" class="font-normal ml-2">...</span></p>
-                        <p class="text-base">回饋點數: <span id="memberPoints" class="font-bold text-vieshow-red text-xl ml-2">...</span></p>
-                        <p class="text-base">會員編號: <span id="memberID" class="font-normal ml-2">...</span></p>
+                        <div id="captchaImage" class="captcha-text" title="點擊刷新驗證碼"></div>
 
-                        <div class="pt-4">
-                            <p class="text-sm text-gray-600 mb-1">編碼</p>
-                            <div id="memberBarcode" class="barcode-container">
-                                </div>
-                        </div>
+                        <button type="button" id="refreshCaptcha" title="重新整理驗證碼"
+                                class="h-10 w-10 bg-vieshow-red text-white text-xl font-bold rounded-full flex items-center justify-center hover:bg-red-700 transition duration-300 shadow-md transform hover:scale-105">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.564c.261-.595.399-1.295.399-2.265v-.1c0-1.076.326-2.074.885-2.887a1 1 0 011.666.273A8.98 8.98 0 0011 4.545V3a1 1 0 112 0v1.545a8.98 8.98 0 00-11 5.67V17a1 1 0 11-2 0V9.873c0-2.203 1.05-4.14 2.686-5.385A7.002 7.002 0 014 2.101V3a1 1 0 01-1-1zm6 16a7 7 0 100-14 7 7 0 000 14z" clip-rule="evenodd" />
+                            </svg>
+                        </button> 
                     </div>
                 </div>
-            </div>
 
-            <div class="w-full lg:w-1/2">
-                
-                <div class="member-actions grid grid-cols-2 gap-4">
-                    
-                    <a href="../../index.html" class="btn-action bg-white text-gray-700 border-gray-300 hover:bg-gray-100">
-                        <span class="mr-2">🏠</span> 首頁
-                    </a>
-                    
-                    <a href="../booking/booking_flow_1.html" class="btn-action bg-vieshow-red text-white hover:bg-red-700">
-                        <span class="mr-2">🎫</span> 立即訂票
-                    </a>
-                    
-                    <a href="../booking/booking_history.html" class="btn-action bg-white text-gray-700 border-gray-300 hover:bg-gray-100">
-                        <span class="mr-2">🧾</span> 訂票紀錄
-                    </a>
-                    
-                    <a href="../points/point_exchange.html" class="btn-action bg-white text-gray-700 border-gray-300 hover:bg-gray-100">
-                        <span class="mr-2">🪙</span> 點數兌換
-                    </a>
-                    
-                    <a href="./topup.html" class="btn-action bg-white text-gray-700 border-gray-300 hover:bg-gray-100">
-                        <span class="mr-2">💳</span> 點數儲值
-                    </a>
-                    
-                    <a href="./member_profile.html" class="btn-action bg-white text-gray-700 border-gray-300 hover:bg-gray-100">
-                        <span class="mr-2">⚙️</span> 會員資料修改
-                    </a>
-                    
-                    <button id="signOutButton" class="btn-action bg-btn-danger text-white hover:bg-red-600 col-span-2 mt-4">
-                        <span class="mr-2">➡️</span> 登出
-                    </button>
-                    
-                </div>
-            </div>
-            
+                <button type="submit" id="loginButton" class="w-full bg-vieshow-red hover:bg-red-700 text-white font-bold py-3 px-4 rounded-xl transition duration-300 shadow-lg mt-6 transform hover:-translate-y-0.5">
+                    登入
+                </button>
+
+                <p class="text-center text-gray-600 mt-4">還沒有帳號？ 
+                    <a href="register.html" class="text-vieshow-red font-semibold hover:text-red-700 transition duration-150">立即註冊</a>
+                </p>
+            </form>
         </div>
-        
+
+        <div id="loggedInMessage" class="max-w-lg mx-auto bg-green-50 p-10 sm:p-12 rounded-xl shadow-2xl border-t-8 border-green-500 hidden text-center">
+            <svg class="mx-auto h-16 w-16 text-green-600 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <h2 class="text-3xl font-extrabold text-green-700 mb-2">您已登入！</h2>
+            <p class="text-lg text-gray-700 mb-6">您目前已是會員，無法重複登入。</p>
+            <button id="goToMemberCenter" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition duration-300 shadow-md">
+                前往會員中心 &rarr;
+            </button>
+        </div>
     </div>
 
-    <footer class="bg-gray-800 text-white text-center py-4 mt-8 shadow-inner">
-        <p>&copy; 2025 Vieshow Ticketing System</p>
-    </footer>
-
     <script>
-        const LOGIN_PAGE_URL = '../auth/login.html';
-        const INDEX_PAGE_URL = '../../index.html';
-
-        // --- 模擬資料庫：新增會員資料 ---
-        const MEMBER_DB = {
-            'valid_token_12345': {
-                id: 'VIESHOW12345', // 使用包含字母的 ID 測試 Code 128 B
-                name: '王大明',
-                email: 'xxx@gmail.com',
-                phone: '0123 456 789',
-                birthday: '2000/01/01',
-                points: 20000 
-            },
-            'test_token_98765': {
-                id: 'MOVIE98765', 
-                name: '李小美',
-                email: 'test@gmail.com',
-                phone: '0987 654 321',
-                birthday: '1995/11/20',
-                points: 1500 
-            }
-        };
+        const API_BASE_URL = 'https://your-fastapi-backend.com/api/v1'; 
+        let currentCaptcha = ''; // 用於儲存當前模擬的驗證碼，用於前端比對
         
-        // Code 128 編碼表 (Code B/C - 僅包含數字和啟動/停止/校驗碼所需的值)
-        // 格式: 3條黑線和 3 條白間隔的寬度乘數
-        const CODE128_B_ENCODING = [
-            '212222', '222122', '222221', '121223', '123221', '131221', '122213', '122312', '123122', '221213', // 0-9
-            '221312', '231212', '112232', '122132', '122231', '113222', '123122', '122132', '122231', '211232', // 10-19
-            '213212', '212231', '231221', '312122', '321122', '321221', '312212', '322112', '322211', '212123', // 20-29
-            '212321', '232121', '111323', '131123', '131321', '112313', '132113', '132311', '211313', '231113', // 30-39
-            '231311', '113123', '133121', '311123', '311321', '313121', '221132', '221231', '213212', '213231', // 40-49
-            '231131', '312131', '311321', '321131', '321311', '212213', '213212', '213311', '211331', '213131', // 50-59
-            '311213', '312132', '321123', '321213', '323121', '313211', '321113', '311321', '313113', '311312', // 60-69
-            '223112', '322111', '112223', '121123', '121321', '112312', '122113', '122311', '113122', '123112', // 70-79
-            '121231', '311222', '321221', '322121', '323121', '313211', '321113', '311312', '313112', '311312', // 80-89
-            '311132', '123311', '113321', '133112', '133211', '213122', '213212', '213311', '211331', '213131', // 90-99
-            '221133', '221331', '233111', '223121', '313131', '1121223' // START B, START C, STOP
-        ]; 
+        // 預設跳轉頁面 (當沒有指定 redirect 時)
+        const DEFAULT_REDIRECT_URL = '../member/member_home.html';
+        // 會員中心路徑 (用於已登入訊息的按鈕和預設跳轉)
+        const MEMBER_HOME_URL = '../member/member_home.html';
         
-        const START_CODE_B = 104; // Code 128 Start B 符號值
-        const STOP_CODE = 106; // Code 128 Stop 符號值
-        
-        // 輔助函數：根據 Code 128 的 6 個數字（3條線，3個間隔）繪製條碼
-        // 關鍵修改：使用 flexGrow 代替 style.width
-        function drawPattern(code, container) {
-            const widthFactors = code.split('').map(Number);
-            let isBar = true; 
+        // --- 1. 檢查是否已登入 ---
+        function checkLoginStatus() {
+            const token = localStorage.getItem('auth_token');
+            const loginCard = document.getElementById('loginCard');
+            const loggedInMessage = document.getElementById('loggedInMessage');
 
-            for (const factor of widthFactors) {
-                const element = document.createElement('span');
-                
-                // 關鍵：使用 flexGrow 屬性，根據 Code 128 的單位寬度來分配容器空間
-                element.style.flexGrow = factor; 
-                
-                if (isBar) {
-                    element.className = 'barcode-line'; 
-                } else {
-                    element.className = 'barcode-space';
-                }
-                
-                container.appendChild(element);
-                isBar = !isBar; // 交替
+            if (token) {
+                // 如果已登入，隱藏登入表單，顯示已登入訊息
+                loginCard.classList.add('hidden');
+                loggedInMessage.classList.remove('hidden');
+                console.log("偵測到登入 Token，顯示已登入訊息。");
+            } else {
+                // 如果未登入，顯示登入表單
+                loginCard.classList.remove('hidden');
+                loggedInMessage.classList.add('hidden');
+                console.log("未偵測到登入 Token，顯示登入表單。");
             }
         }
 
-        // 輔助函數：計算 Code 128 的校驗碼 (Checksum) - 保持不變
-        function calculateChecksum(data) {
-            let sum = START_CODE_B; 
-            
-            for (let i = 0; i < data.length; i++) {
-                // Code 128 B 的字符值 = ASCII 值 - 32
-                const charCode = data.charCodeAt(i) - 32; 
-                sum += (i + 1) * charCode;
-            }
-            
-            const checksumValue = sum % 103;
-            return checksumValue;
-        }
-
-        /**
-         * 根據會員 ID 生成模擬 Code 128 條碼 (佈滿整個寬度)。
-         */
-        function generateBarcode(memberId) {
-            const barcodeElement = document.getElementById('memberBarcode');
-            if (!barcodeElement) return;
-
-            barcodeElement.innerHTML = ''; 
-            
-            // 1. 獲取校驗碼 (Checksum)
-            const checksumValue = calculateChecksum(memberId);
-            
-            // 2. 繪製啟動碼 (Start Code B)
-            drawPattern(CODE128_B_ENCODING[START_CODE_B], barcodeElement);
-            
-            // 3. 繪製數據碼
-            for (let i = 0; i < memberId.length; i++) {
-                const char = memberId[i];
-                // Code B 值 (0-99) = ASCII 值 - 32
-                const codeValue = char.charCodeAt(0) - 32; 
-                
-                // 檢查是否為有效字符，防止索引超出範圍
-                if (codeValue >= 0 && codeValue <= 95) {
-                    drawPattern(CODE128_B_ENCODING[codeValue], barcodeElement);
-                }
-            }
-            
-            // 4. 繪製校驗碼 (Checksum Code)
-            drawPattern(CODE128_B_ENCODING[checksumValue], barcodeElement);
-            
-            // 5. 繪製停止碼 (Stop Code)
-            const stopCodePattern = CODE128_B_ENCODING[STOP_CODE];
-            drawPattern(stopCodePattern, barcodeElement);
-            
-            // 繪製最後的終止符黑條 (始終為 2 單位寬度)
-            const terminator = document.createElement('span');
-            terminator.className = 'barcode-line';
-            terminator.style.flexGrow = 2; // 佔 2 個單位
-            barcodeElement.appendChild(terminator);
-        }
-
-
-        /**
-         * 填充頁面上的會員資料。(保持不變)
-         */
-        function populateMemberData(memberData) {
-            document.getElementById('memberGreeting').textContent = `(Hi, ${memberData.name})`;
-            document.getElementById('memberName').textContent = memberData.name;
-            document.getElementById('memberEmail').textContent = memberData.email;
-            document.getElementById('memberPhone').textContent = memberData.phone;
-            document.getElementById('memberBirthday').textContent = memberData.birthday;
-            document.getElementById('memberPoints').textContent = memberData.points.toLocaleString('en-US'); 
-            document.getElementById('memberID').textContent = memberData.id;
-            
-            generateBarcode(memberData.id); 
-        }
-
-
-        /**
-         * 統一的通知顯示函數 (保持不變)
-         */
+        // --- 2. 顯示模擬通知 (動畫效果) ---
         function showNotification(message, isError = false) {
             const notification = document.createElement('div');
             notification.innerHTML = message;
             const bgColor = isError ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800';
-            
+
             notification.className = `fixed top-0 left-1/2 -translate-x-1/2 mt-4 px-6 py-3 rounded-lg shadow-xl z-50 transition duration-300 transform ${bgColor} animate-fade-in-down`;
-            
+
             document.body.appendChild(notification);
-            
+
             setTimeout(() => {
                 notification.classList.replace('animate-fade-in-down', 'animate-fade-out-up');
-                setTimeout(() => notification.remove(), 500); 
-            }, 3000); 
+                setTimeout(() => notification.remove(), 500);
+            }, 3000);
         }
 
-        /**
-         * 檢查登入狀態 (保持不變)
-         */
-        function checkLoginStatus() {
-            const token = localStorage.getItem('auth_token');
-            
-            if (!token || !MEMBER_DB[token]) {
-                document.body.innerHTML = `
-                    <div class="flex flex-col items-center justify-center min-h-screen bg-gray-50 text-gray-700">
-                        <p class="text-xl p-10">您尚未登入，正在導向登入頁面...</p>
-                        <div class="w-10 h-10 border-4 border-vieshow-red border-t-transparent border-solid rounded-full animate-spin"></div>
-                    </div>
-                `;
-                window.location.href = LOGIN_PAGE_URL;
-                return null;
+        // --- 3. 驗證碼相關邏輯 ---
+        function generateCaptcha() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let captcha = '';
+            for (let i = 0; i < 4; i++) {
+                captcha += chars.charAt(Math.floor(Math.random() * chars.length));
             }
-            return MEMBER_DB[token];
+            return captcha;
         }
 
-        // --- 登出處理 (保持不變) ---
-        document.getElementById('signOutButton').addEventListener('click', function(e) {
-            e.preventDefault(); 
-
-            this.disabled = true; 
-            this.textContent = '登出中...';
-
-            localStorage.removeItem('auth_token'); 
-            showNotification('✅ 登出成功！即將導向首頁...', false);
+        function refreshCaptcha() {
+            currentCaptcha = generateCaptcha();
+            const captchaDiv = document.getElementById('captchaImage');
+            captchaDiv.textContent = currentCaptcha;
+            document.getElementById('captchaCode').value = '';
+            console.log('當前模擬驗證碼:', currentCaptcha);
+        }
+        
+        // --- 4. 處理登入成功後的頁面跳轉邏輯 ---
+        function handleLoginSuccessRedirect() {
+            const params = new URLSearchParams(window.location.search);
+            const redirectUrl = params.get('redirect');
             
-            const headerNavRight = document.getElementById('headerNavRight');
-            if (headerNavRight) {
-                headerNavRight.innerHTML = `
-                    <a href="${LOGIN_PAGE_URL}" class="hover:text-vieshow-gold transition duration-300">登入</a>
-                    <a href="../auth/register.html" class="hover:text-vieshow-gold transition duration-300">註冊</a>
-                `;
+            let targetUrl = DEFAULT_REDIRECT_URL; 
+
+            if (redirectUrl) {
+                targetUrl = decodeURIComponent(redirectUrl);
+                console.log("偵測到回調網址，使用:", targetUrl);
+            } else {
+                console.log("未偵測到回調網址，使用預設目標:", targetUrl);
             }
 
+            showNotification('✅ 登入成功！即將跳轉...', false);
+            
             setTimeout(() => {
-                window.location.href = INDEX_PAGE_URL; 
-            }, 2000);
+                window.location.href = targetUrl;
+            }, 1500); 
+        }
+
+        // --- 5. 處理表單提交 (核心登入邏輯) ---
+        document.getElementById('loginForm').addEventListener('submit', function(event) {
+            event.preventDefault(); 
+
+            const form = event.target;
+            const loginButton = document.getElementById('loginButton');
+            const account = form.loginAccount.value;
+            const password = form.loginPwd.value;
+            const captchaInput = form.captchaCode.value.toUpperCase(); 
+
+            // 1. 檢查前端驗證碼是否正確
+            if (captchaInput !== currentCaptcha) {
+                showNotification('❌ **驗證碼錯誤！** 請重新輸入。', true);
+                refreshCaptcha();
+                return;
+            }
+
+            // 禁用按鈕
+            loginButton.disabled = true;
+            loginButton.textContent = '登入中...';
+            loginButton.classList.add('opacity-75', 'cursor-not-allowed');
+
+            showNotification('正在驗證帳號資訊...', false);
+
+            // 2. 模擬後端 API 請求 (2 秒延遲)
+            setTimeout(() => {
+
+                let errorMessage = '';
+
+                // 模擬成功條件：帳號 test@vieshow.com, 密碼 123456
+                const isSuccessful = (account === 'test@vieshow.com' && password === '123456');
+
+                if (isSuccessful) {
+                    // 模擬登入成功
+                    localStorage.setItem('auth_token', 'mock_vieshow_token_xyz123'); // 儲存模擬 token
+                    
+                    // 執行跳轉
+                    handleLoginSuccessRedirect();
+
+                } else {
+                    // 模擬登入失敗
+                    if (account === 'test@vieshow.com') {
+                        errorMessage = '❌ **登入失敗：** 密碼錯誤，請確認您的密碼是否正確！';
+                    } else {
+                        errorMessage = '❌ **登入失敗：** 帳號不存在或密碼錯誤，請確認您的帳號密碼是否正確！';
+                    }
+
+                    showNotification(errorMessage, true);
+                    refreshCaptcha(); // 登入失敗，強制刷新驗證碼
+
+                    // 重新啟用按鈕
+                    loginButton.disabled = false;
+                    loginButton.textContent = '登入';
+                    loginButton.classList.remove('opacity-75', 'cursor-not-allowed');
+                }
+
+            }, 2000); 
         });
 
-        // 頁面載入時執行檢查
+        // --- 6. 初始化事件綁定 ---
         window.onload = function() {
-            const memberData = checkLoginStatus();
-            if (memberData) {
-                populateMemberData(memberData);
-                console.log("會員中心頁面初始化完成。");
-            }
+            checkLoginStatus(); // 載入時檢查登入狀態
+            refreshCaptcha(); // 初始化驗證碼
+
+            // 綁定重新整理驗證碼事件到 Div 和 Button
+            document.getElementById('captchaImage').addEventListener('click', refreshCaptcha);
+            document.getElementById('refreshCaptcha').addEventListener('click', refreshCaptcha); 
+
+            // 綁定已登入時的按鈕
+            document.getElementById('goToMemberCenter').addEventListener('click', () => {
+                window.location.href = MEMBER_HOME_URL;
+            });
         };
     </script>
-    
+
+    <footer class="bg-gray-800 text-white p-4 mt-auto text-center text-sm">
+        <p class="text-gray-400">&copy; 2025 Vieshow Ticketing System.</p>
+    </footer>
+
 </body>
 </html>
 
