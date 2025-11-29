@@ -4,11 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>會員中心 - Vieshow Ticketing</title>
-    
+
     <script src="https://cdn.tailwindcss.com"></script>
-    
+
     <style>
-        /* 自定義樣式 (保留原有) */
+        /* --- 標準樣式 --- */
         .btn-action {
             display: flex;
             align-items: center;
@@ -25,8 +25,6 @@
             transform: translateY(-2px);
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
         }
-
-        /* 新增通知動畫 (保留原有) */
         @keyframes fadeInDown {
             from { opacity: 0; transform: translate(-50%, -20px); }
             to { opacity: 1; transform: translate(-50%, 0); }
@@ -38,9 +36,7 @@
         .animate-fade-in-down { animation: fadeInDown 0.5s ease-out forwards; }
         .animate-fade-out-up { animation: fadeOutUp 0.5s ease-in forwards; }
 
-        /* --- 樣式修正：恢復原始設計 + 條碼容器 --- */
-        
-        /* 恢復原先頂部方格的設計樣式，但現在作為左側的會員資料區塊 */
+        /* --- 會員資料面板和功能導覽線條樣式 --- */
         .member-info-panel {
             background-color: white;
             padding: 1.5rem;
@@ -49,28 +45,27 @@
             /* 模擬原設計的頂部黃色邊框 */
             border-top: 4px solid #f7a83d; 
         }
-
-        /* 模擬圖片中功能區標題的紅色分隔線 */
         .functional-title-line {
-            height: 100%;
             width: 4px;
             background-color: #e50914; 
             margin-right: 1rem;
+            height: 1.75rem; /* 配合 h2 視覺高度 */
         }
-        /* 條碼容器：使用 flex 佈局來實現佈滿整個寬度 */
+        
+        /* --- CODE 128 條碼樣式 (使用 flex-grow) --- */
         .barcode-container {
             display: flex;
             align-items: stretch; 
             height: 45px; /* 條碼高度 */
             background-color: white;
             border: 1px solid #000;
-            padding: 0; /* 移除 padding，讓條碼線直接貼滿邊緣 */
+            padding: 0 10px; /* 增加兩側安靜區(白邊) */
             overflow: hidden;
             flex-wrap: nowrap;
-            /* 讓條碼容器佔據全部可用空間 */
             width: 100%; 
+            box-sizing: border-box; /* 確保 border 和 padding 不影響 flex-grow 計算 */
         }
-        /* 條碼線和間隔：移除固定寬度，改用 flex-grow 屬性 */
+        /* 條碼線和間隔：使用 flex-grow 屬性控制寬度比例 */
         .barcode-line, .barcode-space {
             display: inline-block;
             height: 100%; 
@@ -78,16 +73,17 @@
             padding: 0;
             flex-shrink: 0;
             /* 關鍵：設置 flex-grow，讓寬度根據其值佔據總空間的比例 */
+            /* 實際的寬度將由 JS 設置的 inline style.flexGrow 決定 */
             flex-grow: 0; 
         }
         .barcode-line {
             background-color: #000;
         }
         .barcode-space {
-            background-color: transparent;
+            background-color: transparent; /* 白色間隔 */
         }
     </style>
-    
+
     <script>
         tailwind.config = {
             theme: {
@@ -95,7 +91,7 @@
                     colors: {
                         'vieshow-red': '#e50914',
                         'vieshow-gold': '#f7a83d',
-                        'btn-primary': '#4f46e5', 
+                        'btn-primary': '#4f46e5',
                         'btn-hover': '#4338ca',
                         'btn-danger': '#ef4444', 
                     },
@@ -108,84 +104,76 @@
     </script>
 </head>
 <body class="bg-gray-50 font-sans min-h-screen flex flex-col">
-    
+
     <header class="bg-gray-800 text-white shadow-md">
         <nav class="container mx-auto px-4 py-4 flex justify-between items-center">
             <a href="../../index.html" class="text-xl font-bold hover:text-vieshow-red transition duration-300">Vieshow 影城</a>
             <div id="headerNavRight" class="space-x-4 flex items-center">
-                </div>
+                <span class="text-sm font-medium">歡迎，<span id="headerMemberName">王小明</span></span> 
+            </div>
         </nav>
     </header>
 
-    <div class="container mx-auto px-4 py-10 flex-grow max-w-2xl"> 
-        
-        <div class="flex flex-col lg:flex-row gap-6 mb-8">
-            <div class="w-full lg:w-1/2 pr-3">
-                <div class="flex items-center">
-                    <h1 class="text-3xl font-extrabold text-gray-800 flex items-center">
-                        <span class="mr-2 text-2xl">👤</span> 會員中心首頁 
-                    </h1>
-                    <span id="memberGreeting" class="text-base font-normal ml-3 text-gray-500">(Hi, 載入中...)</span>
-                </div>
-            </div>
-            
-            <div class="w-full lg:w-1/2 pl-3">
-                <div class="flex items-center mb-4">
-                    <div class="functional-title-line"></div>
-                    <h2 class="text-2xl font-bold text-gray-700">快速功能導覽</h2>
-                </div>
-            </div>
-        </div>
+    <div class="container mx-auto px-4 py-10 flex-grow max-w-2xl">
 
+        <div class="flex items-center mb-6">
+            <h1 class="text-3xl font-extrabold text-gray-800 flex items-center">
+                <span class="mr-2 text-2xl">👤</span> 會員中心首頁 
+            </h1>
+            <span id="memberGreeting" class="text-base font-normal ml-3 text-gray-500">(Hi, 載入中...)</span>
+        </div>
 
         <div class="flex flex-col lg:flex-row gap-6">
 
-            <div class="w-full lg:w-1/2">
+            <div class="w-full lg:w-3/5">
                 <div class="member-info-panel">
-                    
-                    <h2 class="text-xl font-bold text-gray-700 mb-4 border-b pb-2">會員資料:</h2>
-                    
+                    <h2 class="text-xl font-bold text-gray-700 mb-4 border-b pb-2 text-vieshow-red">會員資料:</h2>
+
                     <div id="memberInfoDisplay" class="space-y-3 text-gray-700">
                         <p class="text-base">姓名: <span id="memberName" class="font-bold text-lg ml-2">...</span></p>
                         <p class="text-base">gmail: <span id="memberEmail" class="font-normal ml-2">...</span></p>
                         <p class="text-base">電話: <span id="memberPhone" class="font-normal ml-2">...</span></p>
                         <p class="text-base">生日: <span id="memberBirthday" class="font-normal ml-2">...</span></p>
-                        <p class="text-base">回饋點數: <span id="memberPoints" class="font-bold text-vieshow-red text-xl ml-2">...</span></p>
-                        <p class="text-base">會員編號: <span id="memberID" class="font-normal ml-2">...</span></p>
+                        <p class="text-base">回饋點數: <span id="memberPoints" class="font-bold text-vieshow-gold text-2xl ml-2">...</span> 點</p>
+                        <p class="text-base">會員編號: <span id="memberID" class="font-mono tracking-widest ml-2">...</span></p>
 
-                        <div class="pt-4">
-                            <p class="text-sm text-gray-600 mb-1">編碼</p>
-                            <div id="memberBarcode" class="barcode-container">
+                        <div class="pt-6">
+                            <p class="text-sm text-gray-600 mb-2 font-semibold">編碼 (Code 128):</p>
+                            <div id="memberBarcode" class="barcode-container shadow-inner rounded-md">
                                 </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="w-full lg:w-1/2">
-                
+            <div class="w-full lg:w-2/5">
+                <div class="flex items-center mb-4 mt-6 lg:mt-0">
+                    <div class="functional-title-line"></div>
+                    <h2 class="text-2xl font-bold text-gray-700">快速功能導覽</h2>
+                </div>
+
                 <div class="member-actions grid grid-cols-2 gap-4">
                     
                     <a href="../../index.html" class="btn-action bg-white text-gray-700 border-gray-300 hover:bg-gray-100">
                         <span class="mr-2">🏠</span> 首頁
                     </a>
-                    
+
                     <a href="../booking/booking_flow_1.html" class="btn-action bg-vieshow-red text-white hover:bg-red-700">
                         <span class="mr-2">🎫</span> 立即訂票
                     </a>
-                    
+
                     <a href="../booking/booking_history.html" class="btn-action bg-white text-gray-700 border-gray-300 hover:bg-gray-100">
                         <span class="mr-2">🧾</span> 訂票紀錄
                     </a>
-                    
+
                     <a href="../points/point_exchange.html" class="btn-action bg-white text-gray-700 border-gray-300 hover:bg-gray-100">
                         <span class="mr-2">🪙</span> 點數兌換
                     </a>
-                    
+
                     <a href="./topup.html" class="btn-action bg-white text-gray-700 border-gray-300 hover:bg-gray-100">
                         <span class="mr-2">💳</span> 點數儲值
                     </a>
-                    
+
                     <a href="./member_profile.html" class="btn-action bg-white text-gray-700 border-gray-300 hover:bg-gray-100">
                         <span class="mr-2">⚙️</span> 會員資料修改
                     </a>
@@ -193,12 +181,9 @@
                     <button id="signOutButton" class="btn-action bg-btn-danger text-white hover:bg-red-600 col-span-2 mt-4">
                         <span class="mr-2">➡️</span> 登出
                     </button>
-                    
                 </div>
             </div>
-            
         </div>
-        
     </div>
 
     <footer class="bg-gray-800 text-white text-center py-4 mt-8 shadow-inner">
@@ -209,10 +194,10 @@
         const LOGIN_PAGE_URL = '../auth/login.html';
         const INDEX_PAGE_URL = '../../index.html';
 
-        // --- 模擬資料庫：新增會員資料 ---
+        // --- 模擬資料庫：會員資料 ---
         const MEMBER_DB = {
             'valid_token_12345': {
-                id: 'VIESHOW12345', // 使用包含字母的 ID 測試 Code 128 B
+                id: 'VIESHOW12345', 
                 name: '王大明',
                 email: 'xxx@gmail.com',
                 phone: '0123 456 789',
@@ -271,7 +256,7 @@
             }
         }
 
-        // 輔助函數：計算 Code 128 的校驗碼 (Checksum) - 保持不變
+        // 輔助函數：計算 Code 128 的校驗碼 (Checksum)
         function calculateChecksum(data) {
             let sum = START_CODE_B; 
             
@@ -328,17 +313,21 @@
 
 
         /**
-         * 填充頁面上的會員資料。(保持不變)
+         * 填充頁面上的會員資料。
          */
         function populateMemberData(memberData) {
-            document.getElementById('memberGreeting').textContent = `(Hi, ${memberData.name})`;
+            document.getElementById('headerMemberName').textContent = memberData.name; // Header 歡迎語
+            document.getElementById('memberGreeting').textContent = `(Hi, ${memberData.name})`; // 頁面歡迎語
+            
             document.getElementById('memberName').textContent = memberData.name;
             document.getElementById('memberEmail').textContent = memberData.email;
             document.getElementById('memberPhone').textContent = memberData.phone;
             document.getElementById('memberBirthday').textContent = memberData.birthday;
+            // 格式化點數
             document.getElementById('memberPoints').textContent = memberData.points.toLocaleString('en-US'); 
             document.getElementById('memberID').textContent = memberData.id;
             
+            // 生成條碼
             generateBarcode(memberData.id); 
         }
 
@@ -349,25 +338,28 @@
         function showNotification(message, isError = false) {
             const notification = document.createElement('div');
             notification.innerHTML = message;
+            // 成功用 Green (登出成功)，失敗/警告用 Red
             const bgColor = isError ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800';
-            
+
+            // 使用 fixed 定位和動畫 class
             notification.className = `fixed top-0 left-1/2 -translate-x-1/2 mt-4 px-6 py-3 rounded-lg shadow-xl z-50 transition duration-300 transform ${bgColor} animate-fade-in-down`;
-            
+
             document.body.appendChild(notification);
-            
+
             setTimeout(() => {
                 notification.classList.replace('animate-fade-in-down', 'animate-fade-out-up');
-                setTimeout(() => notification.remove(), 500); 
-            }, 3000); 
+                setTimeout(() => notification.remove(), 500); // 讓淡出動畫完成
+            }, 3000); // 顯示 3 秒
         }
 
         /**
-         * 檢查登入狀態 (保持不變)
+         * 檢查登入狀態並返回會員資料。
          */
         function checkLoginStatus() {
             const token = localStorage.getItem('auth_token');
             
             if (!token || !MEMBER_DB[token]) {
+                // 如果未登入或 Token 無效，顯示加載動畫並跳轉
                 document.body.innerHTML = `
                     <div class="flex flex-col items-center justify-center min-h-screen bg-gray-50 text-gray-700">
                         <p class="text-xl p-10">您尚未登入，正在導向登入頁面...</p>
@@ -380,16 +372,21 @@
             return MEMBER_DB[token];
         }
 
-        // --- 登出處理 (保持不變) ---
+        // --- 登出處理 (不更改邏輯) ---
         document.getElementById('signOutButton').addEventListener('click', function(e) {
             e.preventDefault(); 
 
+            // 禁用按鈕以防止重複點擊
             this.disabled = true; 
             this.textContent = '登出中...';
 
+            // 1. 清除登入狀態的關鍵步驟
             localStorage.removeItem('auth_token'); 
+
+            // 2. 顯示登出訊息 (使用彈跳框)
             showNotification('✅ 登出成功！即將導向首頁...', false);
-            
+
+            // 3. 替換 Header 導航為未登入狀態 (視覺更新)
             const headerNavRight = document.getElementById('headerNavRight');
             if (headerNavRight) {
                 headerNavRight.innerHTML = `
@@ -398,6 +395,7 @@
                 `;
             }
 
+            // 4. 延遲 2 秒後導向首頁
             setTimeout(() => {
                 window.location.href = INDEX_PAGE_URL; 
             }, 2000);
@@ -412,6 +410,6 @@
             }
         };
     </script>
-    
+
 </body>
 </html>
