@@ -6,6 +6,8 @@
     <title>會員中心 - Vieshow Ticketing</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Libre+Barcode+128&display=swap" rel="stylesheet">
 
     <style>
         /* 自定義樣式 */
@@ -38,31 +40,16 @@
         .animate-fade-in-down { animation: fadeInDown 0.5s ease-out forwards; }
         .animate-fade-out-up { animation: fadeOutUp 0.5s ease-in forwards; }
 
-        /* Code 128 條碼模擬樣式 (修正為靜態條碼) */
-        .barcode-128-container {
-            /* 模擬條碼高度 */
-            height: 50px; 
-            overflow: hidden;
+        /* 2. 使用 Barcode 字型來確保條碼完整顯示 */
+        .barcode-display {
+            font-family: 'Libre Barcode 128', monospace; /* 使用 Barcode 字型 */
+            font-size: 52px; /* 條碼高度 */
+            text-align: center;
+            line-height: 1; /* 避免額外的行高影響條碼顯示 */
+            padding: 10px 0;
+            display: block;
             background-color: white;
-            padding: 5px 10px; /* 條碼周圍的空白 */
-        }
-        .barcode-128 {
-            display: flex;
-            height: 100%;
-            /* 模擬Code 128的條紋圖案，這裡使用一個簡單的、重複的黑白條紋組合 */
-            background: repeating-linear-gradient(
-                to right,
-                #000 0%, #000 2%, /* 黑條 */
-                #fff 2%, #fff 3%, /* 白條 */
-                #000 3%, #000 5%,
-                #fff 5%, #fff 6%,
-                #000 6%, #000 7%,
-                #fff 7%, #fff 9%,
-                #000 9%, #000 11%,
-                #fff 11%, #fff 12%
-            );
-            background-size: 1000% 100%; /* 擴展條紋讓其充滿 */
-            /* ⚠️ 已移除動畫程式碼，條碼現在是靜態的 ⚠️ */
+            white-space: nowrap; /* 防止條碼換行 */
         }
     </style>
 
@@ -138,8 +125,8 @@
                     
                     <div class="pt-4">
                         <h3 class="font-semibold mb-1 text-gray-600">編碼:</h3>
-                        <div class="barcode-128-container border border-gray-400 rounded-md shadow-inner">
-                            <div class="barcode-128"></div>
+                        <div class="border border-gray-400 rounded-md shadow-inner bg-white">
+                            <span class="barcode-display">12345678</span>
                         </div>
                     </div>
                 </div>
