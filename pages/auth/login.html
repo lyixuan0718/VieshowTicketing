@@ -261,7 +261,11 @@
                 if (isSuccessful) {
                     // 模擬登入成功
                     localStorage.setItem('auth_token', 'mock_vieshow_token_xyz123'); // 儲存模擬 token
-                    
+                    // 為相容舊有頁面檢查（例如 booking 頁面使用 isLoggedIn 判斷），同步設定 isLoggedIn
+                    localStorage.setItem('isLoggedIn', 'true');
+                    // 儲存簡單 user 資訊以供其他頁面顯示
+                    localStorage.setItem('user', JSON.stringify({ name: account }));
+
                     // *** [修正] 呼叫新的跳轉處理函數 ***
                     handleLoginSuccessRedirect();
 

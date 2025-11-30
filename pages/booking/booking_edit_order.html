@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>編輯訂單 — Vieshow 訂票</title>
+  <style>
+    body{font-family:Arial,Helvetica,sans-serif;margin:0;padding:0;background:#f6f7fb;color:#111}
+    .container{max-width:900px;margin:28px auto;padding:20px;background:#fff;border-radius:8px;box-shadow:0 6px 18px rgba(16,24,40,.06)}
+    h1{font-size:20px;margin:0 0 12px}
+    .row{display:flex;gap:12px;align-items:center;margin-bottom:12px}
+    label{min-width:120px;font-weight:600}
+    input[type="number"], input[type="text"], textarea, select{padding:8px;border:1px solid #d1d5db;border-radius:6px;width:100%}
+    .ticket-block,.combos{margin-top:14px;padding:12px;border:1px dashed #e6e9ef;border-radius:6px}
+    .combos table{width:100%;border-collapse:collapse}
+    .combos th,.combos td{padding:8px;text-align:left;border-bottom:1px solid #f0f2f5}
+    .actions{display:flex;gap:8px;justify-content:flex-end;margin-top:18px}
+    button{background:#2563eb;color:#fff;border:none;padding:10px 14px;border-radius:8px;cursor:pointer}
+    button.secondary{background:#e6e9ef;color:#111}
+    .muted{color:#6b7280;font-size:13px}
+    .summary{margin-top:8px;padding:10px;background:#fbfbff;border-radius:6px;border:1px solid #eef2ff}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>編輯訂單</h1>
+    <p class="muted">載入您的訂單內容，修改後會自動比對總金額。若金額增加，系統會導向補差額付款頁面；金額減少請注意本系統不自動退費。</p>
+
+    <div id="orderMeta" class="muted">載入中…</div>
+
+    <div id="formArea" style="display:none">
+      <div class="ticket-block">
+        <h3>票券</h3>
+        <div id="ticketsContainer"></div>
+      </div>
+
+      <div style="margin-top:12px">
+        <h3>餐點選擇</h3>
+        <div style="display:flex;gap:8px;align-items:center;margin-top:8px">
+          <select id="comboSelect" style="flex:1;padding:8px;border:1px solid #d1d5db;border-radius:6px">
+            <option value="">-- 選擇加購餐點（若無請選空白） --</option>
+          </select>
+          <input id="comboQtyInput" type="number" min="0" value="0" style="width:90px;padding:8px;border:1px solid #d1d5db;border-radius:6px" />
+        </div>
+      </div>
+
+      <div style="margin-top:12px">
+        <h3>付款方式（此修改將以此方式支付差額）</h3>
+        <select id="paymentMethodSelect" style="width:100%;padding:8px;border:1px solid #d1d5db;border-radius:6px;margin-top:8px">
+          <option value="credit_card">信用卡</option>
+          <option value="line_pay">Line Pay</option>
+          <option value="cash">現場付款（僅團體票可用）</option>
+        </select>
+      </div>
+
+      <div class="combos">
+        <h3>餐點 / 套餐</h3>
+        <table>
+          <thead>
+            <tr><th>名稱</th><th style="width:120px">數量</th><th style="width:140px">單價</th><th style="width:60px"></th></tr>
+          </thead>
+          <tbody id="combosBody"></tbody>
+        </table>
+        <div style="margin-top:8px;text-align:right"><button id="addComboBtn" type="button" class="secondary">新增餐點</button></div>
+      </div>
+
+      <div style="margin-top:12px">
+        <label>備註</label>
+        <textarea id="orderNote" rows="3" placeholder="例如：靠近出入口、需要嬰兒座椅等說明"></textarea>
+      </div>
+
+      <div class="summary">
+        <div><strong>原始總額：</strong><span id="originalTotal">0</span> 元</div>
+        <div><strong>修改後總額：</strong><span id="newTotal">0</span> 元</div>
+        <div id="dueLine" style="color:#b91c1c;font-weight:700;margin-top:6px;display:none">需補差額：<span id="dueAmount">0</span> 元</div>
+      </div>
+
+      <div class="actions">
+        <button id="saveBtn" type="button">儲存變更</button>
+        <button id="cancelBtn" type="button" class="secondary">取消</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Helper: query param
+    function qs(name){const u=new URLSearchParams(location.search);return u.get(name)}
+
+    const orderId = qs('orderId');
+    let originalOrder = null;
+    let workingOrder = null;
+
+    function loadBookingHistory(){
+      try{const raw = localStorage.getItem('bookingHistory'); return raw ? JSON.parse(raw) : []}catch(e){return []}
+    }
+
+    function saveBookingHistory(arr){ localStorage.setItem('bookingHistory', JSON.stringify(arr)) }
+
+    function findOrder(id){ const arr = loadBookingHistory(); return arr.find(o=>String(o.id)===String(id)) }
+
+    function renderMeta(){
+      const meta = document.getElementById('orderMeta');
+      if(!originalOrder){ meta.textContent='找不到訂單，請回列表選擇要修改的訂單。'; return }
+      meta.innerHTML = `訂單編號: <strong>${originalOrder.id}</strong> • 電影: <strong>${originalOrder.movie||'-'}</strong> • 場次: <strong>${originalOrder.showtime||'-'}</strong> `;
+    }
+
+    function renderTickets(){
+      const container = document.getElementById('ticketsContainer'); container.innerHTML='';
+      const tickets = workingOrder.tickets && workingOrder.tickets.length ? workingOrder.tickets : [];
+      tickets.forEach((t, idx)=>{
+        const wrapper = document.createElement('div'); wrapper.style.display='flex'; wrapper.style.gap='8px'; wrapper.style.marginBottom='8px';
+        wrapper.innerHTML = `
+          <div style="flex:1">
+            <label style="display:block;font-weight:600">${t.type || '票種'}</label>
+            <input data-idx="${idx}" data-field="quantity" type="number" min="0" value="${t.quantity||1}" />
+          </div>
+          <div style="width:160px">
+            <label style="display:block;font-weight:600">單價</label>
+            <input data-idx="${idx}" data-field="price" type="number" min="0" value="${t.price||0}" />
+          </div>
+        `;
+        container.appendChild(wrapper);
+      });
+
+      // add listeners
+      container.querySelectorAll('input').forEach(inp=>inp.addEventListener('input', onFieldChange));
+    }
+
+    function renderCombos(){
+      const body = document.getElementById('combosBody'); body.innerHTML='';
+      const combos = workingOrder.combos || [];
+      combos.forEach((c, i)=>{
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><input data-idx="${i}" data-field="name" type="text" value="${escapeHtml(c.name||'')}"></td>
+          <td><input data-idx="${i}" data-field="quantity" type="number" min="0" value="${c.quantity||0}"></td>
+          <td><input data-idx="${i}" data-field="price" type="number" min="0" value="${c.price||0}"></td>
+          <td><button type="button" data-idx="${i}" class="secondary removeCombo">移除</button></td>
+        `;
+        body.appendChild(tr);
+      });
+
+      body.querySelectorAll('input').forEach(inp=>inp.addEventListener('input', onFieldChange));
+      body.querySelectorAll('.removeCombo').forEach(btn=>btn.addEventListener('click', (e)=>{
+        const idx = Number(e.currentTarget.getAttribute('data-idx'));
+        workingOrder.combos.splice(idx,1); renderCombos(); computeTotals();
+      }));
+    }
+
+    function onFieldChange(e){
+      const idx = Number(e.target.getAttribute('data-idx'));
+      const field = e.target.getAttribute('data-field');
+      const val = e.target.type === 'number' ? Number(e.target.value||0) : e.target.value;
+      // tickets
+      if(typeof idx === 'number' && workingOrder.tickets && idx >= 0 && field){
+        if(field === 'quantity' || field === 'price'){
+          workingOrder.tickets[idx][field] = Number(val);
+        }
+      }
+      // combos
+      if(typeof idx === 'number' && workingOrder.combos && idx >= 0 && field){
+        if(field === 'quantity' || field === 'price') workingOrder.combos[idx][field] = Number(val);
+        if(field === 'name') workingOrder.combos[idx].name = val;
+      }
+      // note
+      const noteEl = document.getElementById('orderNote');
+      workingOrder.note = noteEl.value;
+      computeTotals();
+    }
+
+    function computeTotals(){
+      const tickets = workingOrder.tickets || [];
+      const combos = workingOrder.combos || [];
+      const ticketSum = tickets.reduce((s,t)=>s + (Number(t.price||0) * Number(t.quantity||0)),0);
+      const comboSum = combos.reduce((s,c)=>s + (Number(c.price||0) * Number(c.quantity||0)),0);
+      const total = Math.round(ticketSum + comboSum);
+      document.getElementById('newTotal').textContent = total;
+      document.getElementById('originalTotal').textContent = Math.round(originalOrder.total || 0);
+      const due = total - (originalOrder.total || 0);
+      if(due > 0){ document.getElementById('dueLine').style.display='block'; document.getElementById('dueAmount').textContent = due; }
+      else { document.getElementById('dueLine').style.display='none'; document.getElementById('dueAmount').textContent = 0; }
+      return {total,due};
+    }
+
+    function escapeHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') }
+
+    // Available combos for dropdown
+    const availableCombos = [
+      { id: 'combo_popcorn_set', name: '經典爆米花套餐', price: 150 },
+      { id: 'combo_drink', name: '單人飲品加購', price: 80 },
+      { id: 'combo_family', name: '家庭分享組', price: 380 }
+    ];
+
+    function populateComboSelect(){
+      const sel = document.getElementById('comboSelect');
+      availableCombos.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c.id;
+        opt.textContent = `${c.name} - NT$ ${c.price}`;
+        sel.appendChild(opt);
+      });
+      // custom option
+      const custom = document.createElement('option'); custom.value = 'custom'; custom.textContent = '自定義餐點（手動輸入價格）'; sel.appendChild(custom);
+
+      sel.addEventListener('change', function(){
+        const val = sel.value;
+        const qtyEl = document.getElementById('comboQtyInput');
+        if(!workingOrder.combos) workingOrder.combos = [];
+        if(val === ''){
+          workingOrder.combos = [];
+          qtyEl.value = 0;
+          renderCombos(); computeTotals();
+          return;
+        }
+        if(val === 'custom'){
+          // ensure one empty combo row so user can edit name/price
+          workingOrder.combos = workingOrder.combos.length ? workingOrder.combos : [{ name:'自定義餐點', quantity:1, price:0 }];
+          qtyEl.value = workingOrder.combos[0].quantity || 1;
+          renderCombos(); computeTotals();
+          return;
+        }
+        const found = availableCombos.find(c=>c.id===val);
+        if(found){
+          workingOrder.combos = [{ name: found.name, quantity: Number(qtyEl.value||1), price: found.price }];
+          renderCombos(); computeTotals();
+        }
+      });
+
+      document.getElementById('comboQtyInput').addEventListener('input', function(){
+        const q = Number(this.value||0);
+        if(!workingOrder.combos || workingOrder.combos.length===0) return;
+        workingOrder.combos[0].quantity = q;
+        renderCombos(); computeTotals();
+      });
+    }
+
+    function addComboRow(){
+      workingOrder.combos = workingOrder.combos || [];
+      workingOrder.combos.push({name:'新餐點', quantity:1, price:0});
+      renderCombos(); computeTotals();
+    }
+
+    function persistChange(finalOrder){
+      const arr = loadBookingHistory();
+      const idx = arr.findIndex(o=>String(o.id)===String(finalOrder.id));
+      if(idx >= 0) arr[idx] = finalOrder; else arr.push(finalOrder);
+      saveBookingHistory(arr);
+    }
+
+    // Save button behavior: if new total > original => pendingModification + redirect to payment page.
+    document.getElementById('saveBtn').addEventListener('click', ()=>{
+      const {total,due} = computeTotals();
+      const newOrder = Object.assign({}, originalOrder, JSON.parse(JSON.stringify(workingOrder)));
+      newOrder.total = total;
+      newOrder.updated_at = new Date().toISOString();
+      const selectedPayment = document.getElementById('paymentMethodSelect').value;
+      newOrder.payment_method = selectedPayment;
+      if(due > 0){
+        // require extra payment; include selected payment method
+        const pending = { orderId: originalOrder.id, previousTotal: originalOrder.total, newOrder: newOrder, dueAmount: due, payment_method: selectedPayment };
+        localStorage.setItem('pendingModification', JSON.stringify(pending));
+        // redirect to payment page to pay the difference
+        window.location.href = '../booking/booking_edit_payment.html';
+        return;
+      }
+      if(due < 0){
+        if(!confirm('變更後金額較低，系統不自動退費。確認仍要套用變更嗎？')) return;
+      }
+      // persist and record payment method (if user selected)
+      persistChange(newOrder);
+      // Optionally trigger mailto note (booking_history handles that on view). Here we simply go back.
+      alert('變更已儲存');
+      window.location.href = 'booking_history.html';
+    });
+
+    document.getElementById('cancelBtn').addEventListener('click', ()=>{ window.history.back(); });
+    document.getElementById('addComboBtn').addEventListener('click', addComboRow);
+
+    // load
+    (function init(){
+      if(!orderId){ document.getElementById('orderMeta').textContent='未提供訂單編號（請由訂單列表點選編輯）'; return }
+      originalOrder = findOrder(orderId);
+      if(!originalOrder){ document.getElementById('orderMeta').textContent='找不到此訂單，請回列表確認'; return }
+      // deep copy
+      workingOrder = JSON.parse(JSON.stringify(originalOrder));
+      // normalize tickets to use { quantity, price }
+      if (workingOrder.tickets && workingOrder.tickets.length) {
+        workingOrder.tickets = workingOrder.tickets.map(t => ({
+          type: t.type || t.type,
+          quantity: (t.quantity !== undefined) ? Number(t.quantity) : (t.qty !== undefined ? Number(t.qty) : 1),
+          price: (t.price !== undefined) ? Number(t.price) : (t.unit_price !== undefined ? Number(t.unit_price) : 0)
+        }));
+      } else {
+        workingOrder.tickets = [{ type: '成人', quantity: 1, price: workingOrder.total || 0 }];
+      }
+      // normalize combos to use { quantity, price }
+      if (workingOrder.combos && workingOrder.combos.length) {
+        workingOrder.combos = workingOrder.combos.map(c => ({
+          name: c.name || c.name,
+          quantity: (c.quantity !== undefined) ? Number(c.quantity) : (c.qty !== undefined ? Number(c.qty) : 0),
+          price: (c.price !== undefined) ? Number(c.price) : (c.unit_price !== undefined ? Number(c.unit_price) : 0)
+        }));
+      } else {
+        workingOrder.combos = [];
+      }
+      document.getElementById('orderNote').value = workingOrder.note || '';
+      // populate combo dropdown and preselect if existing
+      populateComboSelect();
+      // if there is an existing combo, try to preselect matching available combo
+      if (workingOrder.combos && workingOrder.combos.length) {
+        const first = workingOrder.combos[0];
+        const match = availableCombos.find(c => c.name === first.name || c.price === first.price);
+        if (match) {
+          document.getElementById('comboSelect').value = match.id;
+          document.getElementById('comboQtyInput').value = first.quantity || 1;
+        } else {
+          document.getElementById('comboSelect').value = 'custom';
+          document.getElementById('comboQtyInput').value = first.quantity || 1;
+        }
+      }
+      // preselect payment method if available
+      const pm = workingOrder.payment_method || originalOrder.payment_method || 'credit_card';
+      document.getElementById('paymentMethodSelect').value = pm;
+
+      renderMeta(); renderTickets(); renderCombos(); computeTotals();
+      document.getElementById('formArea').style.display='block';
+    })();
+  </script>
+</body>
+</html>

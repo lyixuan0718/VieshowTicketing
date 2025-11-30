@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>訂票完成 - Vieshow Ticketing</title>
+
+    <!-- Tailwind (kept for utility classes) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'vieshow-red': '#e50914',
+                        'vieshow-gold': '#f7a83d',
+                        'vieshow-dark': '#1a1a1a'
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { -webkit-font-smoothing:antialiased; font-family: Inter, 'Noto Sans TC', sans-serif; }
+        .hero { background: linear-gradient(90deg, rgba(229,9,20,0.06), rgba(247,168,61,0.03)); }
+        .ticket-card { border-radius: .75rem; border:1px solid #e6e6e6; background:#fff; padding:1.25rem; box-shadow:0 8px 24px rgba(15,23,42,0.04); }
+        .success-badge { display:inline-flex; align-items:center; gap:.5rem; background:#ecfdf5; color:#065f46; padding:.5rem .75rem; border-radius:.5rem; border:1px solid #bbf7d0; }
+        .muted { color:#6b7280; }
+        .small { font-size:.9rem; }
+        .receipt-actions button { margin-right:.5rem; }
+        .qr-placeholder { width:180px; height:180px; background:#fff; border:1px solid #e5e7eb; display:flex; align-items:center; justify-content:center; border-radius:.5rem; }
+    </style>
+</head>
+<body class="antialiased bg-gray-50 min-h-screen flex flex-col">
+
+<header class="bg-vieshow-dark text-white">
+    <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+        <a href="../../index.html" class="flex items-center gap-2 text-lg font-bold"><span>🎬</span>Vieshow 影城</a>
+        <div class="space-x-4">
+            <a href="../auth/login.html" class="text-sm hover:text-vieshow-gold">登入</a>
+            <a href="../member/member_home.html" class="text-sm hover:text-vieshow-gold">會員中心</a>
+        </div>
+    </div>
+</header>
+
+<main class="container mx-auto px-4 py-10 flex-grow max-w-4xl">
+    <section class="hero p-6 rounded-xl mb-6">
+        <div class="flex items-start gap-4">
+            <div class="success-badge">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 13l4 4L19 7" stroke="#065f46" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <strong>付款完成</strong>
+            </div>
+            <div>
+                <h1 class="text-2xl font-extrabold">感謝您，您的訂單已完成！</h1>
+                <p class="muted small">已將電子票券與付款資訊發送至您設定的通知信箱（若有）。</p>
+            </div>
+        </div>
+    </section>
+    <section id="successSection" class="ticket-card mb-6">
+        <div class="flex justify-between items-start">
+            <div>
+                <h2 class="text-xl font-bold" id="rc_movieTitle">—</h2>
+                <p class="muted small" id="rc_showtime">—</p>
+                <p class="mt-2"><span class="font-semibold">座位：</span><span id="rc_seats">—</span></p>
+            </div>
+            <div class="text-right">
+                <p class="muted small">訂單編號</p>
+                <p id="rc_orderId" class="font-mono font-semibold text-lg">—</p>
+            </div>
+        </div>
+
+        <hr class="my-4">
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+            <div>
+                <p class="small muted">付款方式</p>
+                <p id="rc_paymentMethod" class="font-semibold">—</p>
+            </div>
+            <div>
+                <p class="small muted">總計</p>
+                <p id="rc_total" class="text-2xl font-bold text-vieshow-red">NT$ 0</p>
+            </div>
+            <div class="text-right">
+                <div id="rc_qr" class="qr-placeholder mx-auto">已儲存憑證</div>
+                <p class="muted small mt-2">憑證（若有）會以電子郵件寄送</p>
+            </div>
+        </div>
+    </section>
+    </section>
+
+    <section id="failSection" class="hidden">
+        <div class="bg-white p-6 md:p-10 rounded-xl shadow-2xl border-t-4 border-red-500 text-center">
+            <div class="mb-6">
+                <div class="text-6xl mb-4">❌</div>
+                <h1 class="text-3xl font-extrabold text-red-600 mb-2">訂票失敗</h1>
+                <p class="text-gray-600" id="failReason">付款過程發生錯誤或您取消了交易</p>
+            </div>
+
+            <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 max-w-md mx-auto text-left">
+                <h4 class="font-semibold text-red-800 mb-2 flex items-center">
+                    <span class="mr-2">⚠️</span> 可能的原因
+                </h4>
+                <ul class="text-sm text-red-700 space-y-1">
+                    <li id="errorDetail1">• 信用卡授權失敗</li>
+                    <li id="errorDetail2">• 網路連線不穩定</li>
+                    <li id="errorDetail3">• 付款資訊輸入錯誤</li>
+                    <li id="errorDetail4">• 銀行拒絕交易</li>
+                </ul>
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a id="retryPaymentLink" href="booking_flow_5.html" class="bg-vieshow-red hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg transition duration-300 flex items-center justify-center">
+                    <span class="mr-2">💳</span> 重新付款
+                </a>
+                <a href="booking_flow_1.html" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded-lg transition duration-300 flex items-center justify-center">
+                    <span class="mr-2">🔄</span> 重新選擇場次
+                </a>
+                <a href="../../index.html" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition duration-300 flex items-center justify-center">
+                    <span class="mr-2">🏠</span> 回到首頁
+                </a>
+            </div>
+
+            <div class="mt-8 pt-6 border-t border-gray-200">
+                <p class="text-sm text-gray-600 mb-2">需要協助嗎？</p>
+                <div class="flex flex-col sm:flex-row gap-4 justify-center text-sm">
+                    <div class="flex items-center">
+                        <span class="mr-2">📞</span>
+                        <span>客服專線：02-1234-5678</span>
+                    </div>
+                    <div class="flex items-center">
+                        <span class="mr-2">✉️</span>
+                        <span>客服信箱：service@vieshow.com</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 載入狀態 -->
+    <section id="loadingSection" class="text-center py-12 hidden">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-vieshow-red mx-auto mb-4"></div>
+        <p class="text-gray-600">處理中，請稍候...</p>
+    </section>
+
+    <section class="mb-6">
+        <div class="receipt-actions flex items-center">
+            <button id="printBtn" class="btn-outline px-4 py-2 rounded bg-white border">列印票券</button>
+            <button id="downloadJsonBtn" class="btn-outline px-4 py-2 rounded bg-white border">下載收據 (JSON)</button>
+            <a href="../../index.html" class="ml-auto inline-block px-4 py-2 rounded bg-vieshow-red text-white">回首頁</a>
+        </div>
+    </section>
+
+    <section class="text-sm muted">
+        <h3 class="font-semibold mb-2">注意事項</h3>
+        <ul class="list-disc pl-5 space-y-2">
+            <li>請於電影開演前出示電子票券與付款憑證。</li>
+            <li>如需退票或其他協助，請聯絡客服或至會員中心查詢訂單狀態。</li>
+            <li>若您未收到電子信件，請檢查垃圾郵件或回到會員中心確認電子信箱設定。</li>
+        </ul>
+    </section>
+</main>
+
+<footer class="bg-vieshow-dark text-white text-center py-4">
+    <p>&copy; 2025 Vieshow Ticketing System</p>
+</footer>
+
+<script>
+    function safeNavigate(file) { try { window.location.href = file; } catch (e) { const cur = window.location.href; const dir = cur.substring(0, cur.lastIndexOf('/')+1); window.location.href = dir + file; } }
+    function formatAmount(n) { return 'NT$ ' + (Number(n) || 0).toLocaleString('en-US'); }
+
+    function getErrorMessage(key) {
+        const map = {
+            'payment_failed': '付款授權失敗，請確認信用卡資訊',
+            'network_error': '網路連線不穩定，請稍後再試',
+            'timeout': '交易逾時，請重新操作',
+            'cancelled': '您取消了付款流程',
+            'insufficient_funds': '餘額不足，請使用其他付款方式',
+            'default': '付款過程發生錯誤，請稍後再試'
+        };
+        return map[key] || map['default'];
+    }
+
+    function showSuccessByOrder(order) {
+        document.getElementById('rc_movieTitle').textContent = order.movie?.title || order.movieTitle || '未提供';
+        const st = order.showtime || order.showtimeDetail || {};
+        if (typeof st === 'object') {
+            document.getElementById('rc_showtime').textContent = (st.date || '') + ' ' + (st.time || '') + ' ' + (st.theater || '');
+        } else { document.getElementById('rc_showtime').textContent = st; }
+        document.getElementById('rc_seats').textContent = (order.selectedSeats && order.selectedSeats.length) ? order.selectedSeats.join('、') : '—';
+        document.getElementById('rc_orderId').textContent = order.order_id || order.id || 'VS' + Date.now().toString().slice(-8);
+        document.getElementById('rc_paymentMethod').textContent = (order.payment_method || '—').replace('_',' ');
+        document.getElementById('rc_total').textContent = formatAmount(order.totalPrice || order.total || 0);
+
+        const qr = document.getElementById('rc_qr');
+        qr.textContent = qr.textContent || '';
+        window._renderedOrder = order;
+
+        document.getElementById('loadingSection').classList.add('hidden');
+        document.getElementById('failSection').classList.add('hidden');
+        document.getElementById('successSection').classList.remove('hidden');
+    }
+
+    function showFailSection(message, errorKey) {
+        document.getElementById('loadingSection').classList.add('hidden');
+        document.getElementById('successSection').classList.add('hidden');
+        const fail = document.getElementById('failSection');
+        document.getElementById('failReason').textContent = message || getErrorMessage(errorKey);
+        fail.classList.remove('hidden');
+    }
+
+    function createConfetti() {
+        const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff'];
+        for (let i = 0; i < 40; i++) {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti confetti-animation';
+            confetti.style.left = Math.random() * 100 + 'vw';
+            confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            document.body.appendChild(confetti);
+            setTimeout(() => confetti.remove(), 3000);
+        }
+    }
+
+    function renderReceipt() {
+        const params = new URLSearchParams(window.location.search);
+        const status = params.get('status');
+        const errorKey = params.get('error');
+
+        document.getElementById('loadingSection').classList.remove('hidden');
+        document.getElementById('successSection').classList.add('hidden');
+        document.getElementById('failSection').classList.add('hidden');
+
+        setTimeout(() => {
+            if (status === 'fail') {
+                showFailSection(getErrorMessage(errorKey), errorKey);
+                return;
+            }
+
+            const stored = localStorage.getItem('lastCompletedBooking');
+            if (!stored) {
+                showFailSection('找不到訂單資料，請聯繫客服');
+                return;
+            }
+
+            try {
+                const order = JSON.parse(stored);
+                showSuccessByOrder(order);
+                try { createConfetti(); } catch (e) {}
+                localStorage.removeItem('currentBooking');
+            } catch (e) {
+                console.error('解析完成訂單失敗', e);
+                showFailSection('訂單資料格式錯誤');
+            }
+        }, 800);
+    }
+
+    document.getElementById('printBtn').addEventListener('click', function(){ window.print(); });
+    document.getElementById('downloadJsonBtn').addEventListener('click', function(){ const order = window._renderedOrder || JSON.parse(localStorage.getItem('lastCompletedBooking') || '{}'); const blob = new Blob([JSON.stringify(order, null, 2)], {type:'application/json'}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = (order.order_id || 'receipt') + '.json'; a.click(); });
+    renderReceipt();
+</script>
+
+</body>
+</html>

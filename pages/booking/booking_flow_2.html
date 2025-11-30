@@ -27,57 +27,82 @@
     </script>
     
     <style>
-        /* 基礎樣式：沿用 Step 1 的風格 */
+        /* Converted Tailwind utility rules to plain CSS for browser use */
+        :root {
+            --vieshow-red: #e50914;
+            --vieshow-gold: #f7a83d;
+            --vieshow-dark: #1a1a1a;
+            --gray-300: #D1D5DB;
+            --gray-200: #E5E7EB;
+            --gray-100: #F3F4F6;
+            --gray-500: #6B7280;
+        }
+
         .select-styled {
-            @apply w-full p-3 bg-white border border-gray-300 rounded-lg shadow-sm
-                   focus:outline-none focus:ring-2 focus:ring-vieshow-gold focus:border-vieshow-gold;
+            width: 100%;
+            padding: 0.75rem;
+            background: #ffffff;
+            border: 1px solid var(--gray-300);
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+            font-size: 1rem;
         }
-        /* 下一步按鈕的 Vieshow 紅色風格 */
+        .select-styled:focus {
+            outline: none;
+            box-shadow: 0 0 0 4px rgba(247,168,61,0.12);
+            border-color: var(--vieshow-gold);
+        }
+
         .next-step-button {
-            @apply w-full bg-vieshow-red hover:bg-red-700 text-white font-bold py-3 px-4 rounded-xl 
-                   transition duration-300 shadow-lg text-lg disabled:opacity-50 disabled:cursor-not-allowed
-                   transform hover:scale-[1.02] active:scale-[0.98];
+            width: 100%;
+            background: var(--vieshow-red);
+            color: #fff;
+            font-weight: 700;
+            padding: 0.75rem 1rem;
+            border-radius: 0.75rem;
+            transition: all 200ms ease;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+            font-size: 1.125rem;
+            display: inline-block;
+            text-align: center;
+            border: none;
+            cursor: pointer;
         }
-        /* 選項卡片的風格 */
+        .next-step-button:hover { transform: scale(1.02); background: #c40b10; }
+        .next-step-button:active { transform: scale(0.98); }
+        .next-step-button:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; }
+
         .selection-card {
-            @apply border border-gray-200 p-4 rounded-xl bg-white shadow-md transition duration-300 hover:shadow-lg;
+            border: 1px solid var(--gray-200);
+            padding: 1rem;
+            border-radius: 1rem;
+            background: #fff;
+            box-shadow: 0 6px 18px rgba(13, 14, 15, 0.04);
+            transition: box-shadow 200ms ease, transform 200ms ease;
         }
-        .selection-card.selected {
-            @apply border-vieshow-red ring-2 ring-vieshow-red ring-opacity-50;
-        }
-        /* 價格標籤的風格 */
-        .price-tag {
-            @apply text-lg font-bold text-vieshow-red;
-        }
-        /* 輸入框風格 */
+        .selection-card:hover { box-shadow: 0 10px 24px rgba(13,14,15,0.06); }
+        .selection-card.selected { border-color: var(--vieshow-red); box-shadow: 0 0 0 4px rgba(229,9,20,0.08); }
+
+        .price-tag { font-size: 1.125rem; font-weight: 700; color: var(--vieshow-red); }
+
         .quantity-input {
-            @apply w-16 text-center border border-gray-300 rounded-lg p-2 focus:ring-vieshow-gold focus:border-vieshow-gold;
+            width: 64px;
+            text-align: center;
+            border: 1px solid var(--gray-300);
+            border-radius: 0.5rem;
+            padding: 0.375rem;
         }
-        /* 步驟指示器 */
-        .step-indicator {
-            @apply flex items-center justify-center mb-8;
-        }
-        .step-circle {
-            @apply w-10 h-10 rounded-full flex items-center justify-center text-white font-bold
-                   transition duration-300;
-        }
-        .step-line {
-            @apply h-1 w-16 bg-gray-300 transition duration-300;
-        }
-        .step-active {
-            @apply bg-vieshow-red;
-        }
-        .step-completed {
-            @apply bg-vieshow-gold;
-        }
-        .step-pending {
-            @apply bg-gray-300;
-        }
-        /* 響應式調整 */
+        .quantity-input:focus { outline: none; box-shadow: 0 0 0 4px rgba(247,168,61,0.12); border-color: var(--vieshow-gold); }
+
+        .step-indicator { display: flex; align-items: center; justify-content: center; margin-bottom: 2rem; }
+        .step-circle { width: 40px; height: 40px; border-radius: 9999px; display: inline-flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; transition: all 200ms ease; }
+        .step-line { height: 6px; width: 64px; background: var(--gray-300); transition: background 200ms ease, width 200ms ease; margin: 0 8px; border-radius: 4px; }
+        .step-active { background: var(--vieshow-red); }
+        .step-completed { background: var(--vieshow-gold); }
+        .step-pending { background: var(--gray-300); }
+
         @media (max-width: 640px) {
-            .step-line {
-                @apply w-8;
-            }
+            .step-line { width: 32px; }
         }
     </style>
 </head>
@@ -117,7 +142,7 @@
             <!-- 標題區塊 -->
             <div class="mb-8 pb-4 border-b border-gray-200">
                 <h1 class="text-3xl font-extrabold text-gray-900 mb-2">🎟️ 訂票流程</h1>
-                <p class="text-xl font-semibold text-vieshow-red">步驟 2/5: 選擇票種與餐點</p>
+                <p class="text-xl font-semibold text-vieshow-red"> 選擇票種與餐點</p>
                 <p class="text-sm text-gray-500 mt-1">請選擇您需要的票種數量與加購餐點。</p>
             </div>
 
@@ -162,10 +187,10 @@
                     <div class="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4">
                         <a href="booking_flow_1.html" class="flex-1 text-center bg-gray-500 hover:bg-gray-700 text-white font-bold py-3 px-4 rounded-xl transition duration-300 shadow-lg text-base transform hover:scale-[1.02] active:scale-[0.98]">
                             <svg class="w-5 h-5 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg> 
-                            重新選擇場次 (步驟 1)
+                            重新選擇場次 
                         </a>
                         <button type="submit" id="nextStepButton" class="next-step-button flex-1" disabled>
-                            下一步: 選擇座位 (步驟 3)
+                            下一步: 選擇座位 
                         </button>
                     </div>
                 </div>
@@ -234,7 +259,7 @@
                     loadError.classList.remove('hidden');
                 }
             } else {
-                console.warn('找不到步驟 1 的訂票資料。使用預設值。');
+                console.warn('找不到訂票資料。使用預設值。');
                 cinemaNameDisplay.textContent = `影城: 威秀影城 (模擬)`;
                 movieTitleDisplay.textContent = `電影: 沙丘：第二部`;
                 showtimeDetailDisplay.textContent = `場次: 2025/11/17 (一) 19:30 - 數位 3 廳`;
@@ -289,10 +314,33 @@
             `).join('');
             
             ticketSelectionSection.innerHTML = html;
-            
+
             // 初始化 currentSelections.tickets
             MOCK_TICKETS.forEach(t => currentSelections.tickets[t.id] = 0);
-            
+
+            // 如果來自編輯流程，嘗試從 currentBookingData 預填數量
+            if (currentBookingData && currentBookingData.tickets) {
+                // currentBookingData.tickets 可能是 object keyed by ticket id, 或 array with name/quantity
+                MOCK_TICKETS.forEach(t => {
+                    let qty = 0;
+                    // case: object keyed by id
+                    if (typeof currentBookingData.tickets === 'object' && !Array.isArray(currentBookingData.tickets)) {
+                        const entry = currentBookingData.tickets[t.id] || currentBookingData.tickets[t.name] || currentBookingData.tickets[t.type];
+                        if (entry) qty = entry.qty || entry.quantity || entry.qty || 0;
+                    }
+                    // case: array of { name, quantity }
+                    if (Array.isArray(currentBookingData.tickets)) {
+                        const found = currentBookingData.tickets.find(tt => (tt.type && tt.type === t.name) || (tt.name && tt.name === t.name));
+                        if (found) qty = found.quantity || found.qty || found.qty || 0;
+                    }
+                    if (qty > 0) {
+                        const el = document.getElementById(`ticket-${t.id}`);
+                        if (el) el.value = qty;
+                        currentSelections.tickets[t.id] = Number(qty);
+                    }
+                });
+            }
+
             // 綁定事件監聽器
             ticketSelectionSection.addEventListener('click', handleQuantityChange);
         }
@@ -332,10 +380,33 @@
             `).join('');
             
             comboSelectionSection.innerHTML = html;
-            
+
             // 初始化 currentSelections.combos
             MOCK_COMBOS.forEach(c => currentSelections.combos[c.id] = 0);
-            
+
+            // 如果來自編輯流程，嘗試從 currentBookingData 預填餐點數量
+            if (currentBookingData && currentBookingData.combos) {
+                // currentBookingData.combos 可能是 object keyed by combo id or keyed by name, 或 array
+                MOCK_COMBOS.forEach(c => {
+                    let qty = 0;
+                    // object keyed by id
+                    if (typeof currentBookingData.combos === 'object' && !Array.isArray(currentBookingData.combos)) {
+                        const entry = currentBookingData.combos[c.id] || currentBookingData.combos[c.name];
+                        if (entry) qty = entry.qty || entry.quantity || 0;
+                    }
+                    // array case: compare by name
+                    if (Array.isArray(currentBookingData.combos)) {
+                        const found = currentBookingData.combos.find(cc => cc.name === c.name);
+                        if (found) qty = found.quantity || found.qty || 0;
+                    }
+                    if (qty > 0) {
+                        const el = document.getElementById(`combo-${c.id}`);
+                        if (el) el.value = qty;
+                        currentSelections.combos[c.id] = Number(qty);
+                    }
+                });
+            }
+
             // 綁定事件監聽器
             comboSelectionSection.addEventListener('click', handleQuantityChange);
         }
@@ -521,7 +592,99 @@
 
             console.log("🎫 Step2 已儲存：", step2Data);
 
-            // 跳轉到步驟 3
+            // If this is an edit flow, compare with original order and handle difference
+            const editingRaw = localStorage.getItem('editingOrder');
+            if (editingRaw) {
+                try {
+                    const editing = JSON.parse(editingRaw);
+                    const originalTotal = Number(editing.originalTotal || 0);
+                    const newTotal = Number(finalPrice || 0);
+
+                    if (newTotal > originalTotal) {
+                        // If ticket count increased we need to pick seats first (go to Step3)
+                        const originalTicketQty = Number(editing.originalTicketQty || 0);
+                        const newTicketQty = Number(totalTickets || 0);
+
+                        if (newTicketQty > originalTicketQty) {
+                            // Save a pending seats-edit request and navigate to seat selection
+                            const pendingSeats = {
+                                orderId: editing.orderId,
+                                previousTotal: originalTotal,
+                                newOrder: step2Data,
+                                desiredTicketCount: newTicketQty
+                            };
+                            localStorage.setItem('editingPendingSeats', JSON.stringify(pendingSeats));
+                            // keep editingOrder as well
+                            window.location.href = "booking_flow_3.html";
+                            return;
+                        }
+
+                        // No additional seats required; need to pay the difference: create pendingModification and redirect to payment page
+                        const pending = {
+                            orderId: editing.orderId,
+                            previousTotal: originalTotal,
+                            newOrder: step2Data,
+                            dueAmount: newTotal - originalTotal
+                        };
+                        localStorage.setItem('pendingModification', JSON.stringify(pending));
+                        // Keep editingOrder flag so payment page can finalize
+                        window.location.href = "booking_edit_payment.html";
+                        return;
+                    } else {
+                        // Decrease or equal: warn that no refund will be issued
+                        const ok = confirm('本次變更後總額較原本訂單少/相等，系統不會退費。確定要儲存變更嗎？');
+                        if (!ok) return;
+
+                        // Persist changes to bookingHistory
+                        try {
+                            const storedRaw = localStorage.getItem('bookingHistory') || '[]';
+                            const arr = JSON.parse(storedRaw);
+                            const idx = arr.findIndex(o => String(o.id) === String(editing.orderId));
+
+                            // convert ticket/combo objects back into arrays for history storage
+                            const ticketsArray = Object.keys(step2Data.tickets || {}).map(k => {
+                                const t = step2Data.tickets[k];
+                                return { type: t.name, quantity: Number(t.qty || 0), price: Number(t.price || 0) };
+                            }).filter(x=>x.quantity>0);
+
+                            const combosArray = Object.keys(step2Data.combos || {}).map(k => {
+                                const c = step2Data.combos[k];
+                                return { name: c.name, quantity: Number(c.qty || 0), price: Number(c.price || 0) };
+                            }).filter(x=>x.quantity>0);
+
+                            const updatedOrder = Object.assign({}, arr[idx] || {}, {
+                                id: arr[idx]?.id || editing.orderId || step2Data.id,
+                                movie: arr[idx]?.movie || step2Data.movie || {},
+                                cinema: arr[idx]?.cinema || step2Data.cinema || (step2Data.cinema?.name || ''),
+                                showtime: arr[idx]?.showtime || step2Data.showtime || step2Data.showtimeDetail || '',
+                                tickets: ticketsArray,
+                                combos: combosArray,
+                                total: newTotal,
+                                totalTicketQty: step2Data.totalTicketQty,
+                                totalTicketPrice: step2Data.totalTicketPrice,
+                                totalComboPrice: step2Data.totalComboPrice,
+                                modified_at: new Date().toISOString()
+                            });
+
+                            if (idx >= 0) arr[idx] = updatedOrder; else arr.push(updatedOrder);
+                            localStorage.setItem('bookingHistory', JSON.stringify(arr));
+                            localStorage.removeItem('editingOrder');
+                            localStorage.removeItem('currentBooking');
+                            showToast('已儲存變更（請注意系統不會退費）', 'info');
+                            window.location.href = 'booking_history.html';
+                            return;
+                        } catch (e) {
+                            console.error('儲存編輯結果失敗', e);
+                            showToast('儲存失敗，請稍後再試', 'warning');
+                            return;
+                        }
+                    }
+                } catch (e) {
+                    console.error('解析 editingOrder 失敗', e);
+                }
+            }
+
+            // 非編輯流程：跳轉到步驟 3
             window.location.href = "booking_flow_3.html";
         });
 

@@ -67,26 +67,13 @@
             background-color: #1d4ed8;
             transform: scale(1.1);
         }
-        /* 步驟指示器 */
-        .step-indicator {
-            @apply flex items-center justify-center mb-8;
-        }
-        .step-circle {
-            @apply w-10 h-10 rounded-full flex items-center justify-center text-white font-bold
-                   transition duration-300;
-        }
-        .step-line {
-            @apply h-1 w-16 bg-gray-300 transition duration-300;
-        }
-        .step-active {
-            @apply bg-vieshow-red;
-        }
-        .step-completed {
-            @apply bg-vieshow-gold;
-        }
-        .step-pending {
-            @apply bg-gray-300;
-        }
+        /* 步驟指示器 (已轉換 Tailwind 寫法) */
+        .step-indicator { display: flex; align-items: center; justify-content: center; margin-bottom: 2rem; }
+        .step-circle { width: 40px; height: 40px; border-radius: 9999px; display: inline-flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; transition: all 200ms ease; }
+        .step-line { height: 8px; width: 64px; background: #D1D5DB; transition: background 200ms ease, width 200ms ease; margin: 0 8px; border-radius: 4px; }
+        .step-active { background: #e50914; }
+        .step-completed { background: #f7a83d; }
+        .step-pending { background: #D1D5DB; }
     </style>
 </head>
 <body class="antialiased bg-gray-100 font-sans min-h-screen flex flex-col">
@@ -125,7 +112,7 @@
         <!-- 標題區塊 -->
         <div class="mb-8 pb-4 border-b border-gray-200">
             <h1 class="text-3xl font-extrabold text-gray-900 mb-2">🎟️ 訂票流程</h1>
-            <p class="text-xl font-semibold text-vieshow-red">步驟 3/5: 選擇座位</p>
+            <p class="text-xl font-semibold text-vieshow-red">選擇座位</p>
             <p class="text-sm text-gray-500 mt-1">請在下方影廳地圖中選擇您喜歡的座位。</p>
         </div>
 
@@ -234,14 +221,14 @@
             <input type="hidden" name="selected_seats" id="submitSeats" value="">
 
             <div class="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4">
-                <a href="booking_flow_2.html" class="flex-1 text-center bg-gray-500 hover:bg-gray-700 text-white font-bold py-3 px-4 rounded-xl transition duration-300 shadow-lg text-base transform hover:scale-[1.02] active:scale-[0.98]">
+                <a id="prevLink" href="booking_flow_2.html" class="flex-1 text-center bg-gray-500 hover:bg-gray-700 text-white font-bold py-3 px-4 rounded-xl transition duration-300 shadow-lg text-base transform hover:scale-[1.02] active:scale-[0.98]">
                     <svg class="w-5 h-5 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
                     </svg> 
                     返回上一步
                 </a>
                 <button type="submit" class="next-step-button flex-1 bg-vieshow-red hover:bg-red-700 text-white font-bold py-3 px-4 rounded-xl transition duration-300 shadow-lg text-lg disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.02] active:scale-[0.98]" disabled>
-                    下一步: 訂單確認 (步驟 4)
+                    下一步: 訂單確認
                 </button>
             </div>
         </form>
@@ -284,8 +271,21 @@
     function loadBookingData() {
         // 讀取 Step1/Step2 的資料
         const stored = localStorage.getItem("currentBooking");
+        // Check if we came here from an edit that requires picking extra seats
+        const pendingSeatsRaw = localStorage.getItem('editingPendingSeats');
+        let pendingSeats = null;
         if (stored) {
             currentBooking = JSON.parse(stored);
+        } else if (pendingSeatsRaw) {
+            // if currentBooking wasn't set but we have a pendingSeats object, restore newOrder into currentBooking
+            try {
+                pendingSeats = JSON.parse(pendingSeatsRaw);
+                if (pendingSeats && pendingSeats.newOrder) {
+                    currentBooking = pendingSeats.newOrder;
+                    // persist it so UI will render correctly
+                    localStorage.setItem('currentBooking', JSON.stringify(currentBooking));
+                }
+            } catch (e) { currentBooking = { tickets: {}, combos: {} }; }
         } else {
             currentBooking = {
                 tickets: {},
@@ -308,10 +308,31 @@
             showtimeDetailDisplay.textContent = currentBooking.showtimeDetail || "未選擇";
         }
 
-        // 總票數
-        totalTickets = currentBooking.totalTicketQty || 0;
+        // If editingPendingSeats exists, prefer its desiredTicketCount (user increased tickets)
+        if (!pendingSeats) {
+            try { pendingSeats = JSON.parse(localStorage.getItem('editingPendingSeats') || 'null'); } catch(e){ pendingSeats = null; }
+        }
+
+        // 總票數 (確保為數字)
+        totalTickets = Number(currentBooking.totalTicketQty) || 0;
+        if (pendingSeats && Number(pendingSeats.desiredTicketCount)) {
+            totalTickets = Number(pendingSeats.desiredTicketCount);
+            // ensure currentBooking reflects the desired ticket qty
+            currentBooking.totalTicketQty = totalTickets;
+            localStorage.setItem('currentBooking', JSON.stringify(currentBooking));
+        }
         requiredTicketsSpan.textContent = totalTickets;
         totalTicketsRequiredSpan.textContent = totalTickets;
+
+        // 設定「上一步」連結：依票務類型導回團體或一般票步驟
+        const prevLink = document.getElementById('prevLink');
+        if (prevLink) {
+            if (currentBooking.ticketType === 'group') {
+                prevLink.href = 'booking_flow_group.html';
+            } else {
+                prevLink.href = 'booking_flow_2.html';
+            }
+        }
 
         // 票種摘要
         const tickets = currentBooking.tickets || {};
@@ -356,14 +377,38 @@
                 if (seat === "O") {
                     seatDiv.classList.add("occupied");
                     seatDiv.title = "座位已售出";
+                    seatDiv.tabIndex = -1;
+                    seatDiv.setAttribute('aria-disabled', 'true');
+                    seatDiv.setAttribute('role', 'img');
+                    seatDiv.dataset.type = 'O';
                 } else if (seat === "W") {
                     seatDiv.classList.add("wheelchair");
                     seatDiv.title = "愛心座位（輪椅席）";
+                    seatDiv.tabIndex = 0;
+                    seatDiv.setAttribute('role', 'button');
+                    seatDiv.setAttribute('aria-pressed', 'false');
+                    seatDiv.dataset.type = 'W';
                     seatDiv.addEventListener("click", () => toggleSeat(seatId, seatDiv));
+                    seatDiv.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            toggleSeat(seatId, seatDiv);
+                        }
+                    });
                 } else {
                     seatDiv.classList.add("available");
                     seatDiv.title = "可選座位";
+                    seatDiv.tabIndex = 0;
+                    seatDiv.setAttribute('role', 'button');
+                    seatDiv.setAttribute('aria-pressed', 'false');
+                    seatDiv.dataset.type = 'A';
                     seatDiv.addEventListener("click", () => toggleSeat(seatId, seatDiv));
+                    seatDiv.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            toggleSeat(seatId, seatDiv);
+                        }
+                    });
                 }
 
                 rowDiv.appendChild(seatDiv);
@@ -379,10 +424,12 @@
         if (element.classList.contains("selected")) {
             // 取消選擇
             element.classList.remove("selected");
-            if (element.classList.contains("wheelchair")) {
-                element.classList.add("wheelchair");
-            } else {
-                element.classList.add("available");
+            // 根據原始類型還原狀態 (A / W)
+            const originalType = element.dataset.type;
+            if (originalType === 'W') {
+                element.classList.add('wheelchair');
+            } else if (originalType === 'A') {
+                element.classList.add('available');
             }
             selectedSeats = selectedSeats.filter(s => s !== seatId);
         } else {
@@ -400,6 +447,8 @@
         }
 
         errorMessage.textContent = "";
+        // 更新無障礙狀態
+        element.setAttribute('aria-pressed', element.classList.contains('selected') ? 'true' : 'false');
         updateSelectedDisplay();
     }
 
@@ -415,7 +464,8 @@
         submitSeatsInput.value = selectedSeats.join(",");
 
         // 啟用/禁用下一步按鈕
-        nextButton.disabled = selectedSeats.length !== totalTickets;
+        // 如果 totalTickets <= 0，保持下一步禁用
+        nextButton.disabled = (totalTickets <= 0) || (selectedSeats.length !== totalTickets);
         
         // 顯示選擇進度
         if (selectedSeats.length > 0 && selectedSeats.length < totalTickets) {
@@ -447,6 +497,32 @@
         localStorage.setItem("currentBooking", JSON.stringify(currentBooking));
 
         console.log("🎯 Step3 已儲存座位選擇：", currentBooking);
+
+        // If editingPendingSeats exists, finalize pendingModification and go to payment
+        const pendingSeatsRaw2 = localStorage.getItem('editingPendingSeats');
+        if (pendingSeatsRaw2) {
+            try {
+                const pendingSeatsObj = JSON.parse(pendingSeatsRaw2);
+                const previousTotal = Number(pendingSeatsObj.previousTotal || 0);
+                // determine new total: prefer currentBooking.totalPrice if set, else try to compute
+                const newTotal = Number(currentBooking.totalPrice || 0);
+                const due = newTotal - previousTotal;
+                const pending = {
+                    orderId: pendingSeatsObj.orderId,
+                    previousTotal: previousTotal,
+                    newOrder: currentBooking,
+                    dueAmount: due
+                };
+                localStorage.setItem('pendingModification', JSON.stringify(pending));
+                // clear editingPendingSeats (we move to payment)
+                localStorage.removeItem('editingPendingSeats');
+                // keep editingOrder so payment finalize knows original order id
+                window.location.href = 'booking_edit_payment.html';
+                return;
+            } catch (err) {
+                console.error('解析 editingPendingSeats 失敗', err);
+            }
+        }
 
         // 前往 Step4
         window.location.href = "booking_flow_4.html";

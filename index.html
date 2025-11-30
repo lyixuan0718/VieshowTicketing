@@ -29,13 +29,14 @@
     <style>
         /* 自定義樣式：專用於電影卡片的過渡和佈局 */
         .movie-poster-card {
-            /* 基礎卡片樣式與陰影效果 */
+            /* 基礎卡片樣式與陰影效果 (從 Tailwind 寫法轉換) */
             transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
             cursor: pointer;
             overflow: hidden;
             background-color: white;
-            /* 應用 Tailwind 類別 */
-            @apply rounded-xl shadow-lg hover:shadow-2xl border border-gray-100;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 15px rgba(0,0,0,0.08);
+            border: 1px solid #f3f4f6; /* gray-100 */
         }
         .movie-poster-card:hover {
             /* 懸停效果：輕微上移 */
@@ -60,31 +61,54 @@
 
         /* 查詢表單元件樣式 (響應式調整) */
         .search-input {
-            /* 輸入框/選擇框的一致風格 */
-            @apply w-full sm:w-auto p-3 border border-gray-300 rounded-xl focus:ring-vieshow-red focus:border-vieshow-red;
+            /* 輸入框/選擇框的一致風格 (從 Tailwind 寫法轉換) */
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db; /* gray-300 */
+            border-radius: 0.75rem;
+            background-clip: padding-box;
+        }
+        @media (min-width: 640px) {
+            .search-input.sm-auto { width: auto; }
+        }
+        .search-input:focus {
+            outline: none;
+            box-shadow: 0 0 0 4px rgba(229,9,20,0.06);
+            border-color: #e50914; /* vieshow-red */
         }
         
         /* 通用內容卡片樣式 */
         .content-card {
             transition: transform 0.2s;
-            @apply bg-white p-6 rounded-xl shadow-lg hover:shadow-xl border-t-4 border-vieshow-gold;
+            background-color: #ffffff;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.06);
+            border-top: 4px solid rgba(247,168,61,0.15); /* vieshow-gold subtle */
         }
         .content-card:hover {
             transform: translateY(-3px);
-            @apply border-t-vieshow-red; 
+            border-top-color: #e50914; /* vieshow-red on hover */
+            box-shadow: 0 16px 32px rgba(0,0,0,0.08);
         }
         
         /* 餐點卡片專用樣式 */
         .food-card {
-            @apply bg-white p-5 rounded-xl shadow-md border-b-4 border-vieshow-red hover:shadow-lg transition duration-300;
+            background-color: #ffffff;
+            padding: 1.25rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.06);
+            border-bottom: 4px solid #e50914;
+            transition: box-shadow 0.3s, transform 0.15s;
         }
+        .food-card:hover { box-shadow: 0 10px 24px rgba(0,0,0,0.08); }
     </style>
 </head>
 <body class="bg-gray-100 font-sans min-h-screen flex flex-col">
 
     <header class="bg-gray-800 text-white shadow-md">
         <nav class="container mx-auto px-4 py-4 flex justify-between items-center">
-            <a href="C:\xampp\htdocs\VieshowTicketing\index.html" class="text-xl font-bold hover:text-vieshow-red transition duration-300">Vieshow 影城</a>
+            <a href="./index.html" class="text-xl font-bold hover:text-vieshow-red transition duration-300">Vieshow 影城</a>
             <div id="headerNavRight" class="space-x-4">
                 </div>
         </nav>

@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>補差額付款 - Vieshow Ticketing</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: Inter, 'Noto Sans TC', sans-serif; background:#f8fafc }
+        .card { max-width:720px; margin:48px auto; background:white; padding:24px; border-radius:12px; box-shadow:0 8px 30px rgba(2,6,23,0.06)}
+        .muted { color:#6b7280 }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1 class="text-2xl font-bold mb-2">補差額付款</h1>
+        <p class="muted mb-4">請確認以下差額並完成付款，完成後系統會套用您的變更並寄送修改通知。</p>
+
+        <div id="summary" class="mb-6">
+            <!-- 會以 JS 填入訂單摘要與差額 -->
+        </div>
+
+        <div id="paymentUI" class="mb-6">
+            <!-- 依付款方式顯示不同 UI（QR / 信用卡 / 現場付款說明） -->
+        </div>
+
+        <div class="flex gap-3">
+            <button id="payBtn" class="px-4 py-2 bg-vieshow-red text-white rounded-lg">支付差額並套用變更</button>
+            <a href="booking_history.html" id="cancelLink" class="px-4 py-2 bg-gray-200 rounded-lg">返回訂單頁</a>
+        </div>
+    </div>
+
+<script>
+    function getPending() {
+        try { return JSON.parse(localStorage.getItem('pendingModification') || 'null'); } catch(e) { return null; }
+    }
+
+    function formatAmount(n){ return 'NT$ ' + Number(n || 0).toLocaleString('en-US'); }
+
+    const pending = getPending();
+    const summary = document.getElementById('summary');
+    const payBtn = document.getElementById('payBtn');
+
+    if (!pending) {
+        summary.innerHTML = '<p class="muted">找不到待處理的修改，請回到歷史訂單頁面。</p>';
+        payBtn.disabled = true;
+    } else {
+        const order = pending.newOrder || {};
+        // method will be selected by user; default to previous selection or fallback to credit_card
+        let method = pending.payment_method || order.payment_method || 'credit_card';
+        const methodLabel = (m) => m === 'credit_card' ? '信用卡' : m === 'line_pay' ? 'Line Pay' : '現場付款';
+        summary.innerHTML = `
+            <div class="mb-2"><strong>訂單編號：</strong> ${order.id}</div>
+            <div class="mb-2"><strong>電影：</strong> ${order.movie?.title || ''}</div>
+            <div class="mb-2"><strong>原始金額：</strong> ${formatAmount(pending.previousTotal)}</div>
+            <div class="mb-2"><strong>修改後金額：</strong> ${formatAmount(pending.previousTotal + pending.dueAmount)}</div>
+            <div class="mb-2"><strong>差額 (需補)：</strong> <span class="text-vieshow-red">${formatAmount(pending.dueAmount)}</span></div>
+            <div class="mb-2"><strong>付款方式：</strong> 
+                <select id="methodSelect" style="padding:6px;border:1px solid #ddd;border-radius:6px">
+                    <option value="credit_card">信用卡</option>
+                    <option value="line_pay">Line Pay</option>
+                    <option value="cash">現場付款</option>
+                </select>
+            </div>
+        `;
+
+        const paymentUI = document.getElementById('paymentUI');
+        paymentUI.innerHTML = '';
+
+        // helper to determine if cash is allowed (group ticket)
+        function isCashAllowed(orderObj){
+            try{
+                const tickets = orderObj.tickets || [];
+                return tickets.some(t => /團|group|團體/.test(String(t.type)) );
+            }catch(e){return false}
+        }
+
+        // finalizePayment - shared save logic
+        function finalizePayment() {
+            try {
+                const storedRaw = localStorage.getItem('bookingHistory') || '[]';
+                const stored = JSON.parse(storedRaw);
+
+                const idx = stored.findIndex(s => s.id === pending.orderId);
+                if (idx >= 0) stored[idx] = pending.newOrder;
+                else stored.push(pending.newOrder);
+
+                const saved = stored.find(s => s.id === pending.orderId);
+                if (saved) saved.total = (pending.previousTotal + pending.dueAmount);
+                if (pending.payment_method && saved) saved.payment_method = pending.payment_method;
+
+                localStorage.setItem('bookingHistory', JSON.stringify(stored));
+                localStorage.removeItem('pendingModification');
+
+                alert('付款成功，您的變更已套用。');
+
+                const user = JSON.parse(localStorage.getItem('user') || '{}');
+                const recipient = user.email || '';
+                let subject = encodeURIComponent('[Vieshow] 訂單 ' + saved.id + ' 已更新');
+                let body = encodeURIComponent('訂單已更新。\n訂單編號：' + saved.id + '\n總計：' + (saved.total || '') + '\n付款方式：' + (saved.payment_method || '') + '\n若需協助請聯絡客服。');
+
+                if (recipient) {
+                    window.location.href = `mailto:${recipient}?subject=${subject}&body=${body}`;
+                } else {
+                    window.location.href = 'booking_history.html';
+                }
+            } catch (e) {
+                console.error('保存付款結果失敗', e);
+                alert('保存失敗，請稍後再試');
+                // fallback: enable main button
+                payBtn.disabled = false;
+                payBtn.textContent = '支付差額並套用變更';
+            }
+        }
+
+        // render method-specific UI based on selected method
+        function renderMethodUI(selMethod) {
+            paymentUI.innerHTML = '';
+            // adjust pay button label
+            if (selMethod === 'line_pay') payBtn.textContent = '以 Line Pay 支付差額並套用變更';
+            else if (selMethod === 'credit_card') payBtn.textContent = '以信用卡支付差額並套用變更';
+            else payBtn.textContent = '以現場付款套用變更';
+
+            if (selMethod === 'line_pay'){
+                const qrPayload = encodeURIComponent('order:' + order.id + '|amount:' + pending.dueAmount);
+                const qrUrl = `https://chart.googleapis.com/chart?cht=qr&chs=300x300&chl=${qrPayload}`;
+                paymentUI.innerHTML = `
+                    <div class="text-center">
+                        <img id="linePayQr" src="${qrUrl}" alt="Line Pay QR" class="mx-auto border rounded-lg" style="width:200px;height:200px">
+                        <div style="margin-top:8px">
+                            <a id="downloadQr" href="${qrUrl}" download="linepay_${order.id}.png" class="px-3 py-2 bg-gray-200 rounded-lg">下載 QR 圖片</a>
+                        </div>
+                        <div style="margin-top:10px">
+                            <button id="confirmLinePay" class="px-4 py-2 bg-vieshow-red text-white rounded-lg">我已完成付款</button>
+                        </div>
+                    </div>
+                `;
+                document.getElementById('confirmLinePay').addEventListener('click', function(){
+                    this.disabled = true; this.textContent = '確認中...';
+                    // record chosen method
+                    pending.payment_method = 'line_pay'; localStorage.setItem('pendingModification', JSON.stringify(pending));
+                    setTimeout(finalizePayment, 1200);
+                });
+                payBtn.style.display = 'none';
+            } else if (selMethod === 'credit_card'){
+                paymentUI.innerHTML = `
+                    <form id="ccForm" class="space-y-3">
+                        <div><label>卡號</label><input id="ccNumber" type="text" placeholder="4242 4242 4242 4242" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:6px"></div>
+                        <div style="display:flex;gap:8px"><input id="ccExpiry" type="text" placeholder="MM/YY" style="flex:1;padding:8px;border:1px solid #ddd;border-radius:6px"><input id="ccCvc" type="text" placeholder="CVC" style="width:120px;padding:8px;border:1px solid #ddd;border-radius:6px"></div>
+                        <div><button id="ccPayBtn" type="button" class="px-4 py-2 bg-vieshow-red text-white rounded-lg">模擬刷卡支付</button></div>
+                    </form>
+                `;
+                document.getElementById('ccPayBtn').addEventListener('click', function(){
+                    this.disabled = true; this.textContent = '處理中...';
+                    // record method
+                    pending.payment_method = 'credit_card'; localStorage.setItem('pendingModification', JSON.stringify(pending));
+                    setTimeout(finalizePayment, 1200);
+                });
+                payBtn.style.display = 'none';
+            } else {
+                // cash
+                const allow = isCashAllowed(pending.newOrder || order);
+                if (!allow){
+                    paymentUI.innerHTML = `<div class="muted">現場付款僅限團體票使用。請回到編輯頁選擇其他付款方式。</div>
+                        <div style="margin-top:8px"><a href="booking_flow_2.html" class="px-3 py-2 bg-gray-200 rounded-lg">回到編輯頁更改付款方式</a></div>`;
+                    payBtn.disabled = true;
+                } else {
+                    paymentUI.innerHTML = `<div class="muted">您選擇現場付款。請於影城櫃台以現金支付差額，並在完成後點選下方按鈕以套用變更。</div>
+                        <div style="margin-top:8px"><button id="cashConfirm" class="px-4 py-2 bg-vieshow-red text-white rounded-lg">我已在現場支付</button></div>`;
+                    document.getElementById('cashConfirm').addEventListener('click', function(){
+                        this.disabled = true; this.textContent = '確認中...';
+                        pending.payment_method = 'cash'; localStorage.setItem('pendingModification', JSON.stringify(pending));
+                        setTimeout(finalizePayment, 800);
+                    });
+                    payBtn.style.display = 'none';
+                }
+            }
+
+        // init method select and render UI
+        const methodSelect = document.getElementById('methodSelect');
+        if (methodSelect) {
+            methodSelect.value = method;
+            methodSelect.addEventListener('change', function(){
+                method = this.value;
+                // update pending and persist choice
+                pending.payment_method = method; localStorage.setItem('pendingModification', JSON.stringify(pending));
+                // ensure payBtn visible state is reset
+                payBtn.style.display = ''; payBtn.disabled = false;
+                renderMethodUI(method);
+            });
+        }
+
+        // Render the initial UI
+        renderMethodUI(method);
+    }
+
+    payBtn.addEventListener('click', function(){
+        if (!pending) return alert('無待付款項目');
+
+        // 模擬付款流程 (在真實情況下會串接支付 SDK)
+        payBtn.disabled = true;
+        payBtn.textContent = '處理中...';
+
+        setTimeout(() => {
+            try {
+                const storedRaw = localStorage.getItem('bookingHistory') || '[]';
+                const stored = JSON.parse(storedRaw);
+
+                // replace or add
+                const idx = stored.findIndex(s => s.id === pending.orderId);
+                if (idx >= 0) stored[idx] = pending.newOrder;
+                else stored.push(pending.newOrder);
+
+                // update total to include the due
+                const saved = stored.find(s => s.id === pending.orderId);
+                if (saved) saved.total = (pending.previousTotal + pending.dueAmount);
+                // update payment method if provided
+                if (pending.payment_method && saved) saved.payment_method = pending.payment_method;
+
+                localStorage.setItem('bookingHistory', JSON.stringify(stored));
+                localStorage.removeItem('pendingModification');
+
+                alert('付款成功，您的變更已套用並已寄送通知（若使用 mailto 將開啟郵件客戶端）');
+
+                const user = JSON.parse(localStorage.getItem('user') || '{}');
+                const recipient = user.email || '';
+                const order = saved;
+
+                let subject = encodeURIComponent('[Vieshow] 訂單 ' + order.id + ' 已更新');
+                let body = encodeURIComponent('訂單已更新。\n訂單編號：' + order.id + '\n總計：' + (order.total || '') + '\n付款方式：' + (order.payment_method || '') + '\n若需協助請聯絡客服。');
+
+                if (recipient) {
+                    window.location.href = `mailto:${recipient}?subject=${subject}&body=${body}`;
+                } else {
+                    window.location.href = 'booking_history.html';
+                }
+            } catch (e) {
+                console.error('保存付款結果失敗', e);
+                alert('保存失敗，請稍後再試');
+                payBtn.disabled = false;
+                payBtn.textContent = '支付差額並套用變更';
+            }
+        }, 1400);
+    });
+    }
+</script>

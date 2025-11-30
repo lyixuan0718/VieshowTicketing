@@ -29,41 +29,85 @@
     <style>
         /* 步驟指示器 */
         .step-indicator {
-            @apply flex items-center justify-center mb-8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 2rem;
         }
         .step-circle {
-            @apply w-10 h-10 rounded-full flex items-center justify-center text-white font-bold
-                   transition duration-300;
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 9999px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: 700;
+            transition: background-color 0.3s, transform 0.15s;
         }
         .step-line {
-            @apply h-1 w-16 bg-gray-300 transition duration-300;
+            height: 0.25rem;
+            width: 4rem;
+            background-color: #d1d5db; /* gray-300 */
+            transition: background-color 0.3s;
         }
-        .step-active {
-            @apply bg-vieshow-red;
-        }
-        .step-completed {
-            @apply bg-vieshow-gold;
-        }
-        .step-pending {
-            @apply bg-gray-300;
-        }
+        .step-active { background-color: #e50914; }
+        .step-completed { background-color: #f7a83d; }
+        .step-pending { background-color: #d1d5db; }
+
         /* 付款方式卡片 */
         .payment-card {
-            @apply border-2 border-gray-300 rounded-xl p-4 cursor-pointer transition duration-300
-                   hover:border-vieshow-red hover:shadow-md;
+            border: 2px solid #d1d5db; /* gray-300 */
+            border-radius: 0.75rem;
+            padding: 1rem;
+            cursor: pointer;
+            transition: border-color .25s, box-shadow .25s, transform .08s;
+        }
+        .payment-card:hover {
+            border-color: #e50914; /* vieshow-red */
+            box-shadow: 0 6px 18px rgba(0,0,0,0.06);
         }
         .payment-card.selected {
-            @apply border-vieshow-red bg-red-50 ring-2 ring-vieshow-red ring-opacity-50;
+            border-color: #e50914;
+            background-color: rgba(229,9,20,0.04);
+            box-shadow: 0 8px 20px rgba(229,9,20,0.06);
         }
+        .payment-card.disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+            pointer-events: none;
+            filter: grayscale(.12);
+        }
+        .payment-card:focus { outline: 3px solid rgba(229,9,20,0.12); }
+
         /* 下一步按鈕 */
         .next-step-button {
-            @apply w-full bg-vieshow-red hover:bg-red-700 text-white font-bold py-3 px-4 rounded-xl 
-                   transition duration-300 shadow-lg text-lg disabled:opacity-50 disabled:cursor-not-allowed
-                   transform hover:scale-[1.02] active:scale-[0.98];
+            width: 100%;
+            background-color: #e50914;
+            color: #fff;
+            font-weight: 700;
+            padding: 0.75rem 1rem;
+            border-radius: 0.75rem;
+            transition: background-color .2s, transform .05s;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+            font-size: 1rem;
+            border: none;
         }
+        .next-step-button:hover { background-color: #b30b0f; transform: translateY(-1px); }
+        .next-step-button:active { transform: translateY(0); }
+        .next-step-button[disabled] { opacity: 0.5; cursor: not-allowed; box-shadow: none; }
+
         /* 付款方式圖示 */
         .payment-icon {
-            @apply w-12 h-12 flex items-center justify-center rounded-lg text-white text-xl font-bold;
+            width: 3rem;
+            height: 3rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 0.5rem;
+            color: #fff;
+            font-size: 1.25rem;
+            font-weight: 700;
         }
     </style>
 </head>
@@ -104,7 +148,7 @@
         <!-- 標題區塊 -->
         <div class="mb-8 pb-4 border-b border-gray-200">
             <h1 class="text-3xl font-extrabold text-gray-900 mb-2">🎟️ 訂票流程</h1>
-            <p class="text-xl font-semibold text-vieshow-red">步驟 5/5: 選擇付款方式</p>
+            <p class="text-xl font-semibold text-vieshow-red">選擇付款方式</p>
             <p class="text-sm text-gray-500 mt-1">請選擇您偏好的付款方式並確認應付金額。</p>
         </div>
 
@@ -164,21 +208,7 @@
                         </div>
                     </div>
 
-                    <!-- 街口支付 -->
-                    <div class="payment-card" data-method="jkopay">
-                        <div class="flex items-center space-x-4">
-                            <div class="payment-icon bg-purple-600">🟣</div>
-                            <div class="flex-1">
-                                <h4 class="font-semibold text-gray-900">街口支付</h4>
-                                <p class="text-sm text-gray-600 mt-1">掃碼輕鬆付款</p>
-                                <div class="flex space-x-1 mt-2">
-                                    <span class="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded">優惠多</span>
-                                    <span class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">即時</span>
-                                </div>
-                            </div>
-                            <input type="radio" name="payment_method" value="jkopay" class="hidden">
-                        </div>
-                    </div>
+                    <!-- 街口支付 已移除 -->
 
                     <!-- 現金付款 -->
                     <div class="payment-card" data-method="cash">
@@ -194,6 +224,14 @@
                             </div>
                             <input type="radio" name="payment_method" value="cash" class="hidden">
                         </div>
+                    </div>
+                </div>
+
+                <!-- Line Pay QR 區塊（動態顯示） -->
+                <div id="linePayArea" style="display:none; margin-top:1rem; padding:1rem; border:1px dashed #a7f3d0; border-radius:.5rem; background:#f0fdf4;">
+                    <div id="linePayQR" style="display:flex; flex-direction:column; align-items:center; gap:.75rem;"></div>
+                    <div style="display:flex; gap:.5rem; margin-top:.5rem; justify-content:center;">
+                        <button type="button" id="regenerateLinePayBtn" class="btn-outline">重新產生 QR</button>
                     </div>
                 </div>
             </div>
@@ -280,21 +318,36 @@
     // 選擇付款方式
     function selectPaymentMethod(method) {
         console.log('選擇付款方式:', method);
-        
         // 移除所有選擇狀態
-        document.querySelectorAll('.payment-card').forEach(card => {
-            card.classList.remove('selected');
-        });
-        
-        // 設定當前選擇
+        document.querySelectorAll('.payment-card').forEach(card => card.classList.remove('selected'));
+
+        // 找到要選擇的卡片
         const selectedCard = document.querySelector(`[data-method="${method}"]`);
-        if (selectedCard) {
-            selectedCard.classList.add('selected');
-            const radio = selectedCard.querySelector('input[type="radio"]');
-            if (radio) {
-                radio.checked = true;
-                console.log('已選擇:', method);
-            }
+        if (!selectedCard) return;
+
+        // 若該卡片被標記為 disabled，則忽略選擇
+        if (selectedCard.classList.contains('disabled')) {
+            console.warn('該付款方式不可使用:', method);
+            return;
+        }
+
+        selectedCard.classList.add('selected');
+        const radio = selectedCard.querySelector('input[type="radio"]');
+        if (radio) {
+            radio.checked = true;
+            radio.dispatchEvent(new Event('change', { bubbles: true }));
+            console.log('已選擇:', method);
+        }
+        updateSubmitButtonState();
+
+        // 如果是 Line Pay，產生/顯示 QR
+        if (method === 'line_pay') {
+            const area = document.getElementById('linePayArea');
+            if (area) area.style.display = '';
+            generateLinePayQR();
+        } else {
+            const area = document.getElementById('linePayArea');
+            if (area) area.style.display = 'none';
         }
     }
 
@@ -304,12 +357,120 @@
         console.log('找到付款卡片數量:', paymentCards.length);
         
         paymentCards.forEach(card => {
+            // mouse click
             card.addEventListener('click', function() {
                 const method = this.dataset.method;
                 console.log('點擊付款方式:', method);
                 selectPaymentMethod(method);
             });
+
+            // keyboard support (Enter / Space)
+            card.setAttribute('tabindex', '0');
+            card.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    const method = this.dataset.method;
+                    selectPaymentMethod(method);
+                }
+            });
         });
+
+        // radio inputs change -> update submit button state
+        document.querySelectorAll('input[name="payment_method"]').forEach(radio => {
+            radio.addEventListener('change', updateSubmitButtonState);
+        });
+    }
+
+    // 依據 currentBooking.ticketType 更新付款方式可用性
+    function updatePaymentAvailability() {
+        const ticketType = currentBooking.ticketType || currentBooking.ticketType === undefined ? currentBooking.ticketType : null;
+        console.log('檢查付款方式可用性，ticketType=', ticketType);
+
+        const cashCard = document.querySelector('[data-method="cash"]');
+        const cashRadio = cashCard ? cashCard.querySelector('input[type="radio"]') : null;
+
+        // 只有團體票 (group) 可以使用現金付款
+        if (cashCard) {
+            if (currentBooking.ticketType === 'group') {
+                cashCard.classList.remove('disabled');
+                if (cashRadio) { cashRadio.disabled = false; cashRadio.tabIndex = 0; }
+                cashCard.setAttribute('aria-disabled', 'false');
+            } else {
+                // 禁用現金付款
+                cashCard.classList.add('disabled');
+                if (cashRadio) { cashRadio.disabled = true; cashRadio.checked = false; cashRadio.tabIndex = -1; }
+                cashCard.setAttribute('aria-disabled', 'true');
+                // 若現金為當前已選，改回預設
+                const selected = document.querySelector('input[name="payment_method"]:checked');
+                if (!selected || selected.value === 'cash') {
+                    // 選擇信用卡為預設
+                    selectPaymentMethod('credit_card');
+                }
+            }
+        }
+        updateSubmitButtonState();
+    }
+
+    // 產生 Line Pay 偽 QR（placeholder），並儲存交易識別
+    function generateLinePayQR() {
+        const container = document.getElementById('linePayQR');
+        if (!container) return;
+        container.innerHTML = '';
+
+        const tx = 'LPAY-' + Math.random().toString(36).slice(2, 10).toUpperCase();
+        currentBooking.payment_info = currentBooking.payment_info || {};
+        currentBooking.payment_info.linepay_tx = tx;
+
+        const canvas = document.createElement('canvas');
+        canvas.width = 200; canvas.height = 200;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#fff'; ctx.fillRect(0,0,canvas.width,canvas.height);
+        for (let y=0;y<20;y++){
+            for (let x=0;x<20;x++){
+                if (Math.random() > 0.7) { ctx.fillStyle = '#000'; ctx.fillRect(x*10, y*10, 10, 10); }
+            }
+        }
+        ctx.fillStyle = '#111'; ctx.font = '12px sans-serif'; ctx.fillText(tx, 8, canvas.height - 8);
+
+        const info = document.createElement('div');
+        info.style.textAlign = 'center';
+        info.innerHTML = `<div style="font-weight:700; margin-bottom:.5rem;">請使用 Line Pay 掃描付款</div><div style="font-size:.9rem; color:#166534;">交易編號：<strong>${tx}</strong></div>`;
+
+        const dl = document.createElement('button');
+        dl.className = 'btn-outline';
+        dl.textContent = '下載 QR 圖檔';
+        dl.addEventListener('click', function(){ const a = document.createElement('a'); a.href = canvas.toDataURL('image/png'); a.download = tx + '.png'; a.click(); });
+
+        container.appendChild(canvas);
+        container.appendChild(info);
+        container.appendChild(dl);
+
+        // 保存暫時性的 payment_info
+        localStorage.setItem('currentBooking', JSON.stringify(currentBooking));
+    }
+
+    // regenerate button
+    document.addEventListener('click', function(e){
+        if (e.target && e.target.id === 'regenerateLinePayBtn') {
+            generateLinePayQR();
+        }
+    });
+
+    function updateSubmitButtonState() {
+        const submitBtn = document.querySelector('.next-step-button');
+        const selected = document.querySelector('input[name="payment_method"]:checked');
+        if (!submitBtn) return;
+        if (!selected) {
+            submitBtn.disabled = true;
+            return;
+        }
+        // 如果選擇的是被禁用的方法，也不允許送出
+        const selectedCard = document.querySelector(`[data-method="${selected.value}"]`);
+        if (selectedCard && selectedCard.classList.contains('disabled')) {
+            submitBtn.disabled = true;
+        } else {
+            submitBtn.disabled = false;
+        }
     }
 
     function loadBookingData() {
@@ -399,6 +560,10 @@
         console.log('頁面載入完成，開始初始化...');
         loadBookingData();
         setupPaymentSelection();
+        // 根據 booking 資料更新付款方式可用性（例如：僅團體票可使用現金付款）
+        if (typeof updatePaymentAvailability === 'function') {
+            updatePaymentAvailability();
+        }
         console.log('初始化完成');
     };
 

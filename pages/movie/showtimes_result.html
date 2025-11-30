@@ -32,12 +32,22 @@
             font-family: 'Inter', 'Noto Sans TC', sans-serif;
         }
 
-        /* 場次時間按鈕樣式 */
+        /* 場次時間按鈕樣式 (從 Tailwind 寫法轉換) */
         .showtime-button {
-            @apply px-4 py-2 bg-white text-gray-800 border border-gray-300 rounded-full font-semibold transition duration-200 ease-in-out;
+            padding: 0.5rem 1rem; /* px-4 py-2 */
+            background-color: #ffffff;
+            color: #1f2937; /* gray-800 */
+            border: 1px solid #d1d5db; /* gray-300 */
+            border-radius: 9999px; /* rounded-full */
+            font-weight: 600; /* font-semibold */
+            transition: transform 200ms ease-in-out, box-shadow 200ms ease-in-out, background-color 200ms ease-in-out;
         }
         .showtime-button:hover {
-            @apply bg-vieshow-red text-white border-vieshow-red shadow-md transform scale-105;
+            background-color: #e50914; /* vieshow-red */
+            color: #fff;
+            border-color: #e50914;
+            box-shadow: 0 8px 18px rgba(0,0,0,0.12);
+            transform: scale(1.05);
         }
     </style>
 </head>
