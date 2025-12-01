@@ -6,7 +6,7 @@
     <title>會員中心 - Vieshow Ticketing</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
-
+    
     <link href="https://fonts.googleapis.com/css2?family=Libre+Barcode+128&display=swap" rel="stylesheet">
 
     <style>
@@ -17,7 +17,6 @@
             flex-direction: column; /* 讓圖標和文字上下排列 */
             align-items: center;
             justify-content: center;
-            
             padding: 1.5rem 1rem;
             height: 100%; /* 確保網格中的每個項目等高 */
             border-radius: 0.5rem;
@@ -35,7 +34,7 @@
             transform: translateY(-2px);
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
         }
-
+        
         /* 調整登出按鈕 */
         .btn-logout-action {
             display: flex;
@@ -79,7 +78,6 @@
         }
         .barcode-display {
             font-family: 'Libre Barcode 128', monospace;
-            font-size: 100px; /* 增大條碼本身，填滿容器 */
             font-size: 80px; /* 增大條碼本身，填滿容器 */
             text-align: center;
             line-height: 1;
@@ -124,7 +122,7 @@
     <div class="container mx-auto px-4 py-10 flex-grow max-w-6xl">
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-
+            
             <div class="bg-white p-6 rounded-xl shadow-lg border-t-4 border-vieshow-gold member-details-container">
                 <h1 class="text-3xl font-extrabold text-gray-800 mb-4 flex items-center">
                     <span class="mr-2">👤</span> 會員中心首頁 
@@ -133,7 +131,7 @@
 
                 <div class="space-y-3 text-lg text-gray-700">
                     <h2 class="text-xl font-bold border-b pb-1 mb-2 text-vieshow-red">會員資料:</h2>
-
+                    
                     <p>
                         <span class="font-semibold text-gray-600 w-20 inline-block">姓名:</span> 
                         <span id="profile_name" class="font-bold"></span>
@@ -159,7 +157,7 @@
                         <span class="font-semibold text-gray-600 w-20 inline-block">會員編號:</span> 
                         <span id="profile_member_id" class="font-mono tracking-widest"></span>
                     </p>
-
+                    
                     <div class="pt-4">
                         <h3 class="font-semibold mb-1 text-gray-600">會員條碼:</h3>
                         <div id="barcodeContainer" class="barcode-container">
@@ -169,6 +167,7 @@
                 </div>
             </div>
 
+            <div>
                 <h2 class="text-2xl font-bold text-gray-700 mb-4 border-l-4 border-vieshow-red pl-3">快速功能導覽</h2>
 
                 <div class="member-actions grid grid-cols-2 gap-4">
@@ -197,7 +196,7 @@
                         <span class="icon" role="img" aria-label="Settings">⚙️</span> 會員資料修改
                     </a>
                 </div>
-
+                
                 <button id="signOutButton" class="btn-logout-action bg-btn-danger text-white hover:bg-red-600 mt-6 w-full"> 
                     <span class="mr-2 text-xl">➡️</span> 登出
                 </button>
@@ -215,6 +214,9 @@
         const LOGIN_PAGE_URL = '../auth/login.html';
         const INDEX_PAGE_URL = '../../index.html';
 
+        /**
+         * 模擬資料庫獲取的會員資料 (虛擬資料庫)
+         */
         const MEMBER_DATA = {
             name: "王大明",
             email: "david.wang@vieshow.tw",
@@ -234,13 +236,10 @@
             notification.innerHTML = message;
             const bgColor = isError ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800';
             
-
             notification.className = `fixed top-0 left-1/2 -translate-x-1/2 mt-4 px-6 py-3 rounded-lg shadow-xl z-50 transition duration-300 transform ${bgColor} animate-fade-in-down`;
             
-
             document.body.appendChild(notification);
             
-
             setTimeout(() => {
                 notification.classList.replace('animate-fade-in-down', 'animate-fade-out-up');
                 setTimeout(() => notification.remove(), 500);
@@ -253,15 +252,13 @@
         function checkLoginStatus() {
             const token = localStorage.getItem('auth_token');
             if (!token) {
-                // 如果沒有 Token，表示未登入，強制跳轉到登入頁
                 window.location.href = LOGIN_PAGE_URL; 
                 document.body.innerHTML = '<p class="text-center text-xl p-10">您尚未登入，正在導向登入頁面...</p>';
                 return false;
             }
             return true;
         }
-
-        // --- 登出處理 ---
+        
         /**
          * 渲染會員資料到頁面 (模擬從資料庫讀取後渲染)
          */
@@ -277,7 +274,7 @@
             document.getElementById('profile_dob').textContent = MEMBER_DATA.dob;
             document.getElementById('profile_points').textContent = MEMBER_DATA.points;
             document.getElementById('profile_member_id').textContent = MEMBER_DATA.memberId;
-
+            
             // 條碼內容
             document.getElementById('barcodeValue').textContent = MEMBER_DATA.barcodeContent;
         }
@@ -306,7 +303,6 @@
                 `;
             }
 
-
             // 4. 延遲 2 秒後導向首頁
             setTimeout(() => {
                 window.location.href = INDEX_PAGE_URL; 
@@ -316,7 +312,6 @@
         // 頁面載入時執行檢查與資料渲染
         window.onload = function() {
             if (!checkLoginStatus()) {
-                // 如果檢查失敗（未登入），則不再執行其他初始化
                 return; 
             }
             renderMemberData(); // 渲染模擬的會員資料
