@@ -101,3 +101,70 @@ footer{ background-color:var(--vieshow-dark); color:white; text-align:center; pa
 .text-center{ text-align:center; }
 .flex-1{ flex:1; }
 @media (max-width:640px){ .step-line{ width:2rem; } }
+/* 隱藏/顯示 class */
+.hidden {
+    display: none !important;
+}
+
+/* === 登入提示圖層 (Overlay) 樣式 === */
+#loginOverlay {
+    position: fixed; /* 讓它固定在視窗上，不隨捲軸移動 */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7); /* 黑色半透明背景來遮蓋下方內容 */
+    z-index: 1000; /* 確保它在最上層 */
+    display: flex;
+    justify-content: center; /* 水平居中 */
+    align-items: center; /* 垂直居中 */
+    backdrop-filter: blur(5px); /* 讓背景有點模糊效果 (選用) */
+}
+
+.login-prompt-content {
+    background-color: white;
+    color: var(--gray-800);
+    padding: 2.5rem 3rem;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    max-width: 450px;
+    width: 90%;
+    text-align: center;
+    transform: scale(1.05); /* 稍微放大以強調這是彈窗 */
+    animation: fadeIn 0.3s ease-out; /* 增加進入動畫 (選用) */
+}
+
+.login-prompt-content h2 {
+    color: var(--vieshow-red, #E62A2C); /* 使用紅色強調 */
+    margin-bottom: 1rem;
+    font-size: 1.8rem;
+}
+
+.login-prompt-content p {
+    margin-bottom: 1.5rem;
+    font-size: 1.05rem;
+}
+
+/* 前往登入按鈕樣式 (假設您已定義 primary-btn) */
+.login-prompt-content .primary-btn {
+    background-color: var(--vieshow-red, #E62A2C);
+    color: white;
+    padding: 0.75rem 2rem;
+    border: none;
+    border-radius: 4px;
+    text-decoration: none;
+    font-weight: bold;
+    display: inline-block;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.login-prompt-content .primary-btn:hover {
+    background-color: #CC2527;
+}
+
+/* (選用) 簡單的動畫效果 */
+@keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1.05); }
+}

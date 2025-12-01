@@ -268,11 +268,6 @@
         // ----------------------------------------------------
 
         document.addEventListener('DOMContentLoaded', () => {
-            // 模擬登入狀態：如果沒有 token，強制設定一個以顯示登出按鈕
-            if (!localStorage.getItem('auth_token')) {
-                localStorage.setItem('auth_token', 'mock_member_token_12345'); 
-            }
-            
             // 渲染導覽列 UI
             renderUI();
         });
