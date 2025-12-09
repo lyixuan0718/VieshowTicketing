@@ -97,29 +97,28 @@
         // 模擬電影場次資料 (現在包含地點和日期，以便篩選)
         const mockShowtimes = [
             // 台北信義 - 2025-11-30
-            { loc: 'taipei', date: '2025-11-30', id: 'G001', name: "星際特攻隊：無限戰爭", format: "IMAX 2D", rating: "保護級", times: ["10:00", "13:30", "17:00", "20:30"], duration: 150 },
-            { loc: 'taipei', date: '2025-11-30', id: 'D002', name: "夢想啟動：人工智慧時代", format: "數位 2D", rating: "普遍級", times: ["11:00", "14:45", "18:30"], duration: 120 },
+            { loc: 'taipei', date: '2025-11-30', id: 'G001', name: "星際特攻隊：無限戰爭",theater: 'A廳', format: "IMAX 2D", rating: "保護級", times: ["10:00", "13:30", "17:00", "20:30"], duration: 150 },
+            { loc: 'taipei', date: '2025-11-30', id: 'D002', name: "夢想啟動：人工智慧時代",theater: 'B廳', format: "數位 2D", rating: "普遍級", times: ["11:00", "14:45", "18:30"], duration: 120 },
             
             // 台北信義 - 2025-12-01
-            { loc: 'taipei', date: '2025-12-01', id: 'H003', name: "極速狂飆：午夜對決", format: "數位 4DX", rating: "限制級", times: ["12:15", "15:45", "19:15", "22:45"], duration: 135 },
-            { loc: 'taipei', date: '2025-12-01', id: 'C004', name: "貓咪偵探與失蹤的鑽石", format: "數位 3D", rating: "普遍級", times: ["09:30", "13:00", "16:30"], duration: 95 },
-
+            { loc: 'taipei', date: '2025-12-01', id: 'H003', name: "極速狂飆：午夜對決",theater: 'C廳', format: "數位 4DX", rating: "限制級", times: ["12:15", "15:45", "19:15", "22:45"], duration: 135 },
+            { loc: 'taipei', date: '2025-12-01', id: 'C004', name: "貓咪偵探與失蹤的鑽石",theater: 'D廳', format: "數位 3D", rating: "普遍級", times: ["09:30", "13:00", "16:30"], duration: 95 },
             // 台中大遠百 - 2025-11-30
-            { loc: 'taichung', date: '2025-11-30', id: 'G001', name: "星際特攻隊：無限戰爭", format: "IMAX 2D", rating: "保護級", times: ["09:45", "12:15", "15:30", "19:00"], duration: 150 },
-            { loc: 'taichung', date: '2025-11-30', id: 'F005', name: "失落的古文明", format: "數位 2D", rating: "保護級", times: ["10:45", "14:15", "17:45"], duration: 140 },
+            { loc: 'taichung', date: '2025-11-30', id: 'G001', name: "星際特攻隊：無限戰爭",theater: 'E廳', format: "IMAX 2D", rating: "保護級", times: ["09:45", "12:15", "15:30", "19:00"], duration: 150 },
+            { loc: 'taichung', date: '2025-11-30', id: 'F005', name: "失落的古文明",theater: 'F廳', format: "數位 2D", rating: "保護級", times: ["10:45", "14:15", "17:45"], duration: 140 },
             
             // 高雄大遠百 - 2025-11-30
-            { loc: 'kaohsiung', date: '2025-11-30', id: 'J006', name: "廚神爭霸戰", format: "數位 2D", rating: "普遍級", times: ["10:30", "13:00", "16:45"], duration: 110 },
+            { loc: 'kaohsiung', date: '2025-11-30', id: 'J006', name: "廚神爭霸戰",theater: 'G廳', format: "數位 2D", rating: "普遍級", times: ["10:30", "13:00", "16:45"], duration: 110 },
         ];
 
         
-        // **[新增]** 從首頁複製的導覽列相關常數 (路徑修正為 '../../')
-        const INDEX_PAGE_URL = '../../index.html'; // **[新增]** 補上首頁 URL
+        // 導覽列相關常數
+        const INDEX_PAGE_URL = '../../index.html';
         const LOGIN_PAGE_URL = '../../pages/auth/login.html';
         const MEMBER_HOME_URL = '../../pages/member/member_home.html';
 
         /**
-         * **[新增]** 渲染未登入狀態的導覽列。
+         * 渲染未登入狀態的導覽列。
          */
         function renderLoggedOutState() {
             const headerNavRight = document.getElementById('headerNavRight');
@@ -139,7 +138,7 @@
         }
 
         /**
-         * **[新增]** 渲染已登入狀態的導覽列。
+         * 渲染已登入狀態的導覽列。
          */
         function renderLoggedInState() {
             const headerNavRight = document.getElementById('headerNavRight');
@@ -156,8 +155,7 @@
         }
 
         /**
-         * **[修改]** 處理登出邏輯。
-         * 移除 setTimeout，讓 alert 處理跳轉延遲。
+         * 處理登出邏輯。
          */
         function handleSignOut(e) {
             e.preventDefault();
@@ -166,17 +164,10 @@
             localStorage.removeItem('auth_token');
 
             // 2. 顯示登出訊息 (使用自定義 alert)
-            // 將跳轉邏輯作為回呼函數傳入
-            // alert('您已成功登出。即將導向首頁...', () => {
-            //     // 3. 延遲導向首頁 (在用戶點擊 Modal 確認後 2 秒執行)
-            //     setTimeout(() => {
-            //         window.location.href = INDEX_PAGE_URL;
-            //     }, 2000);
-            // }); 
             alert('您已成功登出。即將重新整理頁面...', () => {
                 // 3. 延遲導向當前頁面
                 setTimeout(() => {
-                    // *** 關鍵修正：重新載入當前頁面，而不是跳回首頁 ***
+                    // 重新載入當前頁面，讓 UI 回到未登入狀態
                     window.location.href = window.location.href; 
                 }, 2000);
             });
@@ -186,29 +177,28 @@
         }
 
         /**
-         * **[新增]** 檢查登入狀態並渲染 UI
+         * 檢查登入狀態並渲染 UI
          */
         function renderUI() {
             // 模擬：如果 localStorage 中有 'auth_token' 則視為已登入
             const token = localStorage.getItem('auth_token');
             if (token) {
-                // 由於這裡是快搜頁，我們模擬用戶名稱
                 renderLoggedInState(); 
             } else {
                 renderLoggedOutState();
             }
         }
-        // **[新增]** 導覽列邏輯結束
+        // 導覽列邏輯結束
 
 
         document.addEventListener('DOMContentLoaded', () => {
-            // **[新增]** 優先渲染導覽列
+            // 優先渲染導覽列
             renderUI();
 
             const params = new URLSearchParams(window.location.search);
             const locationCode = params.get('location');
             const date = params.get('date');
-            const movieId = params.get('movie'); // 新增：獲取電影 ID
+            const movieId = params.get('movie'); // 獲取電影 ID
 
             // 根據參數篩選場次
             const filteredShowtimes = mockShowtimes.filter(showtime => {
@@ -305,6 +295,7 @@
                                 </p>
                                 <p class="text-sm text-gray-500 mt-1">
                                     版本：<span class="font-semibold text-vieshow-red">${movie.format}</span> |
+                                    廳別：<span class="font-semibold text-vieshow-red">${movie.theater}</span> |
                                     分級：<span class="font-semibold text-vieshow-red">${movie.rating}</span>
                                 </p>
                             </div>
@@ -314,7 +305,7 @@
                             <h3 class="text-lg font-semibold text-gray-700 mb-3">場次時間：</h3>
                             <div class="flex flex-wrap gap-3">
                                 ${movie.times.map(time => `
-                                    <button onclick="selectShowtime('${movie.id}', '${movie.name}', '${time}', '${movie.loc}', '${movie.date}')" 
+                                    <button onclick="selectShowtime('${movie.id}', '${movie.name}', '${time}', '${movie.loc}', '${movie.date}', '${movie.theater}', '${movie.format}')" 
                                             class="showtime-button">
                                         ${time}
                                     </button>
@@ -330,8 +321,16 @@
 
         /**
          * 選定場次並跳轉到選票與餐點頁面 (跳過 booking_flow_1.html)
+         *
+         * @param {string} movieId
+         * @param {string} movieName
+         * @param {string} time - 該場次的時間 (e.g., '13:30')
+         * @param {string} locationCode - 影城代碼 (e.g., 'taipei')
+         * @param {string} date - 該場次的日期 (e.g., '2025-11-30')
+         * @param {string} theater - 廳別 (e.g., 'A廳')
+         * @param {string} format - 版本格式 (e.g., 'IMAX 2D')
          */
-        function selectShowtime(movieId, movieName, time, locationCode, date) {
+        function selectShowtime(movieId, movieName, time, locationCode, date, theater , format) {
             
             // 由於跳過 Step 1，我們需要構造 Step 1 所需的所有資料
             const locationName = locationMap[locationCode] || '未知影城';
@@ -340,7 +339,7 @@
             const showtimeId = `${locationCode}-${movieId}-${date}-${time.replace(':', '')}`;
             
             const bookingData = {
-                // 模擬 Step 1 儲存的 ID
+                // 儲存 ID
                 cinemaId: locationCode, // 使用 locationCode 作為 cinemaId
                 movieId: movieId,
                 showtimeId: showtimeId,
@@ -348,8 +347,12 @@
                 // 儲存顯示名稱
                 cinemaName: locationName,
                 movieTitle: movieName,
-                // 為了與 booking_flow_1.html 保持格式一致，模擬一個場次詳情字串
-                showtimeDetail: `${date} ${time}`, // 這裡可以根據需要調整格式
+                
+                // *** 關鍵修改：確保 showtimeDetail 包含日期、時間、廳別和格式，以供 Step 2 顯示摘要 ***
+                showtimeDetail: `${date} ${time} ${theater} (${format})`, 
+                
+                theater: theater,
+                format: format,
             };
             
             // 儲存使用者選擇的資訊，以便在步驟 2/7 中使用
@@ -358,15 +361,13 @@
             
             console.log('快搜已儲存訂票資料並跳轉:', bookingData);
             
-            // 移除原本的 alert/console.log，直接導航到 booking_flow_2.html (路徑修正)
+            // 導航到 booking_flow_2.html (路徑修正為 ../booking/booking_flow_2.html)
             window.location.href = '../booking/booking_flow_2.html';
         }
         
         /**
-         * **[修改]** 模擬 alert() 函數，現在接受一個可選的回呼函數 (callback)。
+         * 模擬 alert() 函數，現在接受一個可選的回呼函數 (callback)。
          * 當用戶點擊「確認」時，會執行這個回呼函數。
-         * @param {string} message - 彈出視窗顯示的訊息
-         * @param {function} [callback] - 用戶點擊「確認」後要執行的函數
          */
         function alert(message, callback) {
             const existingModal = document.getElementById('custom-alert-modal');
@@ -376,7 +377,7 @@
             const handleConfirm = () => {
                 document.getElementById('custom-alert-modal').remove();
                 if (callback && typeof callback === 'function') {
-                    // **只有在用戶點擊確認後，才執行傳入的 callback 函數 (例如登出後的跳轉)**
+                    // 只有在用戶點擊確認後，才執行傳入的 callback 函數 (例如登出後的跳轉)
                     callback(); 
                 }
             };
@@ -406,8 +407,7 @@
             document.body.insertAdjacentHTML('beforeend', modalHtml);
         }
 
-        // **[新增]** 將自定義 alert 賦值給 window.alert，覆寫原生 alert。
-        // 這會讓 handleSignOut 裡的 alert(...) 呼叫到我們自定義的 Modal。
+        // 將自定義 alert 賦值給 window.alert，覆寫原生 alert。
         window.alert = alert;
     </script>
 </body>

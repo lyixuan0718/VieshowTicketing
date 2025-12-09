@@ -4,14 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>訂票步驟 1: 選擇票務類型與場次 - Vieshow Ticketing</title> 
-    
-    <link rel="stylesheet" href="../../public/assets/css/booking_flow.css">
 
-    <!-- 引入 Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     
     <script>
-        // Tailwind 配置，確保顏色和字體與專案一致
+        // Tailwind 配置
         tailwind.config = {
             theme: {
                 extend: {
@@ -19,6 +16,7 @@
                         'vieshow-red': '#e50914',
                         'vieshow-gold': '#f7a83d',
                         'vieshow-dark': '#1a1a1a',
+                        'gray-500': '#6b7280',
                     },
                     fontFamily: {
                         sans: ['Inter', 'Noto Sans TC', 'sans-serif'],
@@ -26,289 +24,8 @@
                 },
             },
         };
-    </script>
-</head>
-<body>
-    
-    <!-- Header 導航 -->
-    <!-- <header>
-        <nav class="header-nav">
-            <a href="../../index.html" class="header-logo">
-                <span style="margin-right: 0.5rem;">🎬</span> Vieshow 影城
-            </a>
-            <div class="header-links">
-                <a href="../auth/login.html" class="header-link">登入</a>
-                <a href="../member/member_home.html" class="header-link">會員中心</a>
-            </div>
-        </nav>
-    </header> -->
-    <header class="bg-gray-800 text-white shadow-md">
-        <nav class="container mx-auto px-4 py-4 flex justify-between items-center">
-            <a href="../../index.html" class="text-xl font-bold hover:text-vieshow-red transition duration-300">Vieshow 影城</a>
-            <div id="headerNavRight" class="space-x-4">
-            </div>
-        </nav>
-    </header>
 
-    <div id="loginOverlay" class="hidden">
-        <div class="login-prompt-content">
-            <h2>
-                <i class="fas fa-lock" style="margin-right: 0.5rem;"></i>
-                請先登入才能進行訂票
-            </h2>
-            <p>
-                請點擊下方按鈕前往登入頁面，以便繼續您的訂票流程。
-            </p>
-            <a href="javascript:void(0)" id="loginRedirectButton" class="btn primary-btn" style="margin-top: 1rem; display: inline-block; padding: 0.5rem 1rem; background-color: #1f2937; color: #fff; border-radius: 0.5rem; text-decoration: none;">
-                前往登入
-            </a>
-        </div>
-    </div>
-
-    <div class="main-content">
-        <div class="container">
-            <!-- 步驟指示器 -->
-            <div class="step-indicator">
-                <div class="step-circle step-active">1</div>
-                <div class="step-line step-pending"></div>
-                <div class="step-circle step-pending">2</div>
-                <div class="step-line step-pending"></div>
-                <div class="step-circle step-pending">3</div>
-                <div class="step-line step-pending"></div>
-                <div class="step-circle step-pending">4</div>
-                <div class="step-line step-pending"></div>
-                <div class="step-circle step-pending">5</div>
-            </div>
-            
-            <!-- 主要訂票卡片 -->
-            <div id="bookingCard" class="booking-card">
-                
-                <!-- 標題區塊 -->
-                <div class="title-section">
-                    <h1 class="main-title">🎟️ 訂票流程</h1>
-                    <p class="step-title">選擇票務類型與場次</p>
-                    <p class="step-description">請先選擇票務類型，然後依序選擇影城、電影和場次。</p>
-                </div>
-
-                <!-- 開發測試：模擬資料按鈕，便於快速測試一般 / 團體流程 -->
-                <div class="debug-simulate" style="margin-top:1rem;margin-bottom:1rem;display:flex;gap:0.5rem;flex-wrap:wrap;">
-                    <button id="simulateGeneral" type="button" style="background:#1f2937;color:#fff;padding:0.5rem 0.75rem;border-radius:0.5rem;border:none;cursor:pointer;">模擬：一般購票 (2 張)</button>
-                    <button id="simulateGroup" type="button" style="background:#0f766e;color:#fff;padding:0.5rem 0.75rem;border-radius:0.5rem;border:none;cursor:pointer;">模擬：團體購票 (12 人)</button>
-                    <button id="clearSim" type="button" style="background:#6b7280;color:#fff;padding:0.5rem 0.75rem;border-radius:0.5rem;border:none;cursor:pointer;">清除 currentBooking</button>
-                </div>
-
-                <!-- 表單區塊 -->
-                <form id="bookingFlow1Form" action="#" method="POST" class="form-section">
-                    
-                    <!-- 0. 選擇票務類型 -->
-                    <div id="ticketTypeSection">
-                        <label class="section-label">
-                            <span style="margin-right: 0.5rem;">🎫</span> 選擇票務類型
-                        </label>
-                        
-                        <div class="ticket-type-grid">
-                            <!-- 一般購票 -->
-                            <div class="ticket-type-card general" data-type="general">
-                                <div class="ticket-type-content">
-                                    <div class="ticket-icon">👤</div>
-                                    <h3 class="ticket-title">一般購票</h3>
-                                    <p class="ticket-description">個人或小團體觀影選擇</p>
-                                    <div class="ticket-features">
-                                        <div class="feature-item">
-                                            <span class="feature-dot dot-blue"></span>
-                                            <span>適合 1-8 人觀影</span>
-                                        </div>
-                                        <div class="feature-item">
-                                            <span class="feature-dot dot-blue"></span>
-                                            <span>多種票種選擇</span>
-                                        </div>
-                                        <div class="feature-item">
-                                            <span class="feature-dot dot-blue"></span>
-                                            <span>即時線上選位</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <!-- 團體票 -->
-                            <div class="ticket-type-card group" data-type="group">
-                                <div class="ticket-type-content">
-                                    <div class="ticket-icon">👥</div>
-                                    <h3 class="ticket-title">團體票</h3>
-                                    <p class="ticket-description">10人以上團體優惠</p>
-                                    <div class="ticket-features">
-                                        <div class="feature-item">
-                                            <span class="feature-dot dot-green"></span>
-                                            <span>適合 10人以上團體</span>
-                                        </div>
-                                        <div class="feature-item">
-                                            <span class="feature-dot dot-green"></span>
-                                            <span>專屬團體優惠價</span>
-                                        </div>
-                                        <div class="feature-item">
-                                            <span class="feature-dot dot-green"></span>
-                                            <span>需提前預約</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- 團體票詳細資訊 -->
-                        <div id="groupTicketInfo" class="group-ticket-info">
-                            <h4 class="group-ticket-title">🎉 團體票專屬優惠</h4>
-                            <ul class="group-ticket-list">
-                                <li>• 10人以上享團體優惠價</li>
-                                <li>• 可預約專屬場次時段</li>
-                                <li>• 專人服務協助安排座位</li>
-                                <li>• 可客製化餐點組合</li>
-                                <li>• 需於觀影前3天預訂</li>
-                            </ul>
-                        </div>
-                    </div>
-                    
-                    <!-- 1. 選擇影城地點 -->
-                    <div id="cinemaSelectionSection" class="hidden">
-                        <label for="cinema_location" class="section-label">
-                            <span style="margin-right: 0.5rem;">📍</span> 選擇影城地點
-                        </label>
-                        <select id="cinema_location" name="cinema_location" required class="select-styled">
-                            <option value="" disabled selected>請選擇影城地點</option>
-                            <!-- Options filled by JavaScript -->
-                        </select>
-                        <p class="select-help">選擇您想觀影的影城地點</p>
-                    </div>
-                    
-                    <!-- 2. 選擇電影 -->
-                    <div id="movieSelectionSection" class="hidden">
-                        <label class="section-label">
-                            <span style="margin-right: 0.5rem;">🎬</span> 選擇電影
-                        </label>
-                        
-                        <!-- 電影選擇區域 -->
-                        <div id="movieSelection" class="movie-grid">
-                            <div style="grid-column: 1 / -1; text-align: center; padding: 2rem 0; color: var(--gray-500);">
-                                請先選擇影城地點以顯示電影清單
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- 3. 選擇場次 -->
-                    <div id="showtimeSelectionSection" class="hidden">
-                        <label class="section-label">
-                            <span style="margin-right: 0.5rem;">🕒</span> 選擇場次
-                        </label>
-                        
-                        <!-- 場次選擇區域 -->
-                        <div id="showtimeSelection" class="showtime-section">
-                            <div style="text-align: center; padding: 2rem 0; color: var(--gray-500);">
-                                請先選擇電影以顯示場次資訊
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- 載入狀態訊息 -->
-                    <div id="loadingStatus" class="loading-message"></div>
-
-                    <!-- 下一步按鈕 -->
-                    <div class="button-container">
-                        <button type="submit" id="nextStepButton" class="next-step-button" disabled>
-                            下一步: 選擇票種與餐點
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- JavaScript 邏輯 -->
-    <script>
-        // 從首頁複製的導覽列相關常數 (路徑修正為 '../../')
-        const INDEX_PAGE_URL = '../../index.html'; // **[新增]** 補上首頁 URL
-        const LOGIN_PAGE_URL = '../auth/login.html';
-        const MEMBER_HOME_URL = '../member/member_home.html';
-
-        /**
-         * 渲染未登入狀態的導覽列。
-         */
-        function renderLoggedOutState() {
-            const headerNavRight = document.getElementById('headerNavRight');
-            if (!headerNavRight) return;
-            
-            // 獲取當前頁面的完整 URL，並進行 URL 編碼
-            const currentUrl = encodeURIComponent(window.location.href);
-
-            // 構造帶有回調網址的登入連結
-            const loginRedirectUrl = `${LOGIN_PAGE_URL}?redirect=${currentUrl}`;
-            
-            // 渲染導覽列：登入 + 會員中心
-            headerNavRight.innerHTML = `
-                <a href="${loginRedirectUrl}" class="hover:text-vieshow-gold transition duration-300">登入</a>
-                <a href="${MEMBER_HOME_URL}" class="hover:text-vieshow-gold transition duration-300">會員中心</a>
-            `;
-        }
-
-        /**
-         * 渲染已登入狀態的導覽列。
-         */
-        function renderLoggedInState() {
-            const headerNavRight = document.getElementById('headerNavRight');
-            if (!headerNavRight) return;
-
-            // 渲染導覽列：登出 + 會員中心
-            headerNavRight.innerHTML = `
-                <a href="#" id="signOutLink" class="hover:text-vieshow-gold transition duration-300">登出</a>
-                <a href="${MEMBER_HOME_URL}" class="hover:text-vieshow-gold transition duration-300">會員中心</a>
-            `;
-            
-            // 綁定登出事件
-            document.getElementById('signOutLink')?.addEventListener('click', handleSignOut);
-        }
-
-        /**
-         * 處理登出邏輯。
-         */
-        function handleSignOut(e) {
-            e.preventDefault();
-
-            // 1. 清除登入狀態的關鍵步驟
-            localStorage.removeItem('auth_token');
-            localStorage.removeItem('isLoggedIn');
-
-            // 2. 顯示登出訊息 (使用自定義 alert)
-            // 將跳轉邏輯作為回呼函數傳入
-            alert('您已成功登出。即將導向首頁...', () => {
-                // 3. 延遲導向首頁 (在用戶點擊 Modal 確認後 2 秒執行)
-                setTimeout(() => {
-                    window.location.href = INDEX_PAGE_URL;
-                }, 2000);
-            }); 
-            // alert('您已成功登出。即將重新整理頁面...', () => {
-            //     // 3. 延遲導向當前頁面
-            //     setTimeout(() => {
-            //         // *** 關鍵修正：重新載入當前頁面，而不是跳回首頁 ***
-            //         window.location.href = window.location.href; 
-            //     }, 2000);
-            // });
-            
-            // 4. 重新渲染導覽列至未登入狀態 (必須在跳轉前執行)
-            renderUI();
-        }
-
-        /**
-         * 檢查登入狀態並渲染 UI
-         */
-        function renderUI() {
-            // 模擬：如果 localStorage 中有 'auth_token' 則視為已登入
-            const token = localStorage.getItem('auth_token');
-            if (token) {
-                renderLoggedInState(); 
-            } else {
-                renderLoggedOutState();
-            }
-        }
-
-        // 3. 統一的自定義 Alert 函數
+        // 3. 統一的自定義 Alert 函數 (用於確保樣式一致性)
         // ----------------------------------------------------
 
         /**
@@ -320,18 +37,14 @@
             const existingModal = document.getElementById('custom-alert-modal');
             if (existingModal) existingModal.remove();
 
-            // 處理點擊「確認」的邏輯
             const handleConfirm = () => {
                 document.getElementById('custom-alert-modal').remove();
-                // 只有在用戶點擊確認後，才執行傳入的 callback 函數
                 if (callback && typeof callback === 'function') {
                     callback(); 
                 }
             };
 
-            // 將 handleConfirm 函數註冊到全域，確保 HTML onclick 可以找到它
             window.customAlertConfirm = handleConfirm;
-
 
             const modalHtml = `
                 <div id="custom-alert-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 z-50">
@@ -354,114 +67,685 @@
             `;
             document.body.insertAdjacentHTML('beforeend', modalHtml);
         }
-
-        // 覆寫瀏覽器內建的 alert，統一使用 customAlert
         window.alert = customAlert;
-
-        // 導覽列邏輯結束
-
-        /**
-         * 動態檢查模擬的登入狀態
-         * @returns {boolean} - true: 已登入, false: 未登入
-         */
-        // function checkLoginStatus() {
-        //     // 檢查 localStorage 中是否有模擬的登入 token
-        //     const token = localStorage.getItem('auth_token');
-        //     // 如果 token 存在，則視為已登入
-        //     if (!token) {
-        //         alert('請先登入才能進行訂票');
-        //         // 傳遞當前頁面路徑作為參數 (使用動態 pathname 與 query)
-        //         const currentPage = window.location.pathname + window.location.search;
-        //         window.location.href = `../auth/login.html?redirect=${encodeURIComponent(currentPage)}`;
-        //         return false;
-        //     }
-        //     return true; 
-        // }
-        // 檢查登入狀態
-        // function checkLoginStatus() {
-        //     const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-            
-        //     if (!isLoggedIn) {
-        //         alert('請先登入才能進行訂票');
-        //         // 傳遞當前頁面路徑作為參數 (使用動態 pathname 與 query)
-        //         const currentPage = window.location.pathname + window.location.search;
-        //         window.location.href = `../auth/login.html?redirect=${encodeURIComponent(currentPage)}`;
-        //         return false;
-        //     }
-        //     return true;
-        // }
-    function setupLoginRedirectLink() {
-        const loginButton = document.getElementById('loginRedirectButton');
-        
-        if (loginButton) {
-            // 1. 獲取相對於專案根目錄的路徑 (例如：booking/booking_flow.html?...)
-            const pathname = window.location.pathname;
-            let relativeToRootPath = (pathname.startsWith('/') ? pathname.substring(1) : pathname) + window.location.search; 
-            
-            const encodedPath = encodeURIComponent(relativeToRootPath);
-
-            // 2. 構造目標跳轉網址：指向 login.html，並在 redirect 參數中傳遞相對路徑
-            // 登入頁的路徑 (LOGIN_PAGE_URL) 應根據當前頁面 (booking/booking_flow.html) 來確定
-            // 從 booking/ -> auth/login.html 的路徑是 '../auth/login.html'
-            
-            const LOGIN_PAGE_URL_FIXED = '../auth/login.html'; // 假設是這個路徑
-            
-            // 3. 賦值給按鈕的 href
-            loginButton.href = `${LOGIN_PAGE_URL_FIXED}?redirect=${encodedPath}`;
-            
-            console.log("已修正登入按鈕連結:", loginButton.href);
-        }
-    }
-
-    // 初始渲染 UI 狀態
-    // 確保在頁面初始化時執行這個函式
-    document.addEventListener('DOMContentLoaded', () => {
-        renderUI();
-        
-        setupLoginRedirectLink(); // ✨ 執行路徑修正
-
-    });
+    </script>
     
-    // 步驟 0: 檢查登入狀態
-    // 確保您已宣告相關 DOM 元素，這裡只需要 loginOverlay
-    const loginOverlay = document.getElementById('loginOverlay');
-    // 假設您的主要訂票表單內容在 <main> 標籤中
-    const mainContent = document.querySelector('main'); 
+    <style>
+        /* General Layout */
+        body {
+            background-color: #f7f7f7;
+            font-family: 'Noto Sans TC', 'Inter', sans-serif;
+            color: #333;
+        }
+        .main-content {
+            padding: 2rem 0;
+            min-height: 80vh;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
 
+        /* Booking Card */
+        .booking-card {
+            background-color: white;
+            border-radius: 1rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+        }
+        .title-section {
+            border-bottom: 1px solid #e5e5e5;
+            padding-bottom: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .main-title {
+            font-size: 1.875rem; /* 30px */
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 0.5rem;
+        }
+        .step-title {
+            font-size: 1.25rem; /* 20px */
+            font-weight: 600;
+            color: #e50914;
+        }
+        .step-description {
+            color: #6b7280;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
 
-    function checkLoginStatus() {
-        // 模擬登入狀態：檢查 localStorage 中是否有 'isLoggedIn' 資料
-        const token = localStorage.getItem('auth_token');
-        if (!token) {
-            // 未登入處理：顯示圖層，隱藏主要內容
-            if (loginOverlay) {
-                loginOverlay.classList.remove('hidden');
-            }
-            if (mainContent) {
-                // 避免使用者看到被遮蓋的內容
-                mainContent.classList.add('hidden'); 
-            }
+        /* Step Indicator */
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+        .step-circle {
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: 700;
+            color: white;
+            background-color: #9ca3af; /* Pending */
+            transition: all 0.3s;
+        }
+        .step-active {
+            background-color: #e50914; /* Active */
+            box-shadow: 0 0 0 5px rgba(229, 9, 20, 0.3);
+        }
+        .step-completed {
+            background-color: #10b981; /* Completed/Green */
+        }
+        .step-line {
+            width: 3rem;
+            height: 3px;
+            background-color: #9ca3af; /* Pending */
+            margin: 0 0.5rem;
+            transition: background-color 0.3s;
+        }
+        .step-line.step-active {
+            background-color: #e50914;
+        }
+
+        /* Form Elements */
+        .form-section > div {
+            padding: 1rem 0;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        .section-label {
+            display: block;
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #333;
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+        }
+        .select-styled {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            background-color: #f9fafb;
+            font-size: 1rem;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+        .select-styled:focus {
+            border-color: #e50914;
+            box-shadow: 0 0 0 3px rgba(229, 9, 20, 0.2);
+            outline: none;
+        }
+        .select-help {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-top: 0.5rem;
+        }
+
+        /* Ticket Type Selection (Step 1) */
+        .ticket-type-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+        .ticket-type-card {
+            border: 2px solid #e5e5e5;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+        .ticket-type-card:hover {
+            border-color: #f7a83d;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+        }
+        .ticket-type-card.selected {
+            border-color: #e50914;
+            box-shadow: 0 0 0 4px rgba(229, 9, 20, 0.1);
+            background-color: #fff5f5;
+        }
+        .ticket-icon {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .ticket-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        .ticket-description {
+            color: #6b7280;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+        .feature-item {
+            display: flex;
+            align-items: center;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+        .feature-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+        }
+        .dot-blue { background-color: #3b82f6; }
+        .dot-green { background-color: #10b981; }
+
+        .group-ticket-info {
+            margin-top: 1rem;
+            padding: 1rem;
+            background-color: #f0fdf4;
+            border: 1px dashed #4ade80;
+            border-radius: 0.5rem;
+        }
+        .group-ticket-title {
+            font-weight: 600;
+            color: #16a34a;
+            margin-bottom: 0.5rem;
+        }
+        .group-ticket-list {
+            list-style: none;
+            padding-left: 0;
+            font-size: 0.9rem;
+            color: #16a34a;
+        }
+
+        /* Movie Selection (Step 3) */
+        .movie-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+        .movie-card {
+            border: 1px solid #e5e5e5;
+            border-radius: 0.75rem;
+            overflow: hidden;
+            transition: all 0.2s;
+            background-color: #fafafa;
+            position: relative;
+        }
+        .movie-card:hover {
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+            transform: translateY(-2px);
+        }
+        .movie-card.selected {
+            border-color: #e50914;
+            box-shadow: 0 0 0 3px rgba(229, 9, 20, 0.2);
+        }
+        .movie-content {
+            padding: 1rem;
+        }
+        .movie-layout {
+            display: flex;
+            gap: 1rem;
+        }
+        .movie-poster-container {
+            flex-shrink: 0;
+            width: 100px;
+            height: 150px;
+        }
+        .movie-poster {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 0.5rem;
+        }
+        .movie-details {
+            flex-grow: 1;
+        }
+        .movie-title {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 0.25rem;
+        }
+        .movie-tags {
+            margin-bottom: 0.5rem;
+        }
+        .movie-tag {
+            display: inline-block;
+            padding: 0.1rem 0.5rem;
+            border-radius: 0.375rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-right: 0.5rem;
+        }
+        .tag-red { background-color: #fee2e2; color: #ef4444; }
+        .tag-gray { background-color: #e5e7eb; color: #4b5563; }
+        .movie-description {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-top: 0.5rem;
+        }
+        .group-badge {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background-color: #10b981;
+            color: white;
+            padding: 0.2rem 0.5rem;
+            border-radius: 0.375rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            z-index: 10;
+        }
+
+        /* Showtime Selection (Step 4) */
+        .showtime-section {
+            padding: 1rem 0;
+            background-color: #f9fafb;
+            border-radius: 0.75rem;
+        }
+        .date-section {
+            padding: 0 1rem 1rem 1rem;
+        }
+        .date-header {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: #1a1a1a;
+            background-color: #f3f4f6;
+            padding: 0.5rem 1rem;
+            margin: 1rem -1rem 1rem -1rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .showtime-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        .showtime-card {
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            background-color: white;
+            position: relative;
+        }
+        .showtime-card:hover {
+            border-color: #f7a83d;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .showtime-card.selected {
+            border-color: #e50914;
+            box-shadow: 0 0 0 3px rgba(229, 9, 20, 0.2);
+            background-color: #fff5f5;
+        }
+        .showtime-time {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #e50914;
+            margin-bottom: 0.5rem;
+            border-bottom: 1px solid #e5e7eb;
+            padding-bottom: 0.5rem;
+        }
+        .showtime-details {
+            font-size: 0.875rem;
+            color: #4b5563;
+        }
+        .showtime-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.25rem;
+        }
+        .showtime-divider {
+            padding-top: 0.5rem;
+            margin-top: 0.5rem;
+            border-top: 1px dashed #e5e7eb;
+        }
+        .seats-low {
+            color: #f59e0b;
+            font-weight: 700;
+        }
+        .seats-available {
+            color: #10b981;
+            font-weight: 700;
+        }
+        .showtime-group-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background-color: #3b82f6;
+            color: white;
+            padding: 0.1rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            z-index: 10;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 1.5rem;
+            background-color: #1a1a1a;
+            color: #9ca3af;
+            font-size: 0.875rem;
+            margin-top: 2rem;
+        }
+
+        /* Button & Status */
+        .button-container {
+            padding-top: 2rem;
+            text-align: center;
+        }
+        .next-step-button {
+            background-color: #e50914;
+            color: white;
+            padding: 0.8rem 2rem;
+            font-size: 1.125rem;
+            font-weight: 700;
+            border-radius: 0.5rem;
+            transition: background-color 0.2s;
+        }
+        .next-step-button:hover:not(:disabled) {
+            background-color: #c50711;
+        }
+        .next-step-button:disabled {
+            background-color: #fda4af;
+            cursor: not-allowed;
+        }
+        .loading-message {
+            text-align: center;
+            margin-top: 1.5rem;
+            font-size: 0.95rem;
+            color: #6b7280;
+        }
+        .success-message {
+            padding: 0.75rem;
+            background-color: #ecfdf5;
+            border: 1px solid #a7f3d0;
+            border-radius: 0.5rem;
+            color: #047857;
+            margin-top: 1rem;
+        }
+        .success-text {
+            font-size: 0.95rem;
+        }
+    </style>
+</head>
+<body>
+    
+    <header class="bg-gray-800 text-white shadow-md">
+        <nav class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <a href="../../index.html" class="text-xl font-bold hover:text-vieshow-red transition duration-300">Vieshow 影城</a>
+            <div id="headerNavRight" class="space-x-4">
+            </div>
+        </nav>
+    </header>
+
+    <div class="main-content">
+        <div class="container">
+            <div class="step-indicator">
+                <div class="step-circle step-active">1</div>
+                <div class="step-line step-pending"></div>
+                <div class="step-circle step-pending">2</div>
+                <div class="step-line step-pending"></div>
+                <div class="step-circle step-pending">3</div>
+                <div class="step-line step-pending"></div>
+                <div class="step-circle step-pending">4</div>
+                <div class="step-line step-pending"></div>
+                <div class="step-circle step-pending">5</div>
+            </div>
             
-            // 阻止後續的訂票初始化流程
-            return false;
-        }
+            <div id="bookingCard" class="booking-card">
+                
+                <div class="title-section">
+                    <h1 class="main-title">🎟️ 訂票流程</h1>
+                    <p class="step-title">選擇票務類型與場次</p>
+                    <p class="step-description">請先選擇票務類型，然後依序選擇影城、電影和場次。</p>
+                </div>
 
-        // 已登入處理：確保圖層隱藏，主要內容顯示
-        if (loginOverlay) {
-            loginOverlay.classList.add('hidden');
-        }
-        if (mainContent) {
-            mainContent.classList.remove('hidden');
-        }
+                <form id="bookingFlow1Form" action="#" method="POST" class="form-section">
+                    
+                    <div id="ticketTypeSection">
+                        <label class="section-label">
+                            <span style="margin-right: 0.5rem;">🎫</span> 選擇票務類型
+                        </label>
+                        
+                        <div class="ticket-type-grid">
+                            <div class="ticket-type-card general" data-type="general">
+                                <div class="ticket-type-content">
+                                    <div class="ticket-icon">👤</div>
+                                    <h3 class="ticket-title">一般購票</h3>
+                                    <p class="ticket-description">個人或小團體觀影選擇</p>
+                                    <div class="ticket-features">
+                                        <div class="feature-item">
+                                            <span class="feature-dot dot-blue"></span>
+                                            <span>適合 **1-8 人**觀影</span>
+                                        </div>
+                                        <div class="feature-item">
+                                            <span class="feature-dot dot-blue"></span>
+                                            <span>多種票種選擇</span>
+                                        </div>
+                                        <div class="feature-item">
+                                            <span class="feature-dot dot-blue"></span>
+                                            <span>即時線上選位</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="ticket-type-card group" data-type="group">
+                                <div class="ticket-type-content">
+                                    <div class="ticket-icon">👥</div>
+                                    <h3 class="ticket-title">團體票</h3>
+                                    <p class="ticket-description">10人以上團體優惠</p>
+                                    <div class="ticket-features">
+                                        <div class="feature-item">
+                                            <span class="feature-dot dot-green"></span>
+                                            <span>適合 **10-20 人**團體</span>
+                                        </div>
+                                        <div class="feature-item">
+                                            <span class="feature-dot dot-green"></span>
+                                            <span>專屬團體優惠價</span>
+                                        </div>
+                                        <div class="feature-item">
+                                            <span class="feature-dot dot-green"></span>
+                                            <span>需提前預約</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div id="groupTicketInfo" class="group-ticket-info hidden">
+                            <h4 class="group-ticket-title">🎉 團體票專屬優惠</h4>
+                            <ul class="group-ticket-list">
+                                <li>• **10人以上**享團體優惠價 (限 **20 人**以下)</li>
+                                <li>• 可預約專屬場次時段</li>
+                                <li>• 專人服務協助安排座位</li>
+                                <li>• 可客製化餐點組合</li>
+                                <li>• 需於觀影前3天預訂</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div id="cinemaSelectionSection" class="hidden">
+                        <label for="cinema_location" class="section-label">
+                            <span style="margin-right: 0.5rem;">📍</span> 選擇影城地點
+                        </label>
+                        <select id="cinema_location" name="cinema_location" required class="select-styled">
+                            <option value="" disabled selected>請選擇影城地點</option>
+                            </select>
+                        <p class="select-help">選擇您想觀影的影城地點 (**必填**)</p>
+                    </div>
+                    
+                    <div id="movieSelectionSection" class="hidden">
+                        <label class="section-label">
+                            <span style="margin-right: 0.5rem;">🎬</span> 選擇電影
+                        </label>
+                        
+                        <div id="movieSelection" class="movie-grid">
+                            <div style="grid-column: 1 / -1; text-align: center; padding: 2rem 0; color: var(--gray-500);">
+                                請先選擇影城地點以顯示電影清單
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="showtimeSelectionSection" class="hidden">
+                        <label class="section-label">
+                            <span style="margin-right: 0.5rem;">🕒</span> 選擇場次
+                        </label>
+                        
+                        <div id="showtimeSelection" class="showtime-section">
+                            <div style="text-align: center; padding: 2rem 0; color: var(--gray-500);">
+                                請先選擇電影以顯示場次資訊
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="loadingStatus" class="loading-message"></div>
+
+                    <div class="button-container">
+                        <button type="submit" id="nextStepButton" class="next-step-button" disabled>
+                            下一步: 選擇票種與餐點
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 頁面路徑常數
+        const INDEX_PAGE_URL = '../../index.html';
+        const LOGIN_PAGE_URL = '../auth/login.html';
+        const MEMBER_HOME_URL = '../member/member_home.html';
+
+        // --- Mock 資料設定 (已整合您的預設條件) ---
+        const MOCK_CINEMAS = [
+            { id: 'taipei_xinyi', name: '台北信義影城', region: '台北' },
+            { id: 'banqiao_fuzhong', name: '板橋府中影城', region: '新北' },
+        ];
+
+        // 影廳設定: 40 個位置，10% 已售 (4 個)
+        // B 廳有愛心座 (6 個)
+        const SHOWTIME_TEMPLATE = [
+            // 影廳 A: 40 總位, 0 愛心, 4 已售
+            { id: 101, time: '14:00', theater: 'A廳', seats: 40, careSeats: 0, reserved: 4, type: '數位版', language: '英語', subtitle: '中文字幕', availableForGroup: true },
+            // 影廳 B: 40 總位, 6 愛心, 4 已售
+            { id: 102, time: '17:30', theater: 'B廳', seats: 40, careSeats: 6, reserved: 4, type: 'IMAX 3D', language: '英語', subtitle: '中文字幕', availableForGroup: true },
+            // 影廳 C: 40 總位, 0 愛心, 4 已售 - (模擬團體票不適用)
+            { id: 103, time: '20:00', theater: 'C廳', seats: 40, careSeats: 0, reserved: 4, type: '4DX', language: '中文', subtitle: '無', availableForGroup: false },
+        ];
+
+        const MOCK_MOVIES = [
+            { 
+                id: 1, 
+                title: '阿凡達 3: 最終戰役', 
+                duration: '180分鐘',
+                rating: '保護級',
+                genre: '科幻/動作',
+                image: 'https://via.placeholder.com/300x450/4A5568/FFFFFF?text=Avatar+3',
+                description: '延續前作劇情，納美人與人類的戰爭進入最終章',
+                showtimes: SHOWTIME_TEMPLATE
+            },
+            { 
+                id: 2, 
+                title: '不可能的任務 8', 
+                duration: '158分鐘',
+                rating: '輔12級',
+                genre: '動作/冒險',
+                image: 'https://via.placeholder.com/300x450/2D3748/FFFFFF?text=Mission+Impossible',
+                description: '伊森韓特再次挑戰不可能的任務',
+                showtimes: SHOWTIME_TEMPLATE.filter(s => s.type === 'IMAX 3D' || s.type === '4DX')
+            }
+        ];
         
-        return true;
-    }
+        // --- 日期工具函數 (購票日 ~ 購票日+7天) ---
+        /**
+         * 取得從今天開始 n 天內的日期清單
+         * @param {number} days - 包含今天在內的天數
+         */
+        function getNextNDays(days) {
+            const dates = [];
+            const today = new Date();
+            today.setHours(0, 0, 0, 0); 
+            const dayNames = ['日', '一', '二', '三', '四', '五', '六'];
 
-        // 取得 DOM 元素
-        const ticketTypeSection = document.getElementById('ticketTypeSection');
-        const cinemaSelectionSection = document.getElementById('cinemaSelectionSection');
-        const movieSelectionSection = document.getElementById('movieSelectionSection');
-        const showtimeSelectionSection = document.getElementById('showtimeSelectionSection');
+            for (let i = 0; i < days; i++) {
+                const nextDay = new Date(today);
+                nextDay.setDate(today.getDate() + i);
+
+                const dateStr = `${nextDay.getFullYear()}/${(nextDay.getMonth() + 1).toString().padStart(2, '0')}/${nextDay.getDate().toString().padStart(2, '0')}`;
+                const dayOfWeekStr = dayNames[nextDay.getDay()];
+                
+                dates.push({
+                    date: `${dateStr}(${dayOfWeekStr})`,
+                    simpleDate: `${nextDay.getFullYear()}-${(nextDay.getMonth() + 1).toString().padStart(2, '0')}-${nextDay.getDate().toString().padStart(2, '0')}`
+                });
+            }
+            return dates;
+        }
+
+        // --- 登入/登出/導覽列邏輯 ---
+        function renderLoggedOutState() {
+            const headerNavRight = document.getElementById('headerNavRight');
+            if (!headerNavRight) return;
+            const currentUrl = encodeURIComponent(window.location.href);
+            const loginRedirectUrl = `${LOGIN_PAGE_URL}?redirect=${currentUrl}`;
+            headerNavRight.innerHTML = `
+                <a href="${loginRedirectUrl}" class="hover:text-vieshow-gold transition duration-300">登入</a>
+                <a href="${MEMBER_HOME_URL}" class="hover:text-vieshow-gold transition duration-300">會員中心</a>
+            `;
+        }
+
+        function renderLoggedInState() {
+            const headerNavRight = document.getElementById('headerNavRight');
+            if (!headerNavRight) return;
+            headerNavRight.innerHTML = `
+                <a href="#" id="signOutLink" class="hover:text-vieshow-gold transition duration-300">登出</a>
+                <a href="${MEMBER_HOME_URL}" class="hover:text-vieshow-gold transition duration-300">會員中心</a>
+            `;
+            document.getElementById('signOutLink')?.addEventListener('click', handleSignOut);
+        }
+
+        function handleSignOut(e) {
+            e.preventDefault();
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('isLoggedIn');
+            localStorage.removeItem('currentBooking'); // 清除未完成的訂單
+            alert('您已成功登出。即將導向首頁...', () => {
+                setTimeout(() => {
+                    window.location.href = INDEX_PAGE_URL;
+                }, 2000);
+            }); 
+            renderUI();
+        }
+
+        function renderUI() {
+            const token = localStorage.getItem('auth_token');
+            if (token) {
+                renderLoggedInState(); 
+            } else {
+                renderLoggedOutState();
+            }
+        }
+
+        function checkLoginStatus() {
+            const token = localStorage.getItem('auth_token');
+            if (!token) {
+                alert('請先登入才能進行訂票', () => {
+                    const currentPage = window.location.pathname + window.location.search;
+                    window.location.href = `${LOGIN_PAGE_URL}?redirect=${encodeURIComponent(currentPage)}`;
+                });
+                return false;
+            }
+            return true;
+        }
+
+        // --- 核心邏輯 ---
         const cinemaSelect = document.getElementById('cinema_location');
         const movieSelection = document.getElementById('movieSelection');
         const showtimeSelection = document.getElementById('showtimeSelection');
@@ -469,8 +753,10 @@
         const loadingStatus = document.getElementById('loadingStatus');
         const form = document.getElementById('bookingFlow1Form');
         const groupTicketInfo = document.getElementById('groupTicketInfo');
+        const cinemaSelectionSection = document.getElementById('cinemaSelectionSection');
+        const movieSelectionSection = document.getElementById('movieSelectionSection');
+        const showtimeSelectionSection = document.getElementById('showtimeSelectionSection');
 
-        // 當前選擇狀態
         let currentSelections = {
             ticketType: null, // 'general' 或 'group'
             cinema: null,
@@ -478,87 +764,81 @@
             showtime: null
         };
 
-        // 票務類型選擇
+        // 票務類型選擇 (步驟 1)
         function setupTicketTypeSelection() {
             const ticketCards = document.querySelectorAll('.ticket-type-card');
             
             ticketCards.forEach(card => {
                 card.addEventListener('click', function() {
-                    // 移除所有選擇狀態
                     ticketCards.forEach(c => c.classList.remove('selected'));
-                    
-                    // 設定當前選擇
                     this.classList.add('selected');
+                    
                     currentSelections.ticketType = this.dataset.type;
                     
-                    // 顯示團體票資訊
                     if (currentSelections.ticketType === 'group') {
                         groupTicketInfo.classList.remove('hidden');
+                        nextButton.textContent = '下一步: 填寫團體資訊';
                     } else {
                         groupTicketInfo.classList.add('hidden');
+                        nextButton.textContent = '下一步: 選擇票種與餐點';
                     }
                     
-                    // 顯示影城選擇區塊
+                    resetSelection(1);
                     cinemaSelectionSection.classList.remove('hidden');
-                    
-                    // 載入影城資料
                     loadCinemas();
-                    
-                    // 更新步驟指示器
                     updateStepIndicator(1);
                 });
             });
         }
+        
+        // 重置後續選擇的區塊和狀態
+        function resetSelection(startStep) {
+            if (startStep <= 1) {
+                currentSelections.cinema = null;
+                cinemaSelect.selectedIndex = 0;
+                movieSelectionSection.classList.add('hidden');
+            }
+            if (startStep <= 2) {
+                currentSelections.movie = null;
+                showtimeSelectionSection.classList.add('hidden');
+                movieSelection.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 2rem 0; color: #6b7280;">請先選擇影城地點以顯示電影清單</div>';
+            }
+            if (startStep <= 3) {
+                currentSelections.showtime = null;
+                nextButton.disabled = true;
+                loadingStatus.textContent = '';
+                showtimeSelection.innerHTML = '<div style="text-align: center; padding: 2rem 0; color: #6b7280;">請先選擇電影以顯示場次資訊</div>';
+            }
+        }
+
 
         // 更新步驟指示器
         function updateStepIndicator(step) {
-            // 重置所有步驟
             document.querySelectorAll('.step-circle').forEach((circle, index) => {
-                circle.classList.remove('step-active', 'step-completed');
-                circle.classList.add('step-pending');
-            });
-            
-            document.querySelectorAll('.step-line').forEach(line => {
-                line.classList.remove('step-active');
-                line.classList.add('step-pending');
-            });
-            
-            // 設定已完成和當前步驟
-            for (let i = 0; i < step; i++) {
-                document.querySelectorAll('.step-circle')[i].classList.remove('step-pending');
-                document.querySelectorAll('.step-circle')[i].classList.add('step-completed');
-                
-                if (i > 0) {
-                    document.querySelectorAll('.step-line')[i-1].classList.remove('step-pending');
-                    document.querySelectorAll('.step-line')[i-1].classList.add('step-active');
+                circle.classList.remove('step-active', 'step-completed', 'step-pending');
+                if (index < step) {
+                    circle.classList.add('step-completed');
+                } else if (index === step) {
+                    circle.classList.add('step-active');
+                } else {
+                    circle.classList.add('step-pending');
                 }
-            }
+            });
             
-            // 設定當前活躍步驟
-            document.querySelectorAll('.step-circle')[step].classList.remove('step-pending');
-            document.querySelectorAll('.step-circle')[step].classList.add('step-active');
+            document.querySelectorAll('.step-line').forEach((line, index) => {
+                line.classList.remove('step-active', 'step-pending');
+                line.classList.add(index < step - 1 ? 'step-active' : 'step-pending');
+            });
         }
 
-        // 步驟 1: 動態載入影城地點 (使用 Mock Data)
+        // 步驟 2: 動態載入影城地點
         async function loadCinemas() {
             try {
                 loadingStatus.textContent = '正在載入影城地點...';
                 
-                // 模擬資料
-                const mockResponse = {
-                    cinemas: [
-                        { id: 'taipei_xinyi', name: '台北信義影城', region: '台北' },
-                        { id: 'taoyuan_tzyyuan', name: '桃園統領影城', region: '桃園' },
-                        { id: 'taichung_wenxin', name: '台中文心影城', region: '台中' },
-                        { id: 'kaohsiung_lingya', name: '高雄苓雅影城', region: '高雄' }
-                    ]
-                };
+                const data = { cinemas: MOCK_CINEMAS }; 
+                await new Promise(resolve => setTimeout(resolve, 500)); // 模擬延遲
                 
-                // 模擬網路延遲
-                await new Promise(resolve => setTimeout(resolve, 500));
-                const data = mockResponse; 
-                
-                // 清空並填充影城下拉式選單
                 cinemaSelect.innerHTML = '<option value="" disabled selected>請選擇影城地點</option>';
                 data.cinemas.forEach(cinema => {
                     const option = document.createElement('option');
@@ -568,109 +848,39 @@
                 });
 
                 cinemaSelect.disabled = false;
-                loadingStatus.textContent = ''; // 清除載入狀態
+                loadingStatus.textContent = '';
             } catch (error) {
                 console.error('載入影城失敗:', error);
                 loadingStatus.textContent = '載入影城資料失敗，請檢查網路。';
-                showRetryButton('載入影城失敗，請重試', loadCinemas);
             }
         }
 
-        // 步驟 2: 根據選擇的影城，動態載入電影清單 (使用 Mock Data)
+        // 步驟 3: 根據選擇的影城，動態載入電影清單
         async function loadMovies(cinemaId) {
-            movieSelection.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 2rem 0; color: var(--gray-500);">載入電影中...</div>';
-            showtimeSelection.innerHTML = '<div style="text-align: center; padding: 2rem 0; color: var(--gray-500);">請先選擇電影以顯示場次資訊</div>';
-            nextButton.disabled = true;
-            currentSelections.movie = null;
-            currentSelections.showtime = null;
+            movieSelection.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 2rem 0; color: #6b7280;">載入電影中...</div>';
+            resetSelection(2);
 
             try {
-                // 模擬網路延遲
-                await new Promise(resolve => setTimeout(resolve, 600));
+                await new Promise(resolve => setTimeout(resolve, 600)); // 模擬延遲
                 
-                let movies = [];
-                if (cinemaId === 'taipei_xinyi') {
-                    movies = [
-                        { 
-                            id: 1, 
-                            title: '阿凡達 3: 最終戰役', 
-                            duration: '180分鐘',
-                            rating: '保護級',
-                            genre: '科幻/動作',
-                            image: 'https://via.placeholder.com/300x450/4A5568/FFFFFF?text=Avatar+3',
-                            description: '延續前作劇情，納美人與人類的戰爭進入最終章',
-                            availableForGroup: true
-                        },
-                        { 
-                            id: 2, 
-                            title: '不可能的任務 8', 
-                            duration: '158分鐘',
-                            rating: '輔12級',
-                            genre: '動作/冒險',
-                            image: 'https://via.placeholder.com/300x450/2D3748/FFFFFF?text=Mission+Impossible',
-                            description: '伊森韓特再次挑戰不可能的任務',
-                            availableForGroup: true
-                        }
-                    ];
-                } else if (cinemaId === 'taoyuan_tzyyuan') {
-                    movies = [
-                        { 
-                            id: 1, 
-                            title: '阿凡達 3: 最終戰役', 
-                            duration: '180分鐘',
-                            rating: '保護級',
-                            genre: '科幻/動作',
-                            image: 'https://via.placeholder.com/300x450/4A5568/FFFFFF?text=Avatar+3',
-                            description: '延續前作劇情，納美人與人類的戰爭進入最終章',
-                            availableForGroup: true
-                        },
-                        { 
-                            id: 3, 
-                            title: '駭客任務 5', 
-                            duration: '148分鐘',
-                            rating: '輔15級',
-                            genre: '科幻/動作',
-                            image: 'https://via.placeholder.com/300x450/1A202C/FFFFFF?text=Matrix+5',
-                            description: '尼歐重返母體，展開全新冒險',
-                            availableForGroup: false
-                        }
-                    ];
-                } else {
-                    movies = [
-                        { 
-                            id: 4, 
-                            title: '神秘電影', 
-                            duration: '120分鐘',
-                            rating: '普遍級',
-                            genre: '劇情',
-                            image: 'https://via.placeholder.com/300x450/718096/FFFFFF?text=Mystery+Movie',
-                            description: '一部充滿驚喜的神秘電影',
-                            availableForGroup: true
-                        }
-                    ];
-                }
+                let movies = MOCK_MOVIES;
                 
                 // 根據使用者選擇的票務類型過濾電影清單
-                // - 團體票 (group): 只顯示可團體預訂的電影
-                // - 一般購票 (general): 移除可團體預訂的電影（僅顯示不適用團體票的電影）
                 if (currentSelections.ticketType === 'group') {
-                    movies = movies.filter(movie => movie.availableForGroup);
-                } else if (currentSelections.ticketType === 'general') {
-                    movies = movies.filter(movie => !movie.availableForGroup);
-                }
+                    // 團體票: 只顯示有可用團體場次的電影
+                    const availableMovieIds = MOCK_MOVIES.filter(movie => 
+                        movie.showtimes.some(st => st.availableForGroup)
+                    ).map(m => m.id);
+                    movies = MOCK_MOVIES.filter(m => availableMovieIds.includes(m.id));
+                } 
+                // 一般購票則顯示所有電影 (因為 MOCK_MOVIES 預設就是所有電影)
                 
-                // 清空並填充電影選擇區域
                 movieSelection.innerHTML = '';
                 
                 if (movies.length === 0) {
-                    movieSelection.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 2rem 0; color: var(--gray-500);">目前無符合您選擇條件的電影</div>';
-                    // 顯示電影選擇區塊以提示使用者目前無符合條件的電影
+                    movieSelection.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 2rem 0; color: #6b7280;">目前無符合您選擇條件的電影</div>';
                     movieSelectionSection.classList.remove('hidden');
-                    // 更新步驟指示器到電影選擇步驟
                     updateStepIndicator(2);
-                    // 清理場次區塊與提示
-                    showtimeSelection.innerHTML = '<div style="text-align: center; padding: 2rem 0; color: var(--gray-500);">請先選擇電影以顯示場次資訊</div>';
-                    showtimeSelectionSection.classList.add('hidden');
                     return;
                 }
                 
@@ -678,11 +888,10 @@
                     const movieCard = document.createElement('div');
                     movieCard.className = 'movie-card cursor-pointer';
                     movieCard.dataset.movieId = movie.id;
-                    // 提升可及性：讓卡片可被 focus 並支援鍵盤 Enter / Space 選取
                     movieCard.tabIndex = 0;
                     
-                    // 團體票標記：僅在使用者尚未選擇「團體票」時顯示標籤（選擇團體票時不需重複標示）
-                    const groupBadge = (movie.availableForGroup && currentSelections.ticketType !== 'group') ?
+                    const canGroupBook = movie.showtimes.some(st => st.availableForGroup);
+                    const groupBadge = (canGroupBook && currentSelections.ticketType !== 'group') ?
                         '<span class="group-badge">可團體預訂</span>' : '';
                     
                     movieCard.innerHTML = `
@@ -700,49 +909,37 @@
                                         <span class="movie-tag tag-gray">${movie.duration}</span>
                                     </div>
                                     <p class="movie-description">${movie.description}</p>
-                                    ${currentSelections.ticketType === 'group' && !movie.availableForGroup ? 
-                                        '<p class="movie-warning">⚠️ 此電影不適用團體票預訂</p>' : ''}
                                 </div>
                             </div>
                         </div>
                     `;
                     
-                    // 只有可預訂的電影才能點選
-                    if (currentSelections.ticketType !== 'group' || movie.availableForGroup) {
-                        movieCard.addEventListener('click', () => selectMovie(movie));
-                        movieCard.addEventListener('keydown', (e) => {
-                            if (e.key === 'Enter' || e.key === ' ') {
-                                e.preventDefault();
-                                selectMovie(movie);
-                            }
-                        });
-                    } else {
-                        movieCard.classList.add('opacity-50', 'cursor-not-allowed');
-                        movieCard.tabIndex = -1;
-                    }
+                    movieCard.addEventListener('click', () => selectMovie(movie));
+                    movieCard.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            selectMovie(movie);
+                        }
+                    });
                     
                     movieSelection.appendChild(movieCard);
                 });
                 
-                // 顯示電影選擇區塊
                 movieSelectionSection.classList.remove('hidden');
                 updateStepIndicator(2);
                 
             } catch (error) {
                 console.error('載入電影失敗:', error);
-                movieSelection.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 2rem 0; color: var(--gray-500);">載入電影清單失敗</div>';
-                showRetryButton('載入電影失敗，請重試', () => loadMovies(cinemaId));
+                movieSelection.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 2rem 0; color: #6b7280;">載入電影清單失敗</div>';
             }
         }
 
         // 選擇電影
         function selectMovie(movie) {
-            // 移除之前選擇的樣式
             document.querySelectorAll('.movie-card').forEach(card => {
                 card.classList.remove('selected');
             });
             
-            // 添加當前選擇樣式
             const selectedCard = document.querySelector(`[data-movie-id="${movie.id}"]`);
             if (selectedCard) {
                 selectedCard.classList.add('selected');
@@ -752,102 +949,58 @@
             loadShowtimes(currentSelections.cinema.id, movie.id);
         }
 
-        // 步驟 3: 根據選擇的影城和電影，動態載入場次清單 (使用 Mock Data)
+        // 步驟 4, 5: 動態載入場次清單 (實作日期和座位過濾)
         async function loadShowtimes(cinemaId, movieId) {
-            showtimeSelection.innerHTML = '<div style="text-align: center; padding: 2rem 0; color: var(--gray-500);">載入場次中...</div>';
-            nextButton.disabled = true;
-            currentSelections.showtime = null;
+            showtimeSelection.innerHTML = '<div style="text-align: center; padding: 2rem 0; color: #6b7280;">載入場次中...</div>';
+            resetSelection(3);
 
             try {
-                // 模擬網路延遲
-                await new Promise(resolve => setTimeout(resolve, 500));
+                await new Promise(resolve => setTimeout(resolve, 500)); // 模擬延遲
                 
-                let showtimes = [];
-                if (movieId == 1) { // 阿凡達 3
-                    showtimes = [
-                        { 
-                            id: 101, 
-                            date: '2025/12/24(三)', 
-                            time: '19:30',
-                            theater: '1廳',
-                            type: '數位版',
-                            language: '英語',
-                            subtitle: '中文字幕',
-                            seats: 45,
-                            availableForGroup: true
-                        },
-                        { 
-                            id: 102, 
-                            date: '2025/12/24(三)', 
-                            time: '22:00',
-                            theater: 'IMAX廳',
-                            type: 'IMAX 3D',
-                            language: '英語',
-                            subtitle: '中文字幕',
-                            seats: 32,
-                            availableForGroup: true
-                        },
-                        { 
-                            id: 103, 
-                            date: '2025/12/25(四)', 
-                            time: '14:20',
-                            theater: '3廳',
-                            type: '數位版',
-                            language: '英語',
-                            subtitle: '中文字幕',
-                            seats: 58,
-                            availableForGroup: false
+                const movie = MOCK_MOVIES.find(m => m.id == movieId);
+                if (!movie) throw new Error("找不到電影資訊");
+                
+                // 決定最大購票人數 (個人: 8, 團體: 20)
+                const maxCapacityNeeded = currentSelections.ticketType === 'group' ? 20 : 8;
+                
+                // 取得日期範圍: 購票日 ~ 購票日+7天 (共 7 天)
+                const next7Days = getNextNDays(7); 
+                
+                let allShowtimes = [];
+                next7Days.forEach(day => {
+                    movie.showtimes.forEach(template => {
+                        // 計算剩餘一般座位數: 總位 - 已售 - 愛心座
+                        const availableGeneralSeats = template.seats - template.reserved - template.careSeats;
+                        
+                        // 檢查 1: 影廳可購買的位置數 - 票種的最大人數 >= 0
+                        const seatsPass = availableGeneralSeats >= maxCapacityNeeded;
+                        
+                        // 檢查 2: 團體票檢查
+                        const groupPass = (currentSelections.ticketType === 'group') ? template.availableForGroup : true;
+                        
+                        if (seatsPass && groupPass) {
+                            allShowtimes.push({
+                                ...template,
+                                id: `${day.simpleDate}-${template.id}`, 
+                                date: day.date, 
+                                availableSeats: availableGeneralSeats 
+                            });
                         }
-                    ];
-                } else if (movieId == 2) { // 不可能的任務 8
-                    showtimes = [
-                        { 
-                            id: 201, 
-                            date: '2025/12/25(四)', 
-                            time: '14:00',
-                            theater: '2廳',
-                            type: '數位版',
-                            language: '英語',
-                            subtitle: '中文字幕',
-                            seats: 42,
-                            availableForGroup: true
-                        },
-                        { 
-                            id: 202, 
-                            date: '2025/12/25(四)', 
-                            time: '20:30',
-                            theater: '4廳',
-                            type: '4DX',
-                            language: '英語',
-                            subtitle: '中文字幕',
-                            seats: 28,
-                            availableForGroup: true
-                        }
-                    ];
-                } else {
-                    showtimes = [];
-                }
-                
-                // 如果是團體票，過濾出可團體預訂的場次
-                if (currentSelections.ticketType === 'group') {
-                    showtimes = showtimes.filter(showtime => showtime.availableForGroup);
-                }
-                
-                // 清空並填充場次選擇區域
+                    });
+                });
+
                 showtimeSelection.innerHTML = '';
                 
-                if (showtimes.length === 0) {
-                    showtimeSelection.innerHTML = '<div style="text-align: center; padding: 2rem 0; color: var(--gray-500);">此時段無可用場次</div>';
-                    loadingStatus.textContent = "該電影在選擇的影城暫無場次";
+                if (allShowtimes.length === 0) {
+                    showtimeSelection.innerHTML = '<div style="text-align: center; padding: 2rem 0; color: #6b7280;">此時段無可用場次或剩餘座位不足</div>';
+                    loadingStatus.textContent = "該電影在選擇的影城暫無符合條件的場次";
                     return;
                 }
                 
                 // 按日期分組場次
                 const groupedByDate = {};
-                showtimes.forEach(showtime => {
-                    if (!groupedByDate[showtime.date]) {
-                        groupedByDate[showtime.date] = [];
-                    }
+                allShowtimes.forEach(showtime => {
+                    if (!groupedByDate[showtime.date]) groupedByDate[showtime.date] = [];
                     groupedByDate[showtime.date].push(showtime);
                 });
                 
@@ -869,7 +1022,6 @@
                         showtimeCard.className = 'showtime-card';
                         showtimeCard.dataset.showtimeId = showtime.id;
                         
-                        // 團體票標記
                         const groupBadge = showtime.availableForGroup ? 
                             '<span class="showtime-group-badge">團體場</span>' : '';
                         
@@ -885,24 +1037,14 @@
                                     <span>版本:</span>
                                     <span class="font-medium">${showtime.type}</span>
                                 </div>
-                                <div class="showtime-row">
-                                    <span>語言/字幕:</span>
-                                    <span class="font-medium">${showtime.language}/${showtime.subtitle}</span>
-                                </div>
                                 <div class="showtime-row showtime-divider">
                                     <span>剩餘座位:</span>
-                                    <span class="${showtime.seats < 10 ? 'seats-low' : 'seats-available'}">${showtime.seats}</span>
+                                    <span class="${showtime.availableSeats < 10 ? 'seats-low' : 'seats-available'}">${showtime.availableSeats}</span>
                                 </div>
                             </div>
                         `;
                         
-                        // 只有可預訂的場次才能點選
-                        if (currentSelections.ticketType !== 'group' || showtime.availableForGroup) {
-                            showtimeCard.addEventListener('click', () => selectShowtime(showtime));
-                        } else {
-                            showtimeCard.classList.add('opacity-50', 'cursor-not-allowed');
-                        }
-                        
+                        showtimeCard.addEventListener('click', () => selectShowtime(showtime));
                         showtimesGrid.appendChild(showtimeCard);
                     });
                     
@@ -910,26 +1052,21 @@
                     showtimeSelection.appendChild(dateSection);
                 });
                 
-                // 顯示場次選擇區塊
                 showtimeSelectionSection.classList.remove('hidden');
                 updateStepIndicator(3);
-                
                 loadingStatus.textContent = "";
             } catch (error) {
                 console.error('載入場次失敗:', error);
-                showtimeSelection.innerHTML = '<div style="text-align: center; padding: 2rem 0; color: var(--gray-500);">載入場次清單失敗</div>';
-                showRetryButton('載入場次失敗，請重試', () => loadShowtimes(cinemaId, movieId));
+                showtimeSelection.innerHTML = '<div style="text-align: center; padding: 2rem 0; color: #6b7280;">載入場次清單失敗</div>';
             }
         }
 
         // 選擇場次
         function selectShowtime(showtime) {
-            // 移除之前選擇的樣式
             document.querySelectorAll('.showtime-card').forEach(card => {
                 card.classList.remove('selected');
             });
             
-            // 添加當前選擇樣式
             const selectedCard = document.querySelector(`[data-showtime-id="${showtime.id}"]`);
             if (selectedCard) {
                 selectedCard.classList.add('selected');
@@ -938,7 +1075,6 @@
             currentSelections.showtime = showtime;
             nextButton.disabled = false;
             
-            // 顯示選擇摘要
             loadingStatus.innerHTML = `
                 <div class="success-message">
                     <p class="success-text">已選擇: 
@@ -950,65 +1086,86 @@
                 </div>
             `;
         }
-
-        // 顯示重試按鈕（使用安全的事件監聽，避免在 innerHTML 中插入未轉譯的程式碼）
-        function showRetryButton(message, retryCallback) {
-            loadingStatus.innerHTML = '';
-            const textNode = document.createElement('span');
-            textNode.textContent = message;
-
-            const btn = document.createElement('button');
-            btn.type = 'button';
-            btn.textContent = '點此重試';
-            btn.style.marginLeft = '0.5rem';
-            btn.style.color = 'var(--vieshow-red)';
-            btn.style.textDecoration = 'underline';
-            btn.style.fontWeight = '500';
-            btn.addEventListener('click', function (e) {
-                if (typeof retryCallback === 'function') retryCallback();
-            });
-
-            loadingStatus.appendChild(textNode);
-            loadingStatus.appendChild(btn);
-        }
         
-        // 監聽器：影城選擇改變時
+        // 監聽器：影城選擇改變時 (步驟 2)
         cinemaSelect.addEventListener('change', function() {
             const cinemaId = this.value;
             if (cinemaId) {
-                // 更新當前選擇
+                // 更新影城資訊
                 currentSelections.cinema = {
                     id: cinemaId,
-                    name: this.options[this.selectedIndex].textContent
+                    name: this.options[this.selectedIndex].textContent.split(' ')[0]
                 };
                 
                 loadMovies(cinemaId);
             }
         });
 
-        // 監聽器：表單提交 (下一步)
+        // 監聽器：表單提交 (步驟 6: 確認資料格式並傳遞)
         form.addEventListener('submit', function(event) {
             event.preventDefault();
 
-            if (!currentSelections.ticketType || !currentSelections.cinema || !currentSelections.movie || !currentSelections.showtime) {
-                alert('請完成所有選擇後再繼續');
+            // 檢查必填欄位
+            if (!currentSelections.ticketType) {
+                alert('請先選擇票務類型');
+                return;
+            }
+            if (!currentSelections.cinema) {
+                alert('請選擇影城地點');
+                return;
+            }
+            // 根據需求 5: 如果沒有選擇影城 (必填) 則提示並要求回到步驟 5 (即重新載入場次)
+            if (!cinemaSelect.value) {
+                alert('請務必選擇影城地點！');
+                updateStepIndicator(1); // 導回選擇影城
+                return;
+            }
+            
+            // 檢查電影/場次 (如果使用者沒有選擇，只顯示所有場次的話，這裡需要調整邏輯。
+            // 由於目前邏輯是點擊電影/場次才會啟用下一步按鈕，所以只要下一步按鈕可點擊，資料就是完整的)
+            if (!currentSelections.movie || !currentSelections.showtime) {
+                alert('請確認已選擇電影和場次。');
                 return;
             }
 
-            // 儲存使用者選擇的資訊，以便在步驟 2/5 中使用
+            // 統一格式傳遞給下一個頁面
             const bookingData = {
-                ticketType: currentSelections.ticketType,
-                cinema: currentSelections.cinema,
-                movie: currentSelections.movie,
-                showtime: currentSelections.showtime
+            ticketType: currentSelections.ticketType,
+            cinema: { 
+                // 傳遞完整電影院資訊
+                id: currentSelections.cinema.id, 
+                name: currentSelections.cinema.name
+            },
+            movie: { 
+                // 傳遞完整電影資訊 (包含 rating, genre, duration, image 等)
+                id: currentSelections.movie.id, 
+                title: currentSelections.movie.title,
+                duration: currentSelections.movie.duration,
+                rating: currentSelections.movie.rating,
+                genre: currentSelections.movie.genre,
+                image: currentSelections.movie.image, // 確保下一頁顯示圖片
+                description: currentSelections.movie.description
+            },
+            showtime: {
+                // 傳遞完整場次資訊 (包含 seats, careSeats, reserved 等)
+                id: currentSelections.showtime.id,
+                date: currentSelections.showtime.date,
+                time: currentSelections.showtime.time,
+                theater: currentSelections.showtime.theater,
+                type: currentSelections.showtime.type,
+                language: currentSelections.showtime.language,
+                subtitle: currentSelections.showtime.subtitle,
+                seats: currentSelections.showtime.seats, // 總座位數
+                careSeats: currentSelections.showtime.careSeats, // 愛心座
+                reserved: currentSelections.showtime.reserved, // 已售出
+                availableSeats: currentSelections.showtime.availableSeats // 剩餘可訂購座位數
+            }
             };
             
-            // 由於這是純前端，我們將資料存在 localStorage (實際專案應存在 Session 或 Context)
+            // 使用 localStorage 傳遞資料 (這是跨頁面傳遞相同資料格式最常見的方法)
             localStorage.setItem('currentBooking', JSON.stringify(bookingData));
             
-            console.log('已儲存訂票步驟 1 資料:', bookingData);
-            
-            // 根據票務類型導向不同的步驟 2 頁面
+            // 導向下一頁
             if (currentSelections.ticketType === 'group') {
                 window.location.href = 'booking_flow_group.html';
             } else {
@@ -1018,63 +1175,18 @@
 
         // 頁面載入時，執行初始化
         window.onload = function() {
-            // 檢查登入狀態
             if (!checkLoginStatus()) {
                 return;
             }
             
-            // 如果登入成功，可以顯示歡迎訊息
-            const user = JSON.parse(localStorage.getItem('user') || '{}');
-            if (user.name) {
-                console.log(`歡迎回來，${user.name}！`);
-                // 可以在頁面上顯示歡迎訊息
-            }
-            
+            renderUI();
             setupTicketTypeSelection();
-
-            // 設定模擬按鈕行為（只在開發/測試時會用到）
-            document.getElementById('simulateGeneral').addEventListener('click', function(){
-                const sample = {
-                    ticketType: 'general',
-                    cinema: { id: 'taipei_xinyi', name: '台北信義影城' },
-                    movie: { id: 3, title: '駭客任務 5' },
-                    showtime: { id: 201, date: '2025/12/25', time: '20:00', theater: '2廳', type: '數位版' },
-                    tickets: { full: { name: '全票', price: 320, qty: 2 } },
-                    combos: {},
-                    totalTicketQty: 2,
-                    totalTicketPrice: 640,
-                    totalPrice: 640
-                };
-                localStorage.setItem('currentBooking', JSON.stringify(sample));
-                // 直接前往步驟 2 (一般購票)
-                window.location.href = 'booking_flow_2.html';
-            });
-
-            document.getElementById('simulateGroup').addEventListener('click', function(){
-                const sample = {
-                    ticketType: 'group',
-                    cinema: { id: 'taipei_xinyi', name: '台北信義影城' },
-                    movie: { id: 1, title: '阿凡達 3: 最終戰役' },
-                    showtime: { id: 101, date: '2025/12/24', time: '19:30', theater: '1廳', type: '數位版' },
-                    tickets: {},
-                    combos: {},
-                    groupInfo: { contactName: '測試團體', contactPhone: '0912345678', groupSize: 12, note: '模擬' },
-                    totalTicketQty: 12,
-                    totalPrice: 0
-                };
-                localStorage.setItem('currentBooking', JSON.stringify(sample));
-                // 前往團體步驟（2）
-                window.location.href = 'booking_flow_group.html';
-            });
-
-            document.getElementById('clearSim').addEventListener('click', function(){
-                localStorage.removeItem('currentBooking');
-                alert('已清除 currentBooking');
-            });
+            
+            // 檢查是否有未完成的訂單 (如果有的話可以讀取並恢復狀態，這裡簡化為直接清除)
+            localStorage.removeItem('currentBooking'); 
         };
     </script>
 
-    <!-- Footer 內容 -->
     <footer>
         <p>&copy; 2025 Vieshow Ticketing System</p>
     </footer>

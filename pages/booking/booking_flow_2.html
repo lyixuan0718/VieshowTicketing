@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>訂票步驟 2: 選擇票種與餐點 - Vieshow Ticketing</title> 
     
-    <!-- 引入 Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     
     <script>
@@ -108,18 +107,6 @@
 </head>
 <body class="bg-gray-100 font-sans min-h-screen flex flex-col">
     
-    <!-- Header 導航 (沿用 Step 1) -->
-    <!-- <header class="bg-vieshow-dark text-white shadow-md sticky top-0 z-10">
-        <nav class="container mx-auto px-4 py-4 flex justify-between items-center">
-            <a href="../../index.html" class="text-xl font-bold hover:text-vieshow-gold transition duration-300 flex items-center">
-                <span class="mr-2">🎬</span> Vieshow 影城
-            </a>
-            <div class="space-x-4">
-                <a href="../auth/login.html" class="hover:text-vieshow-gold transition duration-300">登入</a>
-                <a href="../member/member_home.html" class="hover:text-vieshow-gold transition duration-300">會員中心</a>
-            </div>
-        </nav>
-    </header> -->
     <header class="bg-gray-800 text-white shadow-md">
         <nav class="container mx-auto px-4 py-4 flex justify-between items-center">
             <a href="../../index.html" class="text-xl font-bold hover:text-vieshow-red transition duration-300">Vieshow 影城</a>
@@ -128,24 +115,24 @@
         </nav>
     </header>
 
-    <div id="loginOverlay" class="hidden">
-        <div class="login-prompt-content">
-            <h2>
-                <i class="fas fa-lock" style="margin-right: 0.5rem;"></i>
+    <div id="loginOverlay" class="hidden fixed inset-0 bg-gray-900 bg-opacity-80 flex items-center justify-center z-50">
+        <div class="bg-white p-8 rounded-xl shadow-2xl w-full max-w-md text-center">
+            <h2 class="text-2xl font-bold mb-4 text-gray-900 flex items-center justify-center">
+                <svg class="w-6 h-6 mr-2 text-vieshow-red" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
                 請先登入才能進行訂票
             </h2>
-            <p>
+            <p class="text-gray-600 mb-6">
                 請點擊下方按鈕前往登入頁面，以便繼續您的訂票流程。
             </p>
-            <a href="javascript:void(0)" id="loginRedirectButton" class="btn primary-btn" style="margin-top: 1rem; display: inline-block; padding: 0.5rem 1rem; background-color: #1f2937; color: #fff; border-radius: 0.5rem; text-decoration: none;">
+            <a href="javascript:void(0)" id="loginRedirectButton" 
+                class="bg-vieshow-red hover:bg-red-700 text-white font-semibold py-3 px-6 rounded-lg transition duration-200 focus:outline-none focus:ring-2 focus:ring-vieshow-red focus:ring-offset-2">
                 前往登入
             </a>
         </div>
     </div>
 
-    <div class="container mx-auto px-4 py-8 flex-grow max-w-4xl">
+    <main class="container mx-auto px-4 py-8 flex-grow max-w-4xl">
         
-        <!-- 步驟指示器 -->
         <div class="step-indicator">
             <div class="step-circle step-completed">1</div>
             <div class="step-line step-active"></div>
@@ -158,17 +145,14 @@
             <div class="step-circle step-pending">5</div>
         </div>
         
-        <!-- 主要訂票卡片 -->
         <div id="bookingCard" class="bg-white p-6 md:p-10 rounded-xl shadow-2xl border-t-4 border-vieshow-red">
             
-            <!-- 標題區塊 -->
             <div class="mb-8 pb-4 border-b border-gray-200">
                 <h1 class="text-3xl font-extrabold text-gray-900 mb-2">🎟️ 訂票流程</h1>
                 <p class="text-xl font-semibold text-vieshow-red"> 選擇票種與餐點</p>
                 <p class="text-sm text-gray-500 mt-1">請選擇您需要的票種數量與加購餐點。</p>
             </div>
 
-            <!-- 1. 已選擇場次摘要 (從 Step 1 載入) -->
             <div id="summarySection" class="p-4 rounded-xl bg-vieshow-gold/10 border-l-4 border-vieshow-gold text-sm text-gray-700 mb-6 shadow-inner">
                 <h2 class="font-bold text-lg mb-2 text-gray-800 flex items-center">
                     <svg class="w-5 h-5 mr-2 text-vieshow-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
@@ -180,32 +164,25 @@
                 <div id="loadError" class="text-red-600 font-semibold hidden mt-2">載入資料失敗，請回上一步。</div>
             </div>
 
-            <!-- Step 2 表單內容 -->
             <form id="bookingFlow2Form" action="#" method="POST" class="space-y-8">
                 
-                <!-- 2. 選擇票種數量 (Select Ticket Quantity) -->
                 <div id="ticketSelectionSection" class="space-y-4">
                     <label class="block text-2xl font-bold text-gray-800 mb-4 border-b pb-2 flex items-center">
-                        <span class="mr-2">🎫</span> 選擇票種數量 <span class="text-base font-normal text-red-500 ml-2">(最多 8 張)</span>
+                        <span class="mr-2">🎫</span> 選擇票種數量 <span class="text-base font-normal text-red-500 ml-2">(總票數最多 8 張)</span>
                     </label>
-                    <!-- Ticket options will be dynamically inserted here by JavaScript -->
-                </div>
+                    </div>
                 
-                <!-- 3. 選擇餐點加購 (Combo Add-ons) -->
                 <div id="comboSelectionSection" class="space-y-4">
                     <label class="block text-2xl font-bold text-gray-800 mb-4 border-b pb-2 flex items-center">
-                        <span class="mr-2">🍿</span> 餐點加購 (可選)
+                        <span class="mr-2">🍿</span> 餐點加購 (可選) <span class="text-base font-normal text-green-600 ml-2">(套餐享 8 折優惠！)</span>
                     </label>
-                    <!-- Combo options will be dynamically inserted here by JavaScript -->
-                </div>
+                    </div>
                 
-                <!-- 總計區塊 + 導航按鈕 -->
                 <div class="bg-white pt-6 border-t border-gray-200">
                     <div class="bg-vieshow-dark text-white p-4 rounded-xl shadow-2xl font-extrabold text-center text-lg mb-4">
                         總計金額: <span id="totalPrice">$0 TWD</span>
                     </div>
 
-                    <!-- 導航按鈕 -->
                     <div class="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4">
                         <a href="booking_flow_1.html" class="flex-1 text-center bg-gray-500 hover:bg-gray-700 text-white font-bold py-3 px-4 rounded-xl transition duration-300 shadow-lg text-base transform hover:scale-[1.02] active:scale-[0.98]">
                             <svg class="w-5 h-5 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg> 
@@ -219,87 +196,50 @@
 
             </form>
         </div>
-    </div>
+    </main>
 
-    <!-- 頁面專屬的 JavaScript 邏輯：處理票種與餐點選擇 -->
     <script>
         // 從首頁複製的導覽列相關常數 (路徑修正為 '../../')
         const INDEX_PAGE_URL = '../../index.html'; // **[新增]** 補上首頁 URL
         const LOGIN_PAGE_URL = '../auth/login.html';
         const MEMBER_HOME_URL = '../member/member_home.html';
 
-        /**
-         * 渲染未登入狀態的導覽列。
-         */
+           // --- 登入/登出/導覽列邏輯 ---
         function renderLoggedOutState() {
             const headerNavRight = document.getElementById('headerNavRight');
             if (!headerNavRight) return;
-            
-            // 獲取當前頁面的完整 URL，並進行 URL 編碼
             const currentUrl = encodeURIComponent(window.location.href);
-
-            // 構造帶有回調網址的登入連結
             const loginRedirectUrl = `${LOGIN_PAGE_URL}?redirect=${currentUrl}`;
-            
-            // 渲染導覽列：登入 + 會員中心
             headerNavRight.innerHTML = `
                 <a href="${loginRedirectUrl}" class="hover:text-vieshow-gold transition duration-300">登入</a>
                 <a href="${MEMBER_HOME_URL}" class="hover:text-vieshow-gold transition duration-300">會員中心</a>
             `;
         }
 
-        /**
-         * 渲染已登入狀態的導覽列。
-         */
         function renderLoggedInState() {
             const headerNavRight = document.getElementById('headerNavRight');
             if (!headerNavRight) return;
-
-            // 渲染導覽列：登出 + 會員中心
             headerNavRight.innerHTML = `
                 <a href="#" id="signOutLink" class="hover:text-vieshow-gold transition duration-300">登出</a>
                 <a href="${MEMBER_HOME_URL}" class="hover:text-vieshow-gold transition duration-300">會員中心</a>
             `;
-            
-            // 綁定登出事件
             document.getElementById('signOutLink')?.addEventListener('click', handleSignOut);
         }
 
-        /**
-         * 處理登出邏輯。
-         */
         function handleSignOut(e) {
             e.preventDefault();
-
-            // 1. 清除登入狀態的關鍵步驟
             localStorage.removeItem('auth_token');
             localStorage.removeItem('isLoggedIn');
-
-            // 2. 顯示登出訊息 (使用自定義 alert)
-            // 將跳轉邏輯作為回呼函數傳入
+            localStorage.removeItem('currentBooking'); // 清除未完成的訂單
             alert('您已成功登出。即將導向首頁...', () => {
-                // 3. 延遲導向首頁 (在用戶點擊 Modal 確認後 2 秒執行)
                 setTimeout(() => {
                     window.location.href = INDEX_PAGE_URL;
                 }, 2000);
             }); 
-            // alert('您已成功登出。即將重新整理頁面...', () => {
-            //     // 3. 延遲導向當前頁面
-            //     setTimeout(() => {
-            //         // *** 關鍵修正：重新載入當前頁面，而不是跳回首頁 ***
-            //         window.location.href = window.location.href; 
-            //     }, 2000);
-            // });
-            
-            // 4. 重新渲染導覽列至未登入狀態 (必須在跳轉前執行)
             renderUI();
         }
 
-        /**
-         * 檢查登入狀態並渲染 UI
-         */
         function renderUI() {
-            // 模擬：如果 localStorage 中有 'auth_token' 則視為已登入
             const token = localStorage.getItem('auth_token');
             if (token) {
                 renderLoggedInState(); 
@@ -307,6 +247,19 @@
                 renderLoggedOutState();
             }
         }
+
+        function checkLoginStatus() {
+            const token = localStorage.getItem('auth_token');
+            if (!token) {
+                alert('請先登入才能進行訂票', () => {
+                    const currentPage = window.location.pathname + window.location.search;
+                    window.location.href = `${LOGIN_PAGE_URL}?redirect=${encodeURIComponent(currentPage)}`;
+                });
+                return false;
+            }
+            return true;
+        }
+
 
         // 3. 統一的自定義 Alert 函數
         // ----------------------------------------------------
@@ -370,37 +323,20 @@
             
             const encodedPath = encodeURIComponent(relativeToRootPath);
 
-            // 2. 構造目標跳轉網址：指向 login.html，並在 redirect 參數中傳遞相對路徑
-            // 登入頁的路徑 (LOGIN_PAGE_URL) 應根據當前頁面 (booking/booking_flow.html) 來確定
-            // 從 booking/ -> auth/login.html 的路徑是 '../auth/login.html'
-            
-            const LOGIN_PAGE_URL_FIXED = '../auth/login.html'; // 假設是這個路徑
+            const LOGIN_PAGE_URL_FIXED = '../auth/login.html'; 
             
             // 3. 賦值給按鈕的 href
             loginButton.href = `${LOGIN_PAGE_URL_FIXED}?redirect=${encodedPath}`;
-            
-            console.log("已修正登入按鈕連結:", loginButton.href);
         }
     }
 
-    // 初始渲染 UI 狀態
-    // 確保在頁面初始化時執行這個函式
-    document.addEventListener('DOMContentLoaded', () => {
-        renderUI();
-        
-        setupLoginRedirectLink(); // ✨ 執行路徑修正
-
-    });
-    
     // 步驟 0: 檢查登入狀態
-    // 確保您已宣告相關 DOM 元素，這裡只需要 loginOverlay
     const loginOverlay = document.getElementById('loginOverlay');
-    // 假設您的主要訂票表單內容在 <main> 標籤中
     const mainContent = document.querySelector('main'); 
 
 
     function checkLoginStatus() {
-        // 模擬登入狀態：檢查 localStorage 中是否有 'isLoggedIn' 資料
+        // 模擬登入狀態：檢查 localStorage 中是否有 'auth_token' 資料
         const token = localStorage.getItem('auth_token');
         if (!token) {
             // 未登入處理：顯示圖層，隱藏主要內容
@@ -428,6 +364,7 @@
     }
         // Mock Data for Step 2
         const MOCK_TICKETS = [
+            // 單一票種限制：全票 8 張，學生票 4 張，愛心票 2 張，兒童票 4 張 (皆符合 "每個票種最多只能選八張" 的要求)
             { id: 'full', name: '全票', price: 320, limit: 8, description: '一般成人票', icon: '👤' },
             { id: 'student', name: '學生票', price: 280, limit: 4, description: '憑有效學生證入場', icon: '🎓' },
             { id: 'elder', name: '愛心敬老票', price: 160, limit: 2, description: '65歲以上長者或身心障礙者', icon: '👵' },
@@ -441,7 +378,7 @@
             { id: 'combo_d', name: '甜心組合', price: 200, description: '爆米花(甜) + 吉拿棒 x2', icon: '🍬' }
         ];
         
-        // 最大總票數限制
+        // 最大總票數限制 (所有票種相加不得大於 8)
         const MAX_TICKETS = 8;
         
         // 取得 DOM 元素
@@ -505,7 +442,7 @@
         function renderTicketOptions() {
             // 清空並重新加入標題
             let html = `<label class="block text-2xl font-bold text-gray-800 mb-4 border-b pb-2 flex items-center">
-                <span class="mr-2">🎫</span> 選擇票種數量 <span class="text-base font-normal text-red-500 ml-2">(最多 ${MAX_TICKETS} 張)</span>
+                <span class="mr-2">🎫</span> 選擇票種數量 <span class="text-base font-normal text-red-500 ml-2">(總票數最多 ${MAX_TICKETS} 張)</span>
             </label>`;
             
             html += MOCK_TICKETS.map(ticket => `
@@ -522,15 +459,12 @@
                         </div>
                     </div>
                     <div class="flex items-center space-x-2 ml-4">
-                        <!-- 減號按鈕 -->
                         <button type="button" class="btn-minus bg-gray-200 hover:bg-gray-300 p-2 rounded-full transition duration-150 active:scale-95" data-id="${ticket.id}" data-type="ticket">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path></svg>
                         </button>
-                        <!-- 數量輸入框 (只讀) -->
                         <input type="number" id="ticket-${ticket.id}" name="ticket-${ticket.id}" 
                                class="quantity-input" value="0" min="0" max="${ticket.limit}" readonly 
                                data-id="${ticket.id}" data-type="ticket">
-                        <!-- 加號按鈕 -->
                         <button type="button" class="btn-plus bg-vieshow-red hover:bg-red-700 text-white p-2 rounded-full transition duration-150 active:scale-95" data-id="${ticket.id}" data-type="ticket">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
                         </button>
@@ -574,7 +508,7 @@
         function renderComboOptions() {
             // 清空並重新加入標題
             let html = `<label class="block text-2xl font-bold text-gray-800 mb-4 border-b pb-2 flex items-center">
-                <span class="mr-2">🍿</span> 餐點加購 (可選)
+                <span class="mr-2">🍿</span> 餐點加購 (可選) <span class="text-base font-normal text-green-600 ml-2">(套餐享 8 折優惠！)</span>
             </label>`;
 
             html += MOCK_COMBOS.map(combo => `
@@ -588,15 +522,12 @@
                         <span class="price-tag mt-1">TWD ${combo.price.toLocaleString('en-US')}</span>
                     </div>
                     <div class="flex items-center space-x-2 ml-4">
-                        <!-- 減號按鈕 -->
                         <button type="button" class="btn-minus bg-gray-200 hover:bg-gray-300 p-2 rounded-full transition duration-150 active:scale-95" data-id="${combo.id}" data-type="combo">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path></svg>
                         </button>
-                        <!-- 數量輸入框 (只讀) -->
                         <input type="number" id="combo-${combo.id}" name="combo-${combo.id}" 
                                class="quantity-input" value="0" min="0" max="99" readonly
                                data-id="${combo.id}" data-type="combo">
-                        <!-- 加號按鈕 -->
                         <button type="button" class="btn-plus bg-vieshow-red hover:bg-red-700 text-white p-2 rounded-full transition duration-150 active:scale-95" data-id="${combo.id}" data-type="combo">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
                         </button>
@@ -636,7 +567,7 @@
             comboSelectionSection.addEventListener('click', handleQuantityChange);
         }
         
-        // 4. 處理數量增減邏輯
+        // 4. 處理數量增減邏輯 (已確保按下按鈕時數量限制生效)
         function handleQuantityChange(event) {
             const target = event.target.closest('button');
             if (!target) return;
@@ -661,12 +592,12 @@
                 ticketTotal -= currentValue;
 
                 if (isPlus) {
-                    // 檢查單一票種上限
+                    // 檢查 1: 單一票種上限 (例如：學生票最多 4 張)
                     if (currentValue >= ticketInfo.limit) {
                         showToast(`單一票種最多只能購買 ${ticketInfo.limit} 張`, 'warning');
                         return;
                     } 
-                    // 檢查總票數上限
+                    // 檢查 2: 總票數上限 (所有票種相加不得大於 8)
                     if ((ticketTotal + 1) > MAX_TICKETS) {
                          showToast(`總票數已達上限 ${MAX_TICKETS} 張!`, 'warning');
                          return;
@@ -693,10 +624,11 @@
             checkFormValidity();
         }
 
-        // 5. 計算並更新總金額
+        // 5. 計算並更新總金額 (**包含餐點 8 折優惠**)
         function updateTotal() {
             let total = 0;
             let ticketCount = 0;
+            const COMBO_DISCOUNT_RATE = 0.8; // 8折
 
             // 計算票價總和
             MOCK_TICKETS.forEach(ticket => {
@@ -705,11 +637,19 @@
                 ticketCount += count;
             });
 
-            // 計算餐點總和
+            // 計算餐點總和 (應用 8折)
             MOCK_COMBOS.forEach(combo => {
                 const count = currentSelections.combos[combo.id] || 0;
-                total += count * combo.price;
+                const originalComboPrice = count * combo.price;
+                
+                // 應用 80% 折扣 (8折)
+                const discountedPrice = originalComboPrice * COMBO_DISCOUNT_RATE;
+
+                total += discountedPrice;
             });
+            
+            // 將總價四捨五入到整數，因為價格通常是整數
+            total = Math.round(total);
 
             totalPriceDisplay.textContent = `$${total.toLocaleString('en-US')} TWD`;
             return ticketCount;
@@ -748,15 +688,44 @@
             }, 3000);
         }
 
-        // 8. 監聽器：表單提交 (下一步)
+        // 8. 監聽器：表單提交 (下一步) (*** 修正邏輯：加入最終的數量限制檢查 ***)
         form.addEventListener('submit', function(event) {
             event.preventDefault();
 
             const totalTickets = Object.values(currentSelections.tickets).reduce((s, c) => s + c, 0);
+
+            // 【修正 1: 最終檢查 - 總票數不得大於 MAX_TICKETS (8 張)】
             if (totalTickets === 0) {
                 showToast("請至少選擇一張票！", "warning");
                 return;
             }
+            if (totalTickets > MAX_TICKETS) {
+                // 使用 alert 確保使用者看到錯誤訊息
+                alert(`總票數 (${totalTickets} 張) 超過上限 ${MAX_TICKETS} 張，請修正！`);
+                return;
+            }
+
+            // 【修正 2: 最終檢查 - 檢查單一票種數量是否超過其限制】
+            let isValid = true;
+            let overLimitTicketName = '';
+            
+            for (const t of MOCK_TICKETS) {
+                const qty = currentSelections.tickets[t.id] || 0;
+                // 修正：檢查是否超過該票種的單一上限
+                if (qty > t.limit) { 
+                    isValid = false;
+                    overLimitTicketName = `${t.name} (上限: ${t.limit} 張)`;
+                    break; 
+                }
+            }
+
+            if (!isValid) {
+                // 使用 alert 確保使用者看到錯誤訊息
+                alert(`票種選擇數量錯誤：${overLimitTicketName}，請修正！`);
+                return;
+            }
+            
+            const COMBO_DISCOUNT_RATE = 0.8; // 8折 (**餐點 8 折邏輯確認無誤**)
 
             // 整理票種
             const ticketData = {};
@@ -769,32 +738,40 @@
                         name: t.name,
                         price: t.price,
                         qty: qty,
-                        subtotal: qty * t.price,
+                        subtotal: qty * t.price, // 【新增/確認】票種小計
                         icon: t.icon
                     };
                     ticketPriceTotal += qty * t.price;
                 }
             });
 
-            // 整理餐點
+            // 整理餐點 (計算原始價格與折扣後價格)
             const comboData = {};
-            let comboPriceTotal = 0;
+            let comboPriceOriginalTotal = 0; // 紀錄餐點原始總價 (不打折)
+            let comboPriceDiscountedTotal = 0; // 紀錄餐點折扣後總價 (打 8 折)
 
             MOCK_COMBOS.forEach(c => {
                 const qty = currentSelections.combos[c.id];
                 if (qty > 0) {
+                    const originalSubtotal = qty * c.price;
+                    // 應用 80% 折扣 (8折)
+                    const discountedSubtotal = originalSubtotal * COMBO_DISCOUNT_RATE;
+
                     comboData[c.id] = {
                         name: c.name,
-                        price: c.price,
+                        price: c.price, // 儲存單價
                         qty: qty,
-                        subtotal: qty * c.price,
+                        originalSubtotal: originalSubtotal, // 儲存原始小計
+                        discountedSubtotal: discountedSubtotal, // 儲存折扣後小計
                         icon: c.icon
                     };
-                    comboPriceTotal += qty * c.price;
+                    comboPriceOriginalTotal += originalSubtotal;
+                    comboPriceDiscountedTotal += discountedSubtotal;
                 }
             });
 
-            const finalPrice = ticketPriceTotal + comboPriceTotal;
+            // 最終總價 = 票價總和 + 折扣後的餐點總和 (並四捨五入到整數)
+            const finalPrice = Math.round(ticketPriceTotal + comboPriceDiscountedTotal);
 
             // 讀取現有 Step1 資料
             const base = currentBookingData || {};
@@ -806,18 +783,28 @@
                 tickets: ticketData,
                 combos: comboData,
 
+                isGroupBooking: false,   // 明確標記這不是團體票
+                groupInfo: null,         // 一般訂票不需要團體資訊
+
                 totalTicketQty: totalTickets,
                 totalTicketPrice: ticketPriceTotal,
-
-                totalComboPrice: comboPriceTotal,
-                totalPrice: finalPrice
+                
+                // 儲存餐點折扣細節
+                comboOriginalPrice: comboPriceOriginalTotal, // 餐點原始總價
+                comboDiscountedPrice: Math.round(comboPriceDiscountedTotal), // 餐點折扣後總價
+                totalPrice: finalPrice, // 最終總價 (包含餐點 8 折)
+                
+                // 【資料結構一致性修正】為後續步驟預留欄位 (步驟 3: 選位, 步驟 4/5: 付款/備註)
+                selectedSeats: null, 
+                paymentMethod: null, 
+                remarks: '' 
             };
 
             localStorage.setItem('currentBooking', JSON.stringify(step2Data));
 
             console.log("🎫 Step2 已儲存：", step2Data);
 
-            // If this is an edit flow, compare with original order and handle difference
+            // --- 編輯流程判斷 (維持原邏輯，但使用修正後的 finalPrice) ---
             const editingRaw = localStorage.getItem('editingOrder');
             if (editingRaw) {
                 try {
@@ -826,12 +813,10 @@
                     const newTotal = Number(finalPrice || 0);
 
                     if (newTotal > originalTotal) {
-                        // If ticket count increased we need to pick seats first (go to Step3)
                         const originalTicketQty = Number(editing.originalTicketQty || 0);
                         const newTicketQty = Number(totalTickets || 0);
 
                         if (newTicketQty > originalTicketQty) {
-                            // Save a pending seats-edit request and navigate to seat selection
                             const pendingSeats = {
                                 orderId: editing.orderId,
                                 previousTotal: originalTotal,
@@ -839,12 +824,10 @@
                                 desiredTicketCount: newTicketQty
                             };
                             localStorage.setItem('editingPendingSeats', JSON.stringify(pendingSeats));
-                            // keep editingOrder as well
                             window.location.href = "booking_flow_3.html";
                             return;
                         }
 
-                        // No additional seats required; need to pay the difference: create pendingModification and redirect to payment page
                         const pending = {
                             orderId: editing.orderId,
                             previousTotal: originalTotal,
@@ -852,21 +835,17 @@
                             dueAmount: newTotal - originalTotal
                         };
                         localStorage.setItem('pendingModification', JSON.stringify(pending));
-                        // Keep editingOrder flag so payment page can finalize
                         window.location.href = "booking_edit_payment.html";
                         return;
                     } else {
-                        // Decrease or equal: warn that no refund will be issued
                         const ok = confirm('本次變更後總額較原本訂單少/相等，系統不會退費。確定要儲存變更嗎？');
                         if (!ok) return;
 
-                        // Persist changes to bookingHistory
                         try {
                             const storedRaw = localStorage.getItem('bookingHistory') || '[]';
                             const arr = JSON.parse(storedRaw);
                             const idx = arr.findIndex(o => String(o.id) === String(editing.orderId));
 
-                            // convert ticket/combo objects back into arrays for history storage
                             const ticketsArray = Object.keys(step2Data.tickets || {}).map(k => {
                                 const t = step2Data.tickets[k];
                                 return { type: t.name, quantity: Number(t.qty || 0), price: Number(t.price || 0) };
@@ -874,7 +853,12 @@
 
                             const combosArray = Object.keys(step2Data.combos || {}).map(k => {
                                 const c = step2Data.combos[k];
-                                return { name: c.name, quantity: Number(c.qty || 0), price: Number(c.price || 0) };
+                                return { 
+                                    name: c.name, 
+                                    quantity: Number(c.qty || 0), 
+                                    price: Number(c.price || 0), // 這裡存的是原始單價
+                                    subtotal: Number(c.discountedSubtotal || 0) // 這裡存折扣後小計
+                                };
                             }).filter(x=>x.quantity>0);
 
                             const updatedOrder = Object.assign({}, arr[idx] || {}, {
@@ -887,7 +871,7 @@
                                 total: newTotal,
                                 totalTicketQty: step2Data.totalTicketQty,
                                 totalTicketPrice: step2Data.totalTicketPrice,
-                                totalComboPrice: step2Data.totalComboPrice,
+                                totalComboPrice: newTotal - step2Data.totalTicketPrice, // 用總價減去票價得到實際支付的餐點折扣價
                                 modified_at: new Date().toISOString()
                             });
 
@@ -908,13 +892,19 @@
                     console.error('解析 editingOrder 失敗', e);
                 }
             }
-
             // 非編輯流程：跳轉到步驟 3
             window.location.href = "booking_flow_3.html";
         });
 
         // 頁面載入時，執行初始化
         window.onload = function() {
+            renderUI(); // 確保登入/登出連結正確
+            setupLoginRedirectLink(); // 確保登入導向正確
+
+            if (!checkLoginStatus()) {
+                return;
+            }
+
             loadBookingData();
             renderTicketOptions();
             renderComboOptions();
@@ -922,7 +912,6 @@
         };
     </script>
 
-    <!-- Footer 內容 -->
     <footer class="bg-vieshow-dark text-white text-center py-4 mt-8 shadow-inner">
         <p>&copy; 2025 Vieshow Ticketing System</p>
     </footer>
