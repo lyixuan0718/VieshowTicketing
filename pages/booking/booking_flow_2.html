@@ -204,71 +204,42 @@
         const LOGIN_PAGE_URL = '../auth/login.html';
         const MEMBER_HOME_URL = '../member/member_home.html';
 
-        /**
-         * 渲染未登入狀態的導覽列。
-         */
+           // --- 登入/登出/導覽列邏輯 ---
         function renderLoggedOutState() {
             const headerNavRight = document.getElementById('headerNavRight');
             if (!headerNavRight) return;
-            
-            // 獲取當前頁面的完整 URL，並進行 URL 編碼
             const currentUrl = encodeURIComponent(window.location.href);
-
-            // 構造帶有回調網址的登入連結
             const loginRedirectUrl = `${LOGIN_PAGE_URL}?redirect=${currentUrl}`;
-            
-            // 渲染導覽列：登入 + 會員中心
             headerNavRight.innerHTML = `
                 <a href="${loginRedirectUrl}" class="hover:text-vieshow-gold transition duration-300">登入</a>
                 <a href="${MEMBER_HOME_URL}" class="hover:text-vieshow-gold transition duration-300">會員中心</a>
             `;
         }
 
-        /**
-         * 渲染已登入狀態的導覽列。
-         */
         function renderLoggedInState() {
             const headerNavRight = document.getElementById('headerNavRight');
             if (!headerNavRight) return;
-
-            // 渲染導覽列：登出 + 會員中心
             headerNavRight.innerHTML = `
                 <a href="#" id="signOutLink" class="hover:text-vieshow-gold transition duration-300">登出</a>
                 <a href="${MEMBER_HOME_URL}" class="hover:text-vieshow-gold transition duration-300">會員中心</a>
             `;
-            
-            // 綁定登出事件
             document.getElementById('signOutLink')?.addEventListener('click', handleSignOut);
         }
 
-        /**
-         * 處理登出邏輯。
-         */
         function handleSignOut(e) {
             e.preventDefault();
-
-            // 1. 清除登入狀態的關鍵步驟
             localStorage.removeItem('auth_token');
             localStorage.removeItem('isLoggedIn');
-
-            // 2. 顯示登出訊息 (使用自定義 alert)
-            // 將跳轉邏輯作為回呼函數傳入
+            localStorage.removeItem('currentBooking'); // 清除未完成的訂單
             alert('您已成功登出。即將導向首頁...', () => {
-                // 3. 延遲導向首頁 (在用戶點擊 Modal 確認後 2 秒執行)
                 setTimeout(() => {
                     window.location.href = INDEX_PAGE_URL;
                 }, 2000);
             }); 
-            
-            // 4. 重新渲染導覽列至未登入狀態 (必須在跳轉前執行)
             renderUI();
         }
 
-        /**
-         * 檢查登入狀態並渲染 UI
-         */
         function renderUI() {
-            // 模擬：如果 localStorage 中有 'auth_token' 則視為已登入
             const token = localStorage.getItem('auth_token');
             if (token) {
                 renderLoggedInState(); 
@@ -276,6 +247,19 @@
                 renderLoggedOutState();
             }
         }
+
+        function checkLoginStatus() {
+            const token = localStorage.getItem('auth_token');
+            if (!token) {
+                alert('請先登入才能進行訂票', () => {
+                    const currentPage = window.location.pathname + window.location.search;
+                    window.location.href = `${LOGIN_PAGE_URL}?redirect=${encodeURIComponent(currentPage)}`;
+                });
+                return false;
+            }
+            return true;
+        }
+
 
         // 3. 統一的自定義 Alert 函數
         // ----------------------------------------------------
