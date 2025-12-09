@@ -115,7 +115,7 @@
         </nav>
     </header>
 
-    <div id="loginOverlay" class="hidden fixed inset-0 bg-gray-900 bg-opacity-80 flex items-center justify-center z-50">
+    <!-- <div id="loginOverlay" class="hidden fixed inset-0 bg-gray-900 bg-opacity-80 flex items-center justify-center z-50">
         <div class="bg-white p-8 rounded-xl shadow-2xl w-full max-w-md text-center">
             <h2 class="text-2xl font-bold mb-4 text-gray-900 flex items-center justify-center">
                 <svg class="w-6 h-6 mr-2 text-vieshow-red" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
@@ -129,7 +129,7 @@
                 前往登入
             </a>
         </div>
-    </div>
+    </div> -->
 
     <main class="container mx-auto px-4 py-8 flex-grow max-w-4xl">
         
@@ -313,55 +313,55 @@
 
         // 導覽列邏輯結束
 
-    function setupLoginRedirectLink() {
-        const loginButton = document.getElementById('loginRedirectButton');
+    // function setupLoginRedirectLink() {
+    //     const loginButton = document.getElementById('loginRedirectButton');
         
-        if (loginButton) {
-            // 1. 獲取相對於專案根目錄的路徑 (例如：booking/booking_flow.html?...)
-            const pathname = window.location.pathname;
-            let relativeToRootPath = (pathname.startsWith('/') ? pathname.substring(1) : pathname) + window.location.search; 
+    //     if (loginButton) {
+    //         // 1. 獲取相對於專案根目錄的路徑 (例如：booking/booking_flow.html?...)
+    //         const pathname = window.location.pathname;
+    //         let relativeToRootPath = (pathname.startsWith('/') ? pathname.substring(1) : pathname) + window.location.search; 
             
-            const encodedPath = encodeURIComponent(relativeToRootPath);
+    //         const encodedPath = encodeURIComponent(relativeToRootPath);
 
-            const LOGIN_PAGE_URL_FIXED = '../auth/login.html'; 
+    //         const LOGIN_PAGE_URL_FIXED = '../auth/login.html'; 
             
-            // 3. 賦值給按鈕的 href
-            loginButton.href = `${LOGIN_PAGE_URL_FIXED}?redirect=${encodedPath}`;
-        }
-    }
+    //         // 3. 賦值給按鈕的 href
+    //         loginButton.href = `${LOGIN_PAGE_URL_FIXED}?redirect=${encodedPath}`;
+    //     }
+    // }
 
-    // 步驟 0: 檢查登入狀態
-    const loginOverlay = document.getElementById('loginOverlay');
-    const mainContent = document.querySelector('main'); 
+    // // 步驟 0: 檢查登入狀態
+    // const loginOverlay = document.getElementById('loginOverlay');
+    // const mainContent = document.querySelector('main'); 
 
 
-    function checkLoginStatus() {
-        // 模擬登入狀態：檢查 localStorage 中是否有 'auth_token' 資料
-        const token = localStorage.getItem('auth_token');
-        if (!token) {
-            // 未登入處理：顯示圖層，隱藏主要內容
-            if (loginOverlay) {
-                loginOverlay.classList.remove('hidden');
-            }
-            if (mainContent) {
-                // 避免使用者看到被遮蓋的內容
-                mainContent.classList.add('hidden'); 
-            }
+    // function checkLoginStatus() {
+    //     // 模擬登入狀態：檢查 localStorage 中是否有 'auth_token' 資料
+    //     const token = localStorage.getItem('auth_token');
+    //     if (!token) {
+    //         // 未登入處理：顯示圖層，隱藏主要內容
+    //         if (loginOverlay) {
+    //             loginOverlay.classList.remove('hidden');
+    //         }
+    //         if (mainContent) {
+    //             // 避免使用者看到被遮蓋的內容
+    //             mainContent.classList.add('hidden'); 
+    //         }
             
-            // 阻止後續的訂票初始化流程
-            return false;
-        }
+    //         // 阻止後續的訂票初始化流程
+    //         return false;
+    //     }
 
-        // 已登入處理：確保圖層隱藏，主要內容顯示
-        if (loginOverlay) {
-            loginOverlay.classList.add('hidden');
-        }
-        if (mainContent) {
-            mainContent.classList.remove('hidden');
-        }
+    //     // 已登入處理：確保圖層隱藏，主要內容顯示
+    //     if (loginOverlay) {
+    //         loginOverlay.classList.add('hidden');
+    //     }
+    //     if (mainContent) {
+    //         mainContent.classList.remove('hidden');
+    //     }
         
-        return true;
-    }
+    //     return true;
+    // }
         // Mock Data for Step 2
         const MOCK_TICKETS = [
             // 單一票種限制：全票 8 張，學生票 4 張，愛心票 2 張，兒童票 4 張 (皆符合 "每個票種最多只能選八張" 的要求)
@@ -898,8 +898,11 @@
 
         // 頁面載入時，執行初始化
         window.onload = function() {
+            if (!checkLoginStatus()) {
+                return;
+            }
             renderUI(); // 確保登入/登出連結正確
-            setupLoginRedirectLink(); // 確保登入導向正確
+            //setupLoginRedirectLink(); // 確保登入導向正確
 
             if (!checkLoginStatus()) {
                 return;
