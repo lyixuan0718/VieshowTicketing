@@ -391,19 +391,22 @@
         function renderOrderCard(order) {
             // 決定按鈕文字
             let buttonText = '查看詳情';
-            // 按鈕樣式 (使用 pointer-events-none 確保 LI 接收點擊)
             let buttonClass = 'text-gray-500 bg-transparent border border-gray-400 hover:border-vieshow-red hover:text-vieshow-red'; 
             
+            // 只有未取消且待觀影的訂單才能修改
             if (order.status === 'Upcoming') {
-                 buttonText = '查看/修改/退票';
-                 buttonClass = 'bg-vieshow-red text-white font-bold';
+                buttonText = '查看/修改/退票';
+                buttonClass = 'bg-vieshow-red text-white font-bold';
+            } else if (order.status === 'Cancelled') {
+                buttonText = '查看詳情';
+                buttonClass = 'text-gray-500 bg-transparent border border-gray-400 hover:border-vieshow-red hover:text-vieshow-red'; 
             }
 
             return `
                 <li class="order-card-container list-none" data-order-id="${order.id}"> 
                     <div class="bg-white border border-gray-200 rounded-xl shadow-lg 
-                                 hover:shadow-xl hover:border-vieshow-red transition duration-300 overflow-hidden 
-                                 cursor-pointer p-5 flex flex-col md:flex-row justify-between items-start md:items-center">
+                                hover:shadow-xl hover:border-vieshow-red transition duration-300 overflow-hidden 
+                                cursor-pointer p-5 flex flex-col md:flex-row justify-between items-start md:items-center">
                         
                         <div class="flex-grow space-y-2">
                             <div class="flex items-center space-x-3">
@@ -426,7 +429,6 @@
                 </li>
             `;
         }
-
         /**
          * 重新掛載卡片容器的事件監聽器
          */
@@ -507,7 +509,6 @@
                     </button>
                 </div>
             ` : '';
-
 
             detailContainer.innerHTML = `
                 <div class="flex-col items-center justify-center max-w-3xl mx-auto">
@@ -791,7 +792,7 @@
         }
 
         /**
-         * 送出退票申請
+         * 送出退票申請 - 修正邏輯：支持部分退款
          */
         window.submitRefundApplication = function() {
             const bankCode = document.getElementById('bankCode').value;
@@ -803,19 +804,93 @@
                 return;
             }
             if (bankCode.length !== 3 || isNaN(bankCode)) {
-                 alert('銀行代碼必須是三碼數字！');
-                 return;
+                alert('銀行代碼必須是三碼數字！');
+                return;
             }
 
-
             if (currentBookingDetail) {
-                 // 模擬退票後的數據處理
-                 const index = orders.findIndex(o => o.id === currentBookingDetail.id);
-                 if (index !== -1) {
-                     // 簡易處理：將整張訂單標記為已取消
-                     orders[index].status = 'Cancelled'; 
-                     // 如果是部分退款，這裡需要更複雜的邏輯來更新 tickets/food 數量
-                 }
+                // 收集退票數量
+                const refundedItems = {
+                    tickets: [],
+                    food: []
+                };
+                
+                // 收集票券退票數量
+                document.querySelectorAll('#ticketAdjustments input[data-type="ticket"]').forEach(input => {
+                    const refundQty = parseInt(input.value) || 0;
+                    if (refundQty > 0) {
+                        refundedItems.tickets.push({
+                            name: input.dataset.name,
+                            price: parseInt(input.dataset.price) || 0,
+                            refundQty: refundQty
+                        });
+                    }
+                });
+
+                // 收集餐點退票數量
+                document.querySelectorAll('#comboAdjustments input[data-type="combo"]').forEach(input => {
+                    const refundQty = parseInt(input.value) || 0;
+                    if (refundQty > 0) {
+                        refundedItems.food.push({
+                            name: input.dataset.name,
+                            price: parseInt(input.dataset.price) || 0,
+                            refundQty: refundQty
+                        });
+                    }
+                });
+
+                // 更新訂單數據
+                const index = orders.findIndex(o => o.id === currentBookingDetail.id);
+                if (index !== -1) {
+                    const order = orders[index];
+                    let remainingTickets = 0;
+                    let remainingFood = 0;
+                    
+                    // 更新票券數量
+                    refundedItems.tickets.forEach(refundedTicket => {
+                        const ticket = order.tickets.find(t => t.name === refundedTicket.name);
+                        if (ticket) {
+                            ticket.qty -= refundedTicket.refundQty;
+                            if (ticket.qty < 0) ticket.qty = 0;
+                        }
+                    });
+                    
+                    // 更新餐點數量
+                    refundedItems.food.forEach(refundedFood => {
+                        const food = order.food.find(f => f.name === refundedFood.name);
+                        if (food) {
+                            food.qty -= refundedFood.refundQty;
+                            if (food.qty < 0) food.qty = 0;
+                        }
+                    });
+                    
+                    // 計算剩餘總數量
+                    order.tickets.forEach(t => remainingTickets += t.qty);
+                    order.food.forEach(f => remainingFood += f.qty);
+                    
+                    // 重新計算總金額
+                    let newTotal = 0;
+                    order.tickets.forEach(t => newTotal += t.price * t.qty);
+                    order.food.forEach(f => newTotal += f.price * f.qty);
+                    order.total = newTotal;
+                    
+                    // 只有在所有票券都退完時才標記為取消
+                    if (remainingTickets === 0) {
+                        order.status = 'Cancelled';
+                        // 清除座位資訊
+                        order.seats = [];
+                    } else {
+                        // 部分退款，保持待觀影狀態
+                        order.status = 'Upcoming';
+                        // 保留剩餘的座位（這裡簡化處理，實際應該根據退票數量調整座位）
+                        // 例如：如果退了1張票，應該從座位列表中移除一個座位
+                        // 這裡為了簡單，只保留原有座位，實際應用中需要更複雜的邏輯
+                    }
+                    
+                    // 清除數量為0的項目
+                    order.tickets = order.tickets.filter(t => t.qty > 0);
+                    order.food = order.food.filter(f => f.qty > 0);
+                }
             }
 
             document.getElementById('finalRefundAmount').textContent = currentRefund.toLocaleString();
@@ -825,7 +900,7 @@
             document.getElementById('step2').classList.add('hidden');
             document.getElementById('step3').classList.remove('hidden');
         }
-        
+                
         /**
          * 渲染分頁按鈕
          */
@@ -833,7 +908,7 @@
             const totalPages = Math.ceil(totalItems / itemsPerPage);
             const paginationContainer = document.getElementById('pagination');
             paginationContainer.innerHTML = '';
-            
+                    
             if (totalPages <= 1) return;
 
             for (let i = 1; i <= totalPages; i++) {
@@ -841,8 +916,8 @@
                 btn.textContent = i;
                 btn.className = `px-3 py-1 rounded-lg font-medium transition ${i === currentPage ? 'bg-vieshow-red text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`;
                 btn.onclick = () => {
-                    currentPage = i;
-                    renderOrders();
+                currentPage = i;
+                renderOrders();
                 };
                 paginationContainer.appendChild(btn);
             }
