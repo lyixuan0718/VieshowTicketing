@@ -381,7 +381,7 @@
     function loadBookingData() {
         const stored = localStorage.getItem("currentBooking");
         
-        // 嘗試讀取編輯流程的暫存資料（若存在，則此流程優先）
+        // 嘗試讀取編輯流程的暫存資料
         const pendingSeatsRaw = localStorage.getItem('editingPendingSeats');
         let pendingSeats = null;
 
@@ -389,11 +389,8 @@
             try {
                 pendingSeats = JSON.parse(pendingSeatsRaw);
                 if (pendingSeats && pendingSeats.newOrder) {
-                    // 如果有編輯暫存，則使用其 newOrder 作為 currentBooking 的基礎
                     currentBooking = pendingSeats.newOrder;
-                    // 同時更新 totalTickets 為期望的張數
                     totalTickets = Number(pendingSeats.desiredTicketCount) || Number(currentBooking.totalTicketQty) || 0;
-                    // 確保 currentBooking 反映最新的 totalTicketQty
                     currentBooking.totalTicketQty = totalTickets;
                 }
             } catch (e) {
@@ -403,6 +400,60 @@
         } else if (stored) {
             currentBooking = JSON.parse(stored);
             totalTickets = Number(currentBooking.totalTicketQty) || 0;
+            
+            // 🚨 **關鍵修正：檢查並轉換資料格式**
+            // 如果資料是從 showtimes_result.html 來的扁平格式
+            if (currentBooking.cinemaName && !currentBooking.cinema) {
+                console.log("📦 檢測到扁平格式資料，進行轉換...");
+                
+                // 嘗試從 showtimeDetail 解析日期和時間
+                let date = "", time = "", theater = "", type = "";
+                
+                if (currentBooking.showtimeDetail) {
+                    // 格式： "2025-11-30 13:30 A廳 (IMAX 2D)"
+                    const parts = currentBooking.showtimeDetail.split(" ");
+                    if (parts.length >= 4) {
+                        date = parts[0];
+                        time = parts[1];
+                        theater = parts[2];
+                        // 提取括號內的格式
+                        const formatMatch = currentBooking.showtimeDetail.match(/\((.*)\)/);
+                        type = formatMatch ? formatMatch[1] : currentBooking.format || "";
+                    } else if (parts.length >= 2) {
+                        // 簡化格式處理
+                        date = parts[0];
+                        time = parts[1];
+                        theater = currentBooking.theater || "";
+                        type = currentBooking.format || "";
+                    }
+                }
+                
+                // 轉換為巢狀格式
+                currentBooking = {
+                    ...currentBooking,
+                    cinema: { 
+                        name: currentBooking.cinemaName,
+                        id: currentBooking.cinemaId || currentBooking.cinemaName
+                    },
+                    movie: { 
+                        title: currentBooking.movieTitle,
+                        id: currentBooking.movieId || currentBooking.movieTitle
+                    },
+                    showtime: {
+                        date: date || currentBooking.date || "",
+                        time: time || currentBooking.time || "",
+                        theater: currentBooking.theater || theater,
+                        type: currentBooking.format || type,
+                        id: currentBooking.showtimeId || ""
+                    }
+                };
+                
+                console.log("📦 轉換後的資料:", currentBooking);
+                
+                // 儲存回 localStorage 以保持一致性
+                localStorage.setItem("currentBooking", JSON.stringify(currentBooking));
+            }
+            
         } else {
             // 如果沒有任何資料，導向第一步
             window.location.href = "booking_flow_1.html";
@@ -417,12 +468,14 @@
         }
 
         // **1. 場次確認 (統一使用巢狀結構)**
-        cinemaNameDisplay.textContent = currentBooking.cinema?.name || "未選擇";
-        movieTitleDisplay.textContent = currentBooking.movie?.title || "未選擇";
+        cinemaNameDisplay.textContent = currentBooking.cinema?.name || currentBooking.cinemaName || "未選擇";
+        movieTitleDisplay.textContent = currentBooking.movie?.title || currentBooking.movieTitle || "未選擇";
         
         if (currentBooking.showtime) {
             const showtime = currentBooking.showtime;
             showtimeDetailDisplay.textContent = `${showtime.date} ${showtime.time} ${showtime.theater} (${showtime.type})`;
+        } else if (currentBooking.showtimeDetail) {
+            showtimeDetailDisplay.textContent = currentBooking.showtimeDetail;
         } else {
             showtimeDetailDisplay.textContent = "未選擇";
         }
@@ -461,6 +514,7 @@
         // 2. 渲染座位地圖
         renderSeatMap();
     }
+
 
     function renderSeatMap() {
         const seatMap = document.getElementById("seatMap");
@@ -607,36 +661,58 @@
         console.log("🎯 Step3 已儲存座位選擇：", currentBooking);
 
         // 檢查是否為編輯流程 (保留邏輯，確保系統健壯性)
+        // 只有在明確是編輯流程時才跳轉到 booking_edit_payment.html
         const pendingSeatsRaw2 = localStorage.getItem('editingPendingSeats');
-        if (pendingSeatsRaw2) {
+        const editingOrderRaw = localStorage.getItem('editingOrder');
+
+        // 條件1: 兩者都必須存在才認為是編輯流程
+        // 條件2: 檢查是否有 orderId（編輯流程必須有）
+        if (pendingSeatsRaw2 && editingOrderRaw) {
             try {
                 const pendingSeatsObj = JSON.parse(pendingSeatsRaw2);
-                const previousTotal = Number(pendingSeatsObj.previousTotal || 0);
-                // 使用 currentBooking 中最新的 totalPrice
-                const newTotal = Number(currentBooking.totalPrice || 0);
-                const due = newTotal - previousTotal;
-
-                const pending = {
-                    orderId: pendingSeatsObj.orderId,
-                    previousTotal: previousTotal,
-                    // 傳遞完整更新後的 currentBooking
-                    newOrder: currentBooking, 
-                    dueAmount: due
-                };
-                localStorage.setItem('pendingModification', JSON.stringify(pending));
+                const editingOrder = JSON.parse(editingOrderRaw);
                 
-                // 清除暫存，導向結帳頁面
-                localStorage.removeItem('editingPendingSeats');
-                window.location.href = 'booking_edit_payment.html';
-                return;
+                // 確保有有效的 orderId 才認為是編輯流程
+                if (pendingSeatsObj.orderId && editingOrder.orderId) {
+                    console.log("🔧 檢測到有效的編輯流程，轉向編輯付款頁面");
+                    
+                    const previousTotal = Number(pendingSeatsObj.previousTotal || 0);
+                    const newTotal = Number(currentBooking.totalPrice || 0);
+                    const due = newTotal - previousTotal;
+
+                    const pending = {
+                        orderId: pendingSeatsObj.orderId,
+                        previousTotal: previousTotal,
+                        newOrder: currentBooking, 
+                        dueAmount: due
+                    };
+                    
+                    localStorage.setItem('pendingModification', JSON.stringify(pending));
+                    localStorage.removeItem('editingPendingSeats');
+                    
+                    window.location.href = 'booking_flow_4.html';
+                    return;
+                } else {
+                    console.log("⚠️ 編輯流程資料不完整，轉為正常流程");
+                    // 清除不完整的編輯資料
+                    localStorage.removeItem('editingPendingSeats');
+                    localStorage.removeItem('editingOrder');
+                }
             } catch (err) {
-                console.error('解析 editingPendingSeats 失敗，將轉入正常流程', err);
+                console.error('解析編輯流程資料失敗，轉為正常流程', err);
+                // 清除錯誤的編輯資料
+                localStorage.removeItem('editingPendingSeats');
+                localStorage.removeItem('editingOrder');
             }
+        } else {
+            // 正常流程，確保沒有殘留的編輯資料
+            if (pendingSeatsRaw2) localStorage.removeItem('editingPendingSeats');
+            if (editingOrderRaw) localStorage.removeItem('editingOrder');
         }
 
-        // 正常流程：前往 Step4
-        window.location.href = "booking_flow_4.html";
-    });
+                // 正常流程：前往 Step4
+                window.location.href = "booking_flow_4.html";
+            });
 
     window.onload = function() {
         renderUI(); // 渲染導航列
