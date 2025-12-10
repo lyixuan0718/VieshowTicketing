@@ -74,7 +74,7 @@
                 </div>
                 
                 <p class="pt-2 text-lg">
-                    <a href="../auth/forget_password.html" class="text-blue-600 hover:text-blue-800 hover:underline font-medium transition duration-200">
+                    <a href="../auth/forget_password.html" id="changePasswordLink" class="text-blue-600 hover:text-blue-800 hover:underline font-medium transition duration-200">
                         [修改密碼]
                     </a>
                 </p>
@@ -253,10 +253,22 @@
         // ----------------------------------------------------
         // 5. 初始化 (未變動)
         // ----------------------------------------------------
-
         document.addEventListener('DOMContentLoaded', () => {
             // 渲染導覽列 UI
             renderUI();
+            
+            // 【新增的邏輯：設置修改密碼的回跳網址】
+            const changePasswordLink = document.getElementById('changePasswordLink');
+            if (changePasswordLink) {
+                // 1. 取得當前網頁的完整路徑（確保包含所有參數）
+                const currentUrl = window.location.href; 
+                
+                // 2. 將當前網址進行編碼
+                const encodedUrl = encodeURIComponent(currentUrl);
+                
+                // 3. 組合新的 href 屬性：忘記密碼頁面?redirect=編碼後的當前網址
+                changePasswordLink.href = `../auth/forget_password.html?redirect=${encodedUrl}`;
+            }
         });
     </script>
     
